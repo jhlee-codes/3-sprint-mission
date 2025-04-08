@@ -70,12 +70,14 @@ public class channelMenu {
                         System.out.print("새로운 채널명 입력: ");
                         String newChNm = scanner.nextLine();
                         channelService.updateChannel(targetCh, newChNm);
+                        System.out.println("채널명 수정 ) "+ targetCh.getChannelName() +"로 수정되었습니다.");
                         break;
                     case 5:     // 채널 삭제
                         System.out.print("삭제할 채널 이름 입력: ");
                         targetChNm = scanner.nextLine();
                         targetCh = channelService.searchChannelByChannelName(targetChNm);
                         channelService.deleteChannel(targetCh.getId());
+                        System.out.println("채널 삭제 ) "+ targetCh.getChannelName() +" 삭제되었습니다.");
                         break;
                     case 0:     // 이전 메뉴
                         back = true;

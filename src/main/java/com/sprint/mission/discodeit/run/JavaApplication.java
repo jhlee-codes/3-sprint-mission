@@ -194,10 +194,7 @@ public class JavaApplication {
 
         // +) 유저 방 퇴장
         System.out.println("-------- 유저 방 퇴장  -----------");
-        channelService.leaveChannel(user1, ch1);     // 삭제한 채널 퇴장
-        channelService.leaveChannel(user1, ch2);    // 정상 퇴장
-        channelService.leaveChannel(user2, ch2);    // 탈퇴한 회원 퇴장
-        channelService.leaveChannel(user1, ch2);    // 해당 채널에 없는 유저 퇴장
+        channelService.leaveChannel(user1, ch2);
 
         // 전체 조회
         System.out.println("----------- 전체 조회 -----------");

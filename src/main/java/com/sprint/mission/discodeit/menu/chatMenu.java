@@ -27,7 +27,7 @@ public class chatMenu {
         User joinUser = null;
 
         // 채널 입장 로직
-        while (true) {
+        while (!back) {
             try {
                 System.out.println("\n[채널 입장이 필요합니다]");
                 // 입장할 유저 ID 입력
@@ -42,9 +42,11 @@ public class chatMenu {
 
                 // 채널 입장
                 channelService.enterChannel(joinUser, joinCh);
+                System.out.println("채널 입장 ) "+joinCh.getChannelName()+" 에 입장하였습니다.");
                 break;
             } catch (NoSuchElementException | IllegalArgumentException | IllegalStateException e) { // 예외 발생시
                 System.out.println(e.getMessage());
+                back = true;
             }
         }
 
@@ -84,6 +86,7 @@ public class chatMenu {
                         System.out.print("메시지 입력: ");
                         targetContent = scanner.nextLine();
                         messageService.createMessage(joinCh, joinUser, targetContent);
+                        System.out.println("메시지가 등록되었습니다.");
                         break;
                     case 2:     // 메시지 전체 조회
                         System.out.println("전체 메시지 조회: \n" + messageService.getMessages());
@@ -102,15 +105,18 @@ public class chatMenu {
                         System.out.print("새로운 메시지 입력: ");
                         String newContent = scanner.nextLine();
                         messageService.updateMessage(targetMsg, newContent);
+                        System.out.println("메시지 수정 ) "+ targetMsg.getMsgContent() + "로 수정되었습니다.");
                         break;
                     case 5:     // 메시지 삭제
                         System.out.print("삭제할 메시지 입력: ");
                         targetContent = scanner.nextLine();
                         targetMsg = messageService.searchContentByMessage(targetContent);
                         messageService.deleteMessage(targetMsg.getId());
+                        System.out.println("메시지 삭제 ) \"" + targetMsg.getMsgContent() +"\"가 삭제되었습니다.");
                         break;
                     case 6:     // 채널 퇴장
                         channelService.leaveChannel(joinUser, joinCh);
+                        System.out.println("채널 퇴장 ) "+joinCh.getChannelName()+"에서 퇴장하였습니다.");
                         back = true;
                         break;
                     case 0:     // 이전 메뉴
