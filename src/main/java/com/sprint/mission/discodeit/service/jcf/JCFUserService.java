@@ -23,16 +23,18 @@ public class JCFUserService implements UserService {
                 throw new IllegalArgumentException("이미 존재하는 ID입니다. 다른 ID를 입력해주세요.");
             }
         }
-        // 유저 생성
+        // 유저 생성 및 컬렉션에 추가
         User user = new User(userName, userId);
-        // 유저 컬렉션에 추가
         data.add(user);
         return user;
     }
 
     @Override
     public User getUser(UUID id) {
-        return data.stream().filter(user -> user.getId().equals(id)).findFirst().orElse(null);
+        return data.stream()
+                .filter(user -> user.getId().equals(id))
+                .findFirst()
+                .orElseThrow(() -> new NoSuchElementException("해당 ID의 유저가 존재하지 않습니다."));
     }
 
     @Override
@@ -63,7 +65,6 @@ public class JCFUserService implements UserService {
         if (targetUser == null || !data.contains(targetUser)) {
             throw new NoSuchElementException("존재하지 않는 유저입니다.");
         }
-
         // 유저 삭제시 채널, 메시지 상의 유저는 사라지지 않고 (탈퇴) 라고 표시
         // 유저 isActive값 설정 (false)
         targetUser.updateIsActive();

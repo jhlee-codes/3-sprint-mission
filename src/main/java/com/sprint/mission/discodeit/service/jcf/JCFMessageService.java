@@ -25,7 +25,6 @@ public class JCFMessageService implements MessageService {
         data.add(msg);
         // 채널의 메시지리스트에 메시지 추가
         sendChannel.updateMessageList(msg);
-        System.out.println("메시지 생성 ) \"" + msg.getMsgContent() + "\" 등록되었습니다.");
         return msg;
     }
 
@@ -36,7 +35,10 @@ public class JCFMessageService implements MessageService {
 
     @Override
     public Message getMessage(UUID id) {
-        return data.stream().filter(m -> m.getId().equals(id)).findFirst().orElse(null);
+        return data.stream()
+                .filter(m -> m.getId().equals(id))
+                .findFirst()
+                .orElseThrow(() -> new NoSuchElementException("해당 ID의 메시지가 존재하지 않습니다."));
     }
 
     @Override
@@ -53,13 +55,11 @@ public class JCFMessageService implements MessageService {
             }
         }
         return null;
-        // System.out.println("메시지 수정 ) \"" + beforeMsgContent +"\" -> \"" + msgContent + "\" 수정되었습니다.");
     }
 
     @Override
     public Message deleteMessage(UUID id) {
         Message targetMsg = getMessage(id);
-
         // 메시지 유효성 검증
         if (targetMsg == null || !data.contains(targetMsg)) {
             throw new NoSuchElementException("존재하지 않는 메시지이므로, 삭제가 불가합니다.");
@@ -70,7 +70,6 @@ public class JCFMessageService implements MessageService {
         // 메시지 삭제
         data.remove(targetMsg);
         return targetMsg;
-        // System.out.println("메시지 삭제 ) \"" + targetMsg.getMsgContent() + "\" 삭제되었습니다.");
     }
 
     @Override

@@ -23,9 +23,8 @@ public class JCFChannelService implements ChannelService {
                 throw new IllegalArgumentException("이미 존재하는 채널입니다. 다른 채널명을 입력해주세요.");
             }
         }
-        // 채널 생성
+        // 채널 생성 및 컬렉션에 추가
         Channel ch = new Channel(channelName);
-        // 채널 컬렉션에 추가
         data.add(ch);
         return ch;
     }
