@@ -14,12 +14,12 @@ public interface ChannelService {
     // 모두 읽기
     public List<Channel> getChannels();
     // 수정
-    public void updateChannel(Channel channel, String channelName);
+    public Channel updateChannel(Channel channel, String channelName);
     // 삭제
-    public void deleteChannel(UUID id);
+    public Channel deleteChannel(UUID id);
 
     // 채널 입장
-    public void enterChannel(User user, Channel channel);
+    public Channel enterChannel(User user, Channel channel);
     // 채널 퇴장
     public Channel leaveChannel(User user, Channel channel);
 

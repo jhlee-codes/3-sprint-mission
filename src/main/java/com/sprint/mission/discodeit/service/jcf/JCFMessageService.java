@@ -6,6 +6,7 @@ import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.service.MessageService;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.UUID;
 
 public class JCFMessageService implements MessageService {
@@ -20,10 +21,8 @@ public class JCFMessageService implements MessageService {
     public Message createMessage(Channel sendChannel, User sendUser, String msgContent) {
         // 메시지 생성
         Message msg = new Message(sendChannel, sendUser, msgContent);
-
         // 메시지 컬렉션에 추가
         data.add(msg);
-
         // 채널의 메시지리스트에 메시지 추가
         sendChannel.updateMessageList(msg);
         System.out.println("메시지 생성 ) \"" + msg.getMsgContent() + "\" 등록되었습니다.");
@@ -41,43 +40,37 @@ public class JCFMessageService implements MessageService {
     }
 
     @Override
-    public void updateMessage(Message msg, String msgContent) {
+    public Message updateMessage(Message msg, String msgContent) {
         // 메시지 유효성 검증
         if (msg == null || !data.contains(msg)) {
-            System.out.println("존재하지 않는 메시지므로, 수정이 불가합니다.");
-            return ;
+            throw new NoSuchElementException("존재하지 않는 메시지입니다.");
         }
-
-        String beforeMsgContent = msg.getMsgContent();
-
         // 메시지 내용 업데이트
         for (Message m : data) {
             if (m.getId().equals(msg.getId())) {
                 m.updateMsgContent(msgContent);
-                break;
+                return m;
             }
         }
-        System.out.println("메시지 수정 ) \"" + beforeMsgContent +"\" -> \"" + msgContent + "\" 수정되었습니다.");
+        return null;
+        // System.out.println("메시지 수정 ) \"" + beforeMsgContent +"\" -> \"" + msgContent + "\" 수정되었습니다.");
     }
 
     @Override
-    public void deleteMessage(UUID id) {
+    public Message deleteMessage(UUID id) {
         Message targetMsg = getMessage(id);
 
         // 메시지 유효성 검증
         if (targetMsg == null || !data.contains(targetMsg)) {
-            System.out.println("존재하지 않는 메시지므로, 삭제가 불가합니다.");
-            return ;
+            throw new NoSuchElementException("존재하지 않는 메시지이므로, 삭제가 불가합니다.");
         }
-
         Channel targetCh = targetMsg.getSendChannel();
-
         // 채널의 메시지리스트에서 해당 메시지 삭제
         targetCh.deleteMessageList(targetMsg);
-
         // 메시지 삭제
         data.remove(targetMsg);
-        System.out.println("메시지 삭제 ) \"" + targetMsg.getMsgContent() + "\" 삭제되었습니다.");
+        return targetMsg;
+        // System.out.println("메시지 삭제 ) \"" + targetMsg.getMsgContent() + "\" 삭제되었습니다.");
     }
 
     @Override
@@ -89,6 +82,6 @@ public class JCFMessageService implements MessageService {
                 return msg;
             }
         }
-        return null;
+        throw new NoSuchElementException("해당 내용의 메시지를 찾을 수 없습니다.");
     }
 }

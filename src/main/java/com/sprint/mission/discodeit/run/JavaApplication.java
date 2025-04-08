@@ -41,7 +41,8 @@ public class JavaApplication {
             System.out.println("1. 유저 관리");
             System.out.println("2. 채널 관리");
             System.out.println("3. 채팅 관리");
-            System.out.println("0. 종료");
+            System.out.println("0. 종료 ");
+            System.out.println("* 프로그램 종료 시, 하드코딩 데이터로 구현한 기능 실행 결과 확인 가능 ");
 
             while(true) {
                 System.out.print("> ");

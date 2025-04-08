@@ -15,9 +15,9 @@ public interface MessageService {
     // 읽기
     public Message getMessage(UUID id);
     // 수정
-    public void updateMessage(Message message, String msgContent);
+    public Message updateMessage(Message message, String msgContent);
     // 삭제
-    public void deleteMessage(UUID id);
+    public Message deleteMessage(UUID id);
 
     // 메시지 내용으로 검색
     public Message searchContentByMessage(String msgContent);

@@ -15,7 +15,7 @@ public interface UserService {
     // 수정
     public User updateUser(User user, String userName);
     // 삭제
-    public void deleteUser(UUID id);
+    public User deleteUser(UUID id);
 
     // 유저 ID로 검색
     public User searchUserByUserId(String userId);
