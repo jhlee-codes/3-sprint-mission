@@ -40,12 +40,12 @@ public class Message extends BaseEntity {
     @Override
     public String toString() {
         return "Message{" +
-                "msgId='" + getId() + '\'' +
-                ", msgContent='" + msgContent + '\'' + (isUpdated ? "(수정됨)" : "") +
+                "msgContent='" + msgContent + '\'' + (isUpdated ? "(수정됨)" : "") +
                 ", sendUser=" + sendUser.getUserName() + "("+ sendUser.getUserId() +")"+ (sendUser.getIsActive() ? "" : "(탈퇴)") +
                 ", sendChannel=" + (sendChannel != null ? sendChannel.getChannelName() : "null") +
-                ", createdAt=" + new SimpleDateFormat("yy/MM/dd HH:mm:ss.SSSS").format(getCreatedAt()) +
-                ", updatedAt=" + new SimpleDateFormat("yy/MM/dd HH:mm:ss.SSSS").format(getUpdatedAt()) +
+                ", createdAt=" + new SimpleDateFormat("yy/MM/dd HH:mm:ss").format(getCreatedAt()) +
+                ", updatedAt=" + new SimpleDateFormat("yy/MM/dd HH:mm:ss").format(getUpdatedAt()) +
+                ", id=" + getId() +
                 "}\n";
     }
 }

@@ -16,7 +16,7 @@ public class JCFUserService implements UserService {
 
     @Override
     public User createUser(String userName, String userId) {
-        // 중복 이름인 유저 생성 불가
+        // 중복 ID인 유저 생성 불가
         for (User user : data.values()) {
             if (user.getUserId().equals(userId)) {
                 throw new IllegalArgumentException("이미 존재하는 ID입니다. 다른 ID를 입력해주세요.");

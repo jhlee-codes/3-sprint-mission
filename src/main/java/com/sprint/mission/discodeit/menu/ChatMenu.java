@@ -22,12 +22,12 @@ public class ChatMenu {
     }
 
     public void run(Scanner scanner) {
-        boolean back = false;
+        boolean isBack = false;
         Channel joinCh = null;
         User joinUser = null;
 
         // 채널 입장 로직
-        while (!back) {
+        while (!isBack) {
             try {
                 System.out.println("\n[채널 입장이 필요합니다]");
                 // 입장할 유저 ID 입력
@@ -46,12 +46,12 @@ public class ChatMenu {
                 break;
             } catch (NoSuchElementException | IllegalArgumentException | IllegalStateException e) { // 예외 발생시
                 System.out.println(e.getMessage());
-                back = true;
+                isBack = true;
             }
         }
 
 
-        while (!back) {
+        while (!isBack) {
             int choice = 0;
             Message targetMsg;
             String targetContent;
@@ -117,10 +117,10 @@ public class ChatMenu {
                     case 6:     // 채널 퇴장
                         channelService.leaveChannel(joinUser, joinCh);
                         System.out.println("채널 퇴장 ) "+joinCh.getChannelName()+"에서 퇴장하였습니다.");
-                        back = true;
+                        isBack = true;
                         break;
                     case 0:     // 이전 메뉴
-                        back = true;
+                        isBack = true;
                         break;
                     default:
                         System.out.println("잘못된 선택입니다.");

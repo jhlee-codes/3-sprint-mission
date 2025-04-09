@@ -15,9 +15,9 @@ public class UserMenu {
     }
 
     public void run(Scanner scanner) {
-        boolean back = false;
+        boolean isBack = false;
 
-        while (!back) {
+        while (!isBack) {
             String targetUserId;
             User targetUser;
             int choice;
@@ -85,7 +85,7 @@ public class UserMenu {
                         System.out.println("유저 삭제 ) " +targetUser.getUserName() + "(" + targetUser.getUserId()+")가 삭제되었습니다.");
                         break;
                     case 0:     // 이전 메뉴
-                        back = true;
+                        isBack = true;
                         break;
                     default:
                         System.out.println("잘못된 선택입니다.");

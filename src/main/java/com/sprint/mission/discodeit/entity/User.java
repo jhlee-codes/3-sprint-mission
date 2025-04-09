@@ -62,8 +62,8 @@ public class User extends BaseEntity {
                 ", userId='" + userId + '\'' +
                 (isActive ? "" : "(탈퇴)") +
                 ", joinChannelList=" + joinChannelList.stream().map(Channel::getChannelName).toList() +
-                ", createdAt=" + new SimpleDateFormat("yy/MM/dd HH:mm:ss.SSSS").format(getCreatedAt()) +
-                ", updatedAt=" + new SimpleDateFormat("yy/MM/dd HH:mm:ss.SSSS").format(getUpdatedAt()) +
+                ", createdAt=" + new SimpleDateFormat("yy/MM/dd HH:mm:ss").format(getCreatedAt()) +
+                ", updatedAt=" + new SimpleDateFormat("yy/MM/dd HH:mm:ss").format(getUpdatedAt()) +
                 "}\n";
     }
 }

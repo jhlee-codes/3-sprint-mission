@@ -59,8 +59,8 @@ public class Channel extends BaseEntity {
                 ", channelName='" + channelName + '\'' +
                 ", messageList=" + messageList.stream().map( m -> m.getSendUser().getUserName()+ " : " + m.getMsgContent() + (m.getIsUpdated() ? "(수정됨)" : "")).toList() +
                 ", joinUserList=" +  joinUserList.stream().map(u -> u.getUserName() + (u.getIsActive() ? "" : "(탈퇴)")).toList() +
-                ", createdAt=" + new SimpleDateFormat("yy/MM/dd HH:mm:ss.SSSS").format(getCreatedAt())  +
-                ", updatedAt=" + new SimpleDateFormat("yy/MM/dd HH:mm:ss.SSSS").format(getUpdatedAt()) +
+                ", createdAt=" + new SimpleDateFormat("yy/MM/dd HH:mm:ss").format(getCreatedAt())  +
+                ", updatedAt=" + new SimpleDateFormat("yy/MM/dd HH:mm:ss").format(getUpdatedAt()) +
                 "}\n";
     }
 }

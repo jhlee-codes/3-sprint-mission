@@ -15,9 +15,9 @@ public class ChannelMenu {
     }
 
     public void run(Scanner scanner) {
-        boolean back = false;
+        boolean isBack = false;
 
-        while (!back) {
+        while (!isBack) {
             Channel targetCh;
             String targetChNm;
             int choice = 0;
@@ -80,7 +80,7 @@ public class ChannelMenu {
                         System.out.println("채널 삭제 ) "+ targetCh.getChannelName() +" 삭제되었습니다.");
                         break;
                     case 0:     // 이전 메뉴
-                        back = true;
+                        isBack = true;
                         break;
                     default:
                         System.out.println("잘못된 선택입니다.");

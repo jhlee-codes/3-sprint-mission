@@ -23,10 +23,10 @@ public class JavaApplication {
         ChannelService channelService = new JCFChannelService(new HashMap<>());
 
         // CASE 1. Scanner로 입력받아 각 기능 구현
-        boolean running = true;
+        boolean isRunning = true;
 
         try (Scanner scanner = new Scanner(System.in)) {
-            while (running) {
+            while (isRunning) {
                 int choice = 0;
                 UserMenu userMenu = new UserMenu(userService);
                 ChannelMenu channelMenu = new ChannelMenu(channelService);
@@ -61,7 +61,7 @@ public class JavaApplication {
                         chatMenu.run(scanner);
                         break;
                     case 0:
-                        running = false;
+                        isRunning = false;
                         System.out.println("프로그램을 종료합니다.");
                         break;
                     default:
