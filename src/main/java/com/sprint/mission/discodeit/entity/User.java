@@ -23,7 +23,7 @@ public class User extends BaseEntity {
 
     public void updateUserName(String userName) {
         this.userName = userName;
-        this.updatedUpdatedAt();
+        this.updateUpdatedAt();
     }
 
     public String getUserId() {
@@ -36,12 +36,12 @@ public class User extends BaseEntity {
 
     public void updateJoinChannelList(Channel joinChannel) {
         this.joinChannelList.add(joinChannel);
-        this.updatedUpdatedAt();
+        this.updateUpdatedAt();
     }
 
     public void deleteJoinChannelList(Channel joinChannel) {
         this.joinChannelList.remove(joinChannel);
-        this.updatedUpdatedAt();
+        this.updateUpdatedAt();
     }
 
     public boolean getIsActive() {
@@ -50,7 +50,7 @@ public class User extends BaseEntity {
 
     public void updateIsActive() {
         this.isActive = false;
-        this.updatedUpdatedAt();
+        this.updateUpdatedAt();
     }
 
 

@@ -21,7 +21,7 @@ public class Channel extends BaseEntity {
 
     public void updateChannelName(String channelName) {
         this.channelName = channelName;
-        this.updatedUpdatedAt();
+        this.updateUpdatedAt();
     }
 
     public List<Message> getMessageList() {
@@ -30,12 +30,12 @@ public class Channel extends BaseEntity {
 
     public void updateMessageList(Message message) {
         this.messageList.add(message);
-        this.updatedUpdatedAt();
+        this.updateUpdatedAt();
     }
 
     public void deleteMessageList(Message message) {
         this.messageList.remove(message);
-        this.updatedUpdatedAt();
+        this.updateUpdatedAt();
     }
 
     public List<User> getJoinUserList() {
@@ -44,12 +44,12 @@ public class Channel extends BaseEntity {
 
     public void updateJoinUserList(User user) {
         this.joinUserList.add(user);
-        this.updatedUpdatedAt();
+        this.updateUpdatedAt();
     }
 
     public void deleteJoinUserList(User user) {
         this.joinUserList.remove(user);
-        this.updatedUpdatedAt();
+        this.updateUpdatedAt();
     }
 
     @Override
