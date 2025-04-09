@@ -2,7 +2,6 @@ package com.sprint.mission.discodeit.menu;
 
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.service.ChannelService;
-import com.sprint.mission.discodeit.service.jcf.JCFChannelService;
 
 import java.util.NoSuchElementException;
 import java.util.Scanner;

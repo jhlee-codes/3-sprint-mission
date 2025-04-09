@@ -2,7 +2,6 @@ package com.sprint.mission.discodeit.menu;
 
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.service.UserService;
-import com.sprint.mission.discodeit.service.jcf.JCFUserService;
 
 import java.util.NoSuchElementException;
 import java.util.Scanner;

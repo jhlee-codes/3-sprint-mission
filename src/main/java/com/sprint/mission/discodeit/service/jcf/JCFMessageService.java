@@ -6,7 +6,6 @@ import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.service.MessageService;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class JCFMessageService implements MessageService {
 
