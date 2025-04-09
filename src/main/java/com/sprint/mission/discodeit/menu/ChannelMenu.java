@@ -1,16 +1,17 @@
 package com.sprint.mission.discodeit.menu;
 
 import com.sprint.mission.discodeit.entity.Channel;
+import com.sprint.mission.discodeit.service.ChannelService;
 import com.sprint.mission.discodeit.service.jcf.JCFChannelService;
 
 import java.util.NoSuchElementException;
 import java.util.Scanner;
 
-public class channelMenu {
+public class ChannelMenu {
 
-    private final JCFChannelService channelService;
+    private final ChannelService channelService;
 
-    public channelMenu(JCFChannelService channelService) {
+    public ChannelMenu(ChannelService channelService) {
         this.channelService = channelService;
     }
 

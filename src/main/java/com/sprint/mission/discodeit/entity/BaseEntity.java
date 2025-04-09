@@ -25,7 +25,7 @@ public class BaseEntity {
         return id;
     }
 
-    public void setUpdatedAt() {
+    public void updatedUpdatedAt() {
         this.updatedAt = System.currentTimeMillis();
     }
 }
