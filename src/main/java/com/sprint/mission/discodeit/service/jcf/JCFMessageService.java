@@ -5,15 +5,15 @@ import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.service.MessageService;
 
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class JCFMessageService implements MessageService {
 
-    private final List<Message> data;
+    // 데이터 타입 변경 (List-> Map)
+    private final Map<UUID, Message> data;
 
-    public JCFMessageService(List<Message> data) {
+    public JCFMessageService(Map<UUID, Message> data) {
         this.data = data;
     }
 
@@ -22,7 +22,7 @@ public class JCFMessageService implements MessageService {
         // 메시지 생성
         Message msg = new Message(sendChannel, sendUser, msgContent);
         // 메시지 컬렉션에 추가
-        data.add(msg);
+        data.put(msg.getId(), msg);
         // 채널의 메시지리스트에 메시지 추가
         sendChannel.updateMessageList(msg);
         return msg;
@@ -30,12 +30,12 @@ public class JCFMessageService implements MessageService {
 
     @Override
     public List<Message> getMessages() {
-        return data;
+        return new ArrayList<>(data.values());
     }
 
     @Override
     public Message getMessage(UUID id) {
-        return data.stream()
+        return data.values().stream()
                 .filter(m -> m.getId().equals(id))
                 .findFirst()
                 .orElseThrow(() -> new NoSuchElementException("해당 ID의 메시지가 존재하지 않습니다."));
@@ -44,11 +44,11 @@ public class JCFMessageService implements MessageService {
     @Override
     public Message updateMessage(Message msg, String msgContent) {
         // 메시지 유효성 검증
-        if (msg == null || !data.contains(msg)) {
+        if (msg == null || !data.containsValue(msg)) {
             throw new NoSuchElementException("존재하지 않는 메시지입니다.");
         }
         // 메시지 내용 업데이트
-        for (Message m : data) {
+        for (Message m : data.values()) {
             if (m.getId().equals(msg.getId())) {
                 m.updateMsgContent(msgContent);
                 return m;
@@ -61,14 +61,14 @@ public class JCFMessageService implements MessageService {
     public Message deleteMessage(UUID id) {
         Message targetMsg = getMessage(id);
         // 메시지 유효성 검증
-        if (targetMsg == null || !data.contains(targetMsg)) {
+        if (targetMsg == null || !data.containsValue(targetMsg)) {
             throw new NoSuchElementException("존재하지 않는 메시지이므로, 삭제가 불가합니다.");
         }
         Channel targetCh = targetMsg.getSendChannel();
         // 채널의 메시지리스트에서 해당 메시지 삭제
         targetCh.deleteMessageList(targetMsg);
         // 메시지 삭제
-        data.remove(targetMsg);
+        data.remove(id);
         return targetMsg;
     }
 
@@ -76,7 +76,7 @@ public class JCFMessageService implements MessageService {
     public Message searchContentByMessage(String msgContent) {
         // 검색 결과가 여러 개인 경우, 가장 먼저 등록된 메시지를 조회
         // data를 순회하며 메시지 내용으로 검색
-        for (Message msg : data) {
+        for (Message msg : data.values()) {
             if (msg.getMsgContent().equals(msgContent)) {
                 return msg;
             }

@@ -1,5 +1,6 @@
 package com.sprint.mission.discodeit.run;
 
+import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.menu.ChannelMenu;
 import com.sprint.mission.discodeit.menu.ChatMenu;
 import com.sprint.mission.discodeit.menu.UserMenu;
@@ -11,16 +12,18 @@ import com.sprint.mission.discodeit.service.jcf.JCFMessageService;
 import com.sprint.mission.discodeit.service.jcf.JCFUserService;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Scanner;
+import java.util.UUID;
 
 
 public class JavaApplication {
 
     public static void main(String[] args) {
 
-        UserService userService = new JCFUserService(new ArrayList<>());
-        MessageService messageService = new JCFMessageService(new ArrayList<>());
-        ChannelService channelService = new JCFChannelService(new ArrayList<>());
+        UserService userService = new JCFUserService(new HashMap<>());
+        MessageService messageService = new JCFMessageService(new HashMap<>());
+        ChannelService channelService = new JCFChannelService(new HashMap<>());
 
         // CASE 1. Scanner로 입력받아 각 기능 구현
         boolean running = true;
