@@ -1,5 +1,7 @@
 package com.sprint.mission.discodeit.entity;
 
+import org.w3c.dom.ls.LSOutput;
+
 import java.util.UUID;
 
 public class BaseEntity {
@@ -25,7 +27,7 @@ public class BaseEntity {
         return id;
     }
 
-    public void updateUpdatedAt() {
+    public void updateTimestamp() {
         this.updatedAt = System.currentTimeMillis();
     }
 }

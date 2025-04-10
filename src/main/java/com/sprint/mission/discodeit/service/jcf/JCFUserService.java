@@ -8,11 +8,7 @@ import java.util.*;
 
 public class JCFUserService implements UserService {
     // 데이터 타입 변경 (List-> Map)
-    private final Map<UUID, User> data;
-
-    public JCFUserService(Map<UUID, User> data) {
-        this.data = data;
-    }
+    private final Map<UUID, User> data = new HashMap<>();;
 
     @Override
     public User createUser(String userName, String userId) {

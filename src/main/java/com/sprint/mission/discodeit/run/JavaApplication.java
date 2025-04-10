@@ -18,9 +18,9 @@ public class JavaApplication {
 
     public static void main(String[] args) {
 
-        UserService userService = new JCFUserService(new HashMap<>());
-        MessageService messageService = new JCFMessageService(new HashMap<>());
-        ChannelService channelService = new JCFChannelService(new HashMap<>());
+        UserService userService = new JCFUserService();
+        MessageService messageService = new JCFMessageService();
+        ChannelService channelService = new JCFChannelService();
 
         // CASE 1. Scanner로 입력받아 각 기능 구현
         boolean isRunning = true;

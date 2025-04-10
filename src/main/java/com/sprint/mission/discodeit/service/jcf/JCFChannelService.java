@@ -8,11 +8,7 @@ import java.util.*;
 
 public class JCFChannelService implements ChannelService {
     // 데이터 타입 변경 (List-> Map)
-    private final Map<UUID, Channel> data;
-
-    public JCFChannelService(Map<UUID, Channel> data) {
-        this.data = data;
-    }
+    private final Map<UUID, Channel> data = new HashMap<>();
 
     @Override
     public Channel createChannel(String channelName) {

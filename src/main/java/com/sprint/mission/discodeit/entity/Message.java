@@ -34,7 +34,7 @@ public class Message extends BaseEntity {
     public void updateMsgContent(String msgContent) {
         this.msgContent = msgContent;
         this.isUpdated = true;
-        this.updateUpdatedAt();
+        this.updateTimestamp();
     }
 
     @Override

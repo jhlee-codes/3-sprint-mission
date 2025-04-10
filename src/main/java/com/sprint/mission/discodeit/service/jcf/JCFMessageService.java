@@ -8,13 +8,8 @@ import com.sprint.mission.discodeit.service.MessageService;
 import java.util.*;
 
 public class JCFMessageService implements MessageService {
-
     // 데이터 타입 변경 (List-> Map)
-    private final Map<UUID, Message> data;
-
-    public JCFMessageService(Map<UUID, Message> data) {
-        this.data = data;
-    }
+    private final Map<UUID, Message> data = new HashMap<>();;
 
     @Override
     public Message createMessage(Channel sendChannel, User sendUser, String msgContent) {
