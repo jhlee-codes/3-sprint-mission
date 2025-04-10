@@ -26,11 +26,13 @@ public class JCFChannelService implements ChannelService {
 
     @Override
     public Channel getChannel(UUID id) {
-        return data.values().stream()
-                .filter(ch -> ch.getId().equals(id))
-                .findFirst()
-                .orElseThrow(() -> new NoSuchElementException("해당 ID의 채널이 존재하지 않습니다."));
+        Channel ch = data.get(id);
+        if (ch == null) {
+            throw new NoSuchElementException("해당 ID의 채널이 존재하지 않습니다.");
+        }
+        return ch;
     }
+
 
     @Override
     public List<Channel> getChannels() {
@@ -39,25 +41,21 @@ public class JCFChannelService implements ChannelService {
 
     @Override
     public Channel updateChannel(Channel channel, String channelName) {
+        Channel ch = data.get(channel.getId());
         // 채널 유효성 체크
-        if (channel == null || !data.containsValue(channel)) {
+        if (ch == null) {
             throw new NoSuchElementException("존재하지 않는 채널이므로 수정이 불가합니다.");
         }
         // 채널 수정
-        for (Channel ch : data.values()) {
-            if (ch.getId().equals(channel.getId())) {
-                ch.updateChannelName(channelName);
-                return ch;
-            }
-        }
-        return null;
+        ch.updateChannelName(channelName);
+        return ch;
     }
 
     @Override
     public Channel deleteChannel(UUID id) {
-        Channel targetChannel = getChannel(id);
+        Channel targetChannel = data.get(id);
         // 채널 유효성 체크
-        if (targetChannel == null || !data.containsValue(targetChannel)) {
+        if (targetChannel == null) {
             throw new NoSuchElementException("존재하지 않는 채널이므로 삭제가 불가합니다.");
         }
         // 채널 컬렉션에서 삭제
@@ -71,8 +69,9 @@ public class JCFChannelService implements ChannelService {
 
     @Override
     public Channel enterChannel(User user, Channel joinChannel) {
-        // 채널/유저 유효성 체크
-        if (joinChannel == null || !data.containsValue(joinChannel)) {
+        // 채널/유저 유효성 체크\
+        Channel ch = data.get(joinChannel.getId());
+        if (ch == null) {
             throw new NoSuchElementException("존재하지 않는 채널이므로 입장이 불가합니다.");
         } else if (user == null) {
             throw new NoSuchElementException("존재하지 않는 유저이므로 입장이 불가합니다.");
@@ -80,18 +79,19 @@ public class JCFChannelService implements ChannelService {
         //유저의 참여중인 채널리스트에 채널 추가
         user.updateJoinChannelList(joinChannel);
         //채널의 유저리스트에 유저 추가
-        joinChannel.updateJoinUserList(user);
-        return joinChannel;
+        ch.updateJoinUserList(user);
+        return ch;
     }
 
     @Override
     public Channel leaveChannel(User user, Channel joinChannel) {
         // 채널/유저 유효성 체크
-        if (joinChannel == null || !data.containsValue(joinChannel)) {
+        Channel ch = data.get(joinChannel.getId());
+        if (ch == null) {
             throw new NoSuchElementException("존재하지 않는 채널이므로 퇴장이 불가합니다.");
         } else if (user == null) {
             throw new NoSuchElementException("존재하지 않는 유저이므로 퇴장이 불가합니다.");
-        } else if (!joinChannel.getJoinUserList().contains(user)) {
+        } else if (!ch.getJoinUserList().contains(user)) {
             throw new IllegalStateException("채널에 해당 유저가 없으므로 퇴장이 불가합니다.");
         } else if (!user.getIsActive()) {
             throw new IllegalArgumentException("탈퇴한 회원이므로 퇴장이 불가합니다.");
@@ -99,18 +99,16 @@ public class JCFChannelService implements ChannelService {
         // 유저의 참여중인 채널리스트에서 채널 제거
         user.deleteJoinChannelList(joinChannel);
         // 채널의 유저리스트에서 유저 제거
-        joinChannel.deleteJoinUserList(user);
-        return joinChannel;
+        ch.deleteJoinUserList(user);
+        return ch;
     }
 
     @Override
     public Channel searchChannelByChannelName(String channelName) {
         // data를 순회하며 채널명으로 검색
-        for (Channel ch : data.values()) {
-            if (ch.getChannelName().equals(channelName)) {
-                return ch;
-            }
-        }
-        throw new NoSuchElementException("해당 채널을 찾을 수 없습니다.");
+        return data.values().stream()
+                .filter(ch -> ch.getChannelName().equals(channelName))
+                .findFirst()
+                .orElseThrow(() -> new NoSuchElementException("해당 채널을 찾을 수 없습니다."));
     }
 }

@@ -26,10 +26,11 @@ public class JCFUserService implements UserService {
 
     @Override
     public User getUser(UUID id) {
-        return data.values().stream()
-                .filter(user -> user.getId().equals(id))
-                .findFirst()
-                .orElseThrow(() -> new NoSuchElementException("해당 ID의 유저가 존재하지 않습니다."));
+        User user = data.get(id);
+        if (user == null) {
+            throw new NoSuchElementException("해당 ID의 유저가 존재하지 않습니다.");
+        }
+        return user;
     }
 
     @Override
@@ -39,25 +40,21 @@ public class JCFUserService implements UserService {
 
     @Override
     public User updateUser(User user, String userName) {
+        User targetUser = data.get(user.getId());
         // 유저 유효성 체크
-        if (user == null || !data.containsValue(user)) {
+        if (targetUser == null) {
             throw new NoSuchElementException("존재하지 않는 유저이므로 수정이 불가합니다.");
         }
         // 유저 이름 수정
-        for (User u : data.values()) {
-            if (u.getId().equals(user.getId())) {
-                u.updateUserName(userName);
-                return u;
-            }
-        }
-        return null;
+        targetUser.updateUserName(userName);
+        return targetUser;
     }
 
     @Override
     public User deleteUser(UUID id) {
-        User targetUser = getUser(id);
+        User targetUser = data.get(id);
         // 유저 유효성 검증
-        if (targetUser == null || !data.containsValue(targetUser)) {
+        if (targetUser == null) {
             throw new NoSuchElementException("존재하지 않는 유저입니다.");
         }
         // 유저 삭제시 채널, 메시지 상의 유저는 사라지지 않고 (탈퇴) 라고 표시
@@ -71,12 +68,10 @@ public class JCFUserService implements UserService {
     @Override
     public User searchUserByUserId(String userId) {
         // data를 순회하며 유저 ID로 검색
-        for (User user : data.values()) {
-            if (user.getUserId().equals(userId)) {
-                return user;
-            }
-        }
-        throw new NoSuchElementException("해당 ID의 유저를 찾을 수 없습니다.");
+        return data.values().stream()
+                .filter(u->u.getUserId().equals(userId))
+                .findFirst()
+                .orElseThrow(()->new NoSuchElementException("해당 ID의 유저를 찾을 수 없습니다."));
     }
 
 }
