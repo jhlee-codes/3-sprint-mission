@@ -1,0 +1,75 @@
+package com.sprint.mission.discodeit.service.jcf;
+
+import com.sprint.mission.discodeit.entity.Channel;
+import com.sprint.mission.discodeit.entity.Message;
+import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.service.MessageService;
+
+import java.util.*;
+
+public class JCFMessageService implements MessageService {
+    // 데이터 타입 변경 (List-> Map)
+    private final Map<UUID, Message> data = new HashMap<>();
+
+    @Override
+    public Message createMessage(Channel sendChannel, User sendUser, String msgContent) {
+        // 메시지 생성
+        Message msg = new Message(sendChannel, sendUser, msgContent);
+        // 메시지 컬렉션에 추가
+        data.put(msg.getId(), msg);
+        // 채널의 메시지리스트에 메시지 추가
+        sendChannel.updateMessageList(msg);
+        return msg;
+    }
+
+    @Override
+    public List<Message> getMessages() {
+        return new ArrayList<>(data.values());
+    }
+
+    @Override
+    public Message getMessage(UUID id) {
+        Message msg = data.get(id);
+        if (msg == null) {
+            throw new NoSuchElementException("해당 ID의 메시지가 존재하지 않습니다.");
+        }
+        return msg;
+    }
+
+    @Override
+    public Message updateMessage(Message msg, String msgContent) {
+        Message targetMsg = data.get(msg.getId());
+        // 메시지 유효성 검증
+        if (targetMsg == null) {
+            throw new NoSuchElementException("존재하지 않는 메시지입니다.");
+        }
+        // 메시지 내용 업데이트\
+        targetMsg.updateMsgContent(msgContent);
+        return targetMsg;
+    }
+
+    @Override
+    public Message deleteMessage(UUID id) {
+        Message targetMsg = data.get(id);
+        // 메시지 유효성 검증
+        if (targetMsg == null) {
+            throw new NoSuchElementException("존재하지 않는 메시지이므로, 삭제가 불가합니다.");
+        }
+        Channel targetCh = targetMsg.getSendChannel();
+        // 채널의 메시지리스트에서 해당 메시지 삭제
+        targetCh.deleteMessageList(targetMsg);
+        // 메시지 삭제
+        data.remove(id);
+        return targetMsg;
+    }
+
+    @Override
+    public Message searchContentByMessage(String msgContent) {
+        // 검색 결과가 여러 개인 경우, 가장 먼저 등록된 메시지를 조회
+        // data를 순회하며 메시지 내용으로 검색
+        return data.values().stream()
+                .filter(m->m.getMsgContent().equals(msgContent))
+                .findFirst()
+                .orElseThrow(()->new NoSuchElementException("해당 내용의 메시지를 찾을 수 없습니다."));
+    }
+}
