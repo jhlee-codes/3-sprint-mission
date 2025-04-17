@@ -12,6 +12,9 @@ import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.repository.file.FileChannelRepository;
 import com.sprint.mission.discodeit.repository.file.FileMessageRepository;
 import com.sprint.mission.discodeit.repository.file.FileUserRepository;
+import com.sprint.mission.discodeit.repository.jcf.JCFChannelRepository;
+import com.sprint.mission.discodeit.repository.jcf.JCFMessageRepository;
+import com.sprint.mission.discodeit.repository.jcf.JCFUserRepository;
 import com.sprint.mission.discodeit.service.ChannelService;
 import com.sprint.mission.discodeit.service.ChatService;
 import com.sprint.mission.discodeit.service.MessageService;
@@ -36,10 +39,10 @@ public class JavaApplication2 {
         /* 스프린트 미션 2 구현 메서드 */
 
         // CASE 2. File*Service 구현체를 이용한 테스트
-        UserService userService = new FileUserService();
-        MessageService messageService = new FileMessageService();
-        ChannelService channelService = new FileChannelService();
-        ChatService chatService = new FileChatService(messageService,channelService,userService);
+//        UserService userService = new FileUserService();
+//        MessageService messageService = new FileMessageService();
+//        ChannelService channelService = new FileChannelService();
+//        ChatService chatService = new FileChatService(messageService,channelService,userService);
 
         // CASE 3. Basic*Service 구현체를 활용한 테스트
         // CASE 3-1. JCF*Repository 구현체를 활용한 테스트
@@ -48,14 +51,14 @@ public class JavaApplication2 {
 //        MessageRepository messageRepository = new JCFMessageRepository();
 
         // CASE 3-2. File*Repository 구현체를 활용한 테스트
-//        UserRepository userRepository = new FileUserRepository();
-//        ChannelRepository channelRepository = new FileChannelRepository();
-//        MessageRepository messageRepository = new FileMessageRepository();
+        UserRepository userRepository = new FileUserRepository();
+        ChannelRepository channelRepository = new FileChannelRepository();
+        MessageRepository messageRepository = new FileMessageRepository();
 
-//        UserService userService = new BasicUserService(userRepository);
-//        ChannelService channelService = new BasicChannelService(channelRepository);
-//        MessageService messageService = new BasicMessageService(messageRepository);
-//        ChatService chatService = new BasicChatService(channelService, messageService, userService);
+        UserService userService = new BasicUserService(userRepository);
+        ChannelService channelService = new BasicChannelService(channelRepository);
+        MessageService messageService = new BasicMessageService(messageRepository);
+        ChatService chatService = new BasicChatService(channelService, messageService, userService);
 
         boolean isRunning = true;
 
