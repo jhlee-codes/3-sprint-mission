@@ -15,6 +15,10 @@ public class JCFUserRepository implements UserRepository {
         this.data = new HashMap<>();
     }
 
+    public JCFUserRepository(Map<UUID, User> data) {
+        this.data = data;
+    }
+
     /**
      * 유저 데이터를 저장하는 메서드
      * JCF*Repository의 경우 메모리에 저장되어 있으므로 해당 메서드 구현하지 않음

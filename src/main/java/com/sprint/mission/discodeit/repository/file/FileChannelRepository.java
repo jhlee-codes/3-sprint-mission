@@ -66,6 +66,7 @@ public class FileChannelRepository implements ChannelRepository {
 
     /**
      * 파일에서 읽어온 채널 데이터를 역직렬화하여 로드하는 메서드
+     *
      * @return 저장된 채널 데이터
      * @throws RuntimeException 파일 역직렬화 중 예외가 발생한 경우
      */

@@ -20,8 +20,13 @@ public class FileUserRepository implements UserRepository {
         this.data = readAll();
     }
 
+    public FileUserRepository(Map<UUID, User> data) {
+        this.data = data;
+    }
+
     /**
      * 유저 데이터를 직렬화하여 파일에 저장하는 메서드
+     *
      * @throws RuntimeException
      */
     @Override
@@ -60,6 +65,7 @@ public class FileUserRepository implements UserRepository {
 
     /**
      * 파일에서 읽어온 유저 데이터를 역직렬화하여 로드하는 메서드
+     *
      * @return Map<UUID, User> 형태
      * @throws RuntimeException
      */

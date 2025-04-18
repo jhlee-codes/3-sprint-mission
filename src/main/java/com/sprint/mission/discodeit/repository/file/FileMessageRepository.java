@@ -20,6 +20,10 @@ public class FileMessageRepository implements MessageRepository {
         this.data = readAll();
     }
 
+    public FileMessageRepository(Map<UUID, Message> data) {
+        this.data = data;
+    }
+
     /**
      * 메시지 데이터를 직렬화하여 파일에 저장하는 메서드
      *
