@@ -4,7 +4,7 @@ import java.io.Serializable;
 import java.util.Objects;
 
 public class User extends BaseEntity implements Serializable {
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 4L;
 
     private String userName;        // 유저 이름
     private String loginId;          // 유저 ID (검색용 유니크값)

@@ -21,7 +21,7 @@ public class FileChatRepository implements ChatRepository {
     }
 
     /**
-     * 채팅 데이터를 직렬화하여 파일에 저장하는 메서드 
+     * 채팅 데이터를 직렬화하여 파일에 저장하는 메서드
      *
      * @throws RuntimeException 파일 생성/직렬화 중 예외가 발생한 경우
      */

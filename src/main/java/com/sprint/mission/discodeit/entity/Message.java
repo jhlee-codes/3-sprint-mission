@@ -5,7 +5,7 @@ import java.util.Objects;
 import java.util.UUID;
 
 public class Message extends BaseEntity implements Serializable {
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 3L;
 
     private String msgContent;  // 메시지 내용
     private UUID sendUserId;      // 송신자 id
