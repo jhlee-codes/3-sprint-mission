@@ -29,29 +29,28 @@ public class ChatMenu {
         Channel joinCh = null;
         User joinUser = null;
 
-        // 채널 입장 로직
+        // 로그인 & 채널 입장 로직
         while (!isBack) {
             try {
-                System.out.println("\n[채널 입장이 필요합니다]");
+                System.out.println("\n[로그인이 필요합니다]");
                 // 입장할 유저 ID 입력
                 System.out.print("사용자 ID 입력: ");
-                String userId = scanner.nextLine();
-                joinUser = userService.getUserByUserId(userId);
+                String logId = scanner.nextLine();
+                joinUser = userService.getUserByLoginId(logId);
 
                 // 입장할 채널 입력
                 System.out.print("입장할 채널 이름 입력: ");
                 String chNm = scanner.nextLine();
                 joinCh = channelService.getChannelByChannelName(chNm);
 
-                // 사용자가 채널에 이미 입장되어 있는지 확인
-                if (joinUser.getJoinChannelList().contains(joinCh)) {
-                    System.out.println("이미 입장한 채널이므로, 채팅 진행 메뉴로 이동합니다.");
-                } else {
-                    chatService.enterChannel(userId, chNm);
-                    System.out.println("채널 입장 ) "+joinCh.getChannelName()+" 에 입장하였습니다.");
-                }
+                chatService.enterChannel(joinUser.getId(), joinCh.getId());
+                System.out.println("채널 입장 ) "+joinCh.getChannelName()+" 에 입장하였습니다.");
+
                 break;
-            } catch (NoSuchElementException | IllegalArgumentException | IllegalStateException e) { // 예외 발생시
+            } catch (IllegalStateException e) { // 이미 해당 채널에 입장해있는 경우
+                System.out.println(e.getMessage());
+                break;
+            } catch (NoSuchElementException | IllegalArgumentException e) { // 예외 발생시
                 System.out.println(e.getMessage());
                 isBack = true;
             }
@@ -92,10 +91,10 @@ public class ChatMenu {
                     case 1:     // 메시지 생성
                         System.out.print("메시지 입력: ");
                         targetContent = scanner.nextLine();
-                        chatService.sendMessage(joinCh, joinUser, targetContent);
-                        System.out.println("메시지가 전송되었습니다.");
+                        messageService.createMessage(joinCh.getId(), joinUser.getId(), targetContent);
+                        System.out.println("메시지가 생성되었습니다.");
                         break;
-                    case 2:     // 메시지 전체 조회
+                    case 2:     // 메시지 전체 조회 (
                         System.out.println("전체 메시지 조회: \n" + messageService.getMessages());
                         break;
                     case 3:     // 메시지 단일 조회 (메시지 내용으로 조회)
@@ -111,18 +110,18 @@ public class ChatMenu {
 
                         System.out.print("새로운 메시지 입력: ");
                         String newContent = scanner.nextLine();
-                        messageService.updateMessage(targetMsg, newContent);
+                        messageService.updateMessage(targetMsg.getId(), newContent);
                         System.out.println("메시지 수정 ) "+ targetMsg.getMsgContent() + "로 수정되었습니다.");
                         break;
                     case 5:     // 메시지 삭제
                         System.out.print("삭제할 메시지 입력: ");
                         targetContent = scanner.nextLine();
                         targetMsg = messageService.getMessageByContent(targetContent);
-                        chatService.deleteMessageFromChannel(targetMsg.getId());
+                        messageService.deleteMessage(targetMsg.getId());
                         System.out.println("메시지가 삭제되었습니다.");
                         break;
                     case 6:     // 채널 퇴장
-                        chatService.leaveChannel(joinUser, joinCh);
+                        chatService.leaveChannel(joinUser.getId(), joinCh.getId());
                         System.out.println("채널 퇴장 ) "+joinCh.getChannelName()+"에서 퇴장하였습니다.");
                         isBack = true;
                         break;

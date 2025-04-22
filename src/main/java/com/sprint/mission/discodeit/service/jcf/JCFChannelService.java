@@ -45,13 +45,13 @@ public class JCFChannelService implements ChannelService {
     /**
      * 주어진 id에 해당하는 채널을 조회하는 메서드
      *
-     * @param id 조회할 채널의 ID
+     * @param channelId 조회할 채널의 ID
      * @return 조회된 채널
      * @throws NoSuchElementException 해당 ID의 채널이 존재하지 않는 경우
      */
     @Override
-    public Channel getChannelById(UUID id) {
-        Channel ch = data.get(id);
+    public Channel getChannelById(UUID channelId) {
+        Channel ch = data.get(channelId);
         if (ch == null) {
             throw new NoSuchElementException("해당 ID의 채널이 존재하지 않습니다.");
         }
@@ -74,17 +74,18 @@ public class JCFChannelService implements ChannelService {
                 .orElseThrow(() -> new NoSuchElementException("해당 채널을 찾을 수 없습니다."));
     }
 
+
     /**
      * 주어진 채널을 새로운 채널명으로 수정하는 메서드
      *
-     * @param channel 수정할 대상 채널
+     * @param channelId 수정할 대상 채널 ID
      * @param channelName 새로운 채널명
      * @return 수정된 채널
      * @throws NoSuchElementException 채널이 존재하지 않는 경우
      */
     @Override
-    public Channel updateChannel(Channel channel, String channelName) {
-        Channel ch = data.get(channel.getId());
+    public Channel updateChannel(UUID channelId, String channelName) {
+        Channel ch = data.get(channelId);
         // 채널 유효성 체크
         if (ch == null) {
             throw new NoSuchElementException("존재하지 않는 채널이므로 수정이 불가합니다.");
@@ -97,27 +98,20 @@ public class JCFChannelService implements ChannelService {
     /**
      * 주어진 id에 해당하는 채널을 삭제하는 메서드
      *
-     * @param id 삭제할 대상 채널 id
+     * @param channelId 삭제할 대상 채널 id
      * @return 삭제된 채널
      * @throws NoSuchElementException 해당 ID의 채널이 존재하지 않는 경우
      */
     @Override
-    public Channel deleteChannel(UUID id) {
-        Channel targetChannel = data.get(id);
+    public Channel deleteChannel(UUID channelId) {
+        Channel targetChannel = data.get(channelId);
         // 채널 유효성 체크
         if (targetChannel == null) {
             throw new NoSuchElementException("존재하지 않는 채널이므로 삭제가 불가합니다.");
         }
         // 채널 컬렉션에서 삭제
-        data.remove(id);
+        data.remove(channelId);
         return targetChannel;
     }
 
-    /**
-     * 채널 데이터를 저장하는 메서드
-     * JCF*Service의 경우 메모리에 저장되어 있으므로 해당 메서드 구현하지 않음
-     */
-    @Override
-    public void saveChannels() {
-    }
 }

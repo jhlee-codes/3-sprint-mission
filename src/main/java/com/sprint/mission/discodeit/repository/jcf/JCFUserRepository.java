@@ -20,14 +20,6 @@ public class JCFUserRepository implements UserRepository {
     }
 
     /**
-     * 유저 데이터를 저장하는 메서드
-     * JCF*Repository의 경우 메모리에 저장되어 있으므로 해당 메서드 구현하지 않음
-     */
-    @Override
-    public void saveAll() {
-    }
-
-    /**
      * 유저를 메모리에 저장하는 메서드
      *
      * @param user 저장할 유저
@@ -40,11 +32,11 @@ public class JCFUserRepository implements UserRepository {
     /**
      * 주어진 id에 해당하는 유저를 삭제하는 메서드
      *
-     * @param id 삭제할 대상 유저 id
+     * @param userId 삭제할 대상 유저 id
      */
     @Override
-    public void delete(UUID id) {
-        data.remove(id);
+    public void delete(UUID userId) {
+        data.remove(userId);
     }
 
     /**
@@ -52,31 +44,31 @@ public class JCFUserRepository implements UserRepository {
      *
      * @return 메모리에 저장된 유저데이터
      */
-    public Map<UUID, User> readAll() {
+    public Map<UUID, User> findAll() {
         return data;
     }
 
     /**
      * 주어진 id에 해당하는 유저를 조회하는 메서드
      *
-     * @param id 조회할 유저의 id
+     * @param userId 조회할 유저의 id
      * @return 조회된 유저
      */
     @Override
-    public Optional<User> readById(UUID id) {
-        return Optional.ofNullable(data.get(id));
+    public Optional<User> findById(UUID userId) {
+        return Optional.ofNullable(data.get(userId));
     }
 
     /**
      * 주어진 유저ID에 해당하는 유저를 조회하는 메서드
      *
-     * @param userId 조회할 유저ID
+     * @param loginId 조회할 유저ID
      * @return 조회된 유저
      */
     @Override
-    public Optional<User> readByUserId(String userId) {
+    public Optional<User> findByLoginId(String loginId) {
         return data.values().stream()
-                .filter(u->u.getUserId().equals(userId))
+                .filter(u->u.getLoginId().equals(loginId))
                 .findFirst();
     }
 }

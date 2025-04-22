@@ -17,7 +17,7 @@ public class FileChannelRepository implements ChannelRepository {
     private final Map<UUID, Channel> data;
 
     public FileChannelRepository() {
-        this.data = readAll();
+        this.data = findAll();
     }
 
     public FileChannelRepository(Map<UUID, Channel> data) {
@@ -29,7 +29,6 @@ public class FileChannelRepository implements ChannelRepository {
      *
      * @throws RuntimeException 파일 생성/직렬화 중 예외가 발생한 경우
      */
-    @Override
     public void saveAll() {
         try{
             Files.createDirectories(FILE_PATH.getParent());
@@ -56,11 +55,11 @@ public class FileChannelRepository implements ChannelRepository {
     /**
      * 주어진 id에 해당하는 채널을 삭제하는 메서드
      *
-     * @param id 삭제할 대상 채널 id
+     * @param channelId 삭제할 대상 채널 id
      */
     @Override
-    public void delete(UUID id) {
-        data.remove(id);
+    public void delete(UUID channelId) {
+        data.remove(channelId);
         saveAll();
     }
 
@@ -71,12 +70,11 @@ public class FileChannelRepository implements ChannelRepository {
      * @throws RuntimeException 파일 역직렬화 중 예외가 발생한 경우
      */
     @SuppressWarnings("unchecked")
-    public Map<UUID, Channel> readAll() {
+    public Map<UUID, Channel> findAll() {
         if (!Files.exists(FILE_PATH)) {
             return new HashMap<>();
         }
-        try(ObjectInputStream ois = new ObjectInputStream(new FileInputStream(FILE_PATH.toFile()))
-        ) {
+        try(ObjectInputStream ois = new ObjectInputStream(new FileInputStream(FILE_PATH.toFile()))) {
             return (Map<UUID, Channel>) ois.readObject();
         } catch (IOException | ClassNotFoundException e) {
             throw new RuntimeException("채널 데이터 파일을 읽는 중 오류가 발생하였습니다.");
@@ -86,12 +84,12 @@ public class FileChannelRepository implements ChannelRepository {
     /**
      * 주어진 id에 해당하는 채널을 조회하는 메서드
      *
-     * @param id 조회할 채널의 ID
+     * @param channelId 조회할 채널의 ID
      * @return 조회된 채널
      */
     @Override
-    public Optional<Channel> readById(UUID id) {
-        return Optional.ofNullable(data.get(id));
+    public Optional<Channel> findById(UUID channelId) {
+        return Optional.ofNullable(data.get(channelId));
     }
 
     /**
@@ -101,7 +99,7 @@ public class FileChannelRepository implements ChannelRepository {
      * @return 조회된 채널
      */
     @Override
-    public Optional<Channel> readByChannelName(String channelName) {
+    public Optional<Channel> findByChannelName(String channelName) {
         return data.values().stream()
                 .filter(ch -> ch.getChannelName().equals(channelName))
                 .findFirst();

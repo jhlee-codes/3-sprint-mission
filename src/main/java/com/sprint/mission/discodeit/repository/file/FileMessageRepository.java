@@ -17,7 +17,7 @@ public class FileMessageRepository implements MessageRepository {
     private final Map<UUID, Message> data;
 
     public FileMessageRepository() {
-        this.data = readAll();
+        this.data = findAll();
     }
 
     public FileMessageRepository(Map<UUID, Message> data) {
@@ -29,7 +29,6 @@ public class FileMessageRepository implements MessageRepository {
      *
      * @throws RuntimeException 파일 생성/직렬화 중 예외가 발생한 경우
      */
-    @Override
     public void saveAll() {
         try{
             Files.createDirectories(FILE_PATH.getParent());
@@ -59,7 +58,7 @@ public class FileMessageRepository implements MessageRepository {
      * @throws RuntimeException 파일 역직렬화 중 예외가 발생한 경우
      */
     @SuppressWarnings("unchecked")
-    public Map<UUID, Message> readAll() {
+    public Map<UUID, Message> findAll() {
         if (!Files.exists(FILE_PATH)) {
             return new HashMap<>();
         }
@@ -75,12 +74,12 @@ public class FileMessageRepository implements MessageRepository {
     /**
      * 주어진 id에 해당하는 메시지를 조회하는 메서드
      *
-     * @param id 조회할 메시지의 ID
+     * @param messageId 조회할 메시지의 ID
      * @return 조회된 메시지
      */
     @Override
-    public Optional<Message> readById(UUID id) {
-        return Optional.ofNullable(data.get(id));
+    public Optional<Message> findById(UUID messageId) {
+        return Optional.ofNullable(data.get(messageId));
     }
 
     /**
@@ -90,7 +89,7 @@ public class FileMessageRepository implements MessageRepository {
      * @return 조회된 메시지
      */
     @Override
-    public Optional<Message> readByMessageContent(String msgContent) {
+    public Optional<Message> findByMessageContent(String msgContent) {
         return data.values().stream()
                 .filter(m->m.getMsgContent().equals(msgContent))
                 .findFirst();

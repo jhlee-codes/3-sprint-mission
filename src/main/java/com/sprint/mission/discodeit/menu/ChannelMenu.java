@@ -53,6 +53,7 @@ public class ChannelMenu {
                     case 1:     // 채널 생성
                         System.out.print("채널 이름 입력: ");
                         targetChNm = scanner.nextLine();
+
                         targetCh = channelService.createChannel(targetChNm);
                         System.out.println("채널 생성 ) " + targetCh.getChannelName() + " 생성되었습니다.");
                         break;
@@ -62,24 +63,29 @@ public class ChannelMenu {
                     case 3:     // 채널 단일 조회 (채널명으로 조회)
                         System.out.print("조회할 채널 이름 입력: ");
                         targetChNm = scanner.nextLine();
+
                         targetCh = channelService.getChannelByChannelName(targetChNm);
                         System.out.println(targetCh);
                         break;
                     case 4:     // 채널 이름 수정
                         System.out.print("수정할 채널명 입력: ");
                         targetChNm = scanner.nextLine();
+
                         targetCh = channelService.getChannelByChannelName(targetChNm);
 
                         System.out.print("새로운 채널명 입력: ");
                         String newChNm = scanner.nextLine();
-                        channelService.updateChannel(targetCh, newChNm);
+
+                        channelService.updateChannel(targetCh.getId(), newChNm);
                         System.out.println("채널명 수정 ) "+ targetCh.getChannelName() +"로 수정되었습니다.");
                         break;
                     case 5:     // 채널 삭제
                         System.out.print("삭제할 채널 이름 입력: ");
                         targetChNm = scanner.nextLine();
+
                         targetCh = channelService.getChannelByChannelName(targetChNm);
-                        chatService.deleteChannelFromUsers(targetCh.getId());
+
+                        channelService.deleteChannel(targetCh.getId());
                         System.out.println("채널 삭제 ) "+ targetCh.getChannelName() +" 삭제되었습니다.");
                         break;
                     case 0:     // 이전 메뉴

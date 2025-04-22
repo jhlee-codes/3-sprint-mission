@@ -1,31 +1,36 @@
 package com.sprint.mission.discodeit.entity;
 
 import java.io.Serializable;
-import java.text.SimpleDateFormat;
 import java.util.Objects;
+import java.util.UUID;
 
 public class Message extends BaseEntity implements Serializable {
     private static final long serialVersionUID = 1L;
+
     private String msgContent;  // 메시지 내용
-    private User sendUser;      // 작성자
-    private Channel sendChannel;    // 작성 채널
+    private UUID sendUserId;      // 송신자 id
+    private UUID channelId;    // 채널 id
     private boolean isUpdated;  // 메시지 수정 여부
     private boolean isDeleted;  // 메시지 삭제 여부
 
-    public Message(Channel sendChannel, User sendUser, String msgContent) {
+    public Message() {
+    }
+
+    public Message(UUID channelId, UUID sendUserId, String msgContent) {
         this.msgContent = msgContent;
-        this.sendUser = sendUser;
-        this.sendChannel = sendChannel;
+        this.sendUserId = sendUserId;
+        this.channelId = channelId;
         this.isUpdated = false;
         this.isDeleted = false;
     }
 
-    public Channel getSendChannel() {
-        return sendChannel;
+
+    public UUID getSendUserId() {
+        return sendUserId;
     }
 
-    public User getSendUser() {
-        return sendUser;
+    public UUID getChannelId() {
+        return channelId;
     }
 
     public String getMsgContent() {
@@ -54,13 +59,12 @@ public class Message extends BaseEntity implements Serializable {
     @Override
     public String toString() {
         return "Message{" +
-                "msgContent='" + msgContent + '\'' + (isUpdated ? "(수정됨)" : "") + (isDeleted ? "(삭제된 메세지입니다.)" : "") +
-                ", sendUser=" + sendUser.getUserName() + "("+ sendUser.getUserId() +")"+ (sendUser.getIsActive() ? "" : "(탈퇴)") +
-                ", sendChannel=" + (sendChannel != null ? sendChannel.getChannelName() : "null") +
-                ", createdAt=" + new SimpleDateFormat("yy/MM/dd HH:mm:ss").format(getCreatedAt()) +
-                ", updatedAt=" + new SimpleDateFormat("yy/MM/dd HH:mm:ss").format(getUpdatedAt()) +
-                ", id=" + getId() +
-                "}\n";
+                "msgContent='" + msgContent + '\'' +
+                (isUpdated ? "(수정됨)" : "") +
+                (isDeleted ? "--삭제된 메세지입니다.--" : "") +
+                ", senderId=" + sendUserId +
+                ", channelId=" + channelId +
+                "} " + super.toString();
     }
 
     @Override

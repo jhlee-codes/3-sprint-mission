@@ -17,7 +17,6 @@ public class BaseEntity implements Serializable {
     }
 
 
-
     public Long getUpdatedAt() {
         return updatedAt;
     }

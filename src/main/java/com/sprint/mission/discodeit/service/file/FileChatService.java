@@ -1,16 +1,23 @@
 package com.sprint.mission.discodeit.service.file;
 
 import com.sprint.mission.discodeit.entity.Channel;
-import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.service.ChannelService;
 import com.sprint.mission.discodeit.service.ChatService;
 import com.sprint.mission.discodeit.service.MessageService;
 import com.sprint.mission.discodeit.service.UserService;
 
-import java.util.UUID;
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.*;
 
 public class FileChatService implements ChatService {
+    private static final Path FILE_PATH = Paths.get("data/chat.ser");
+
+    private final Map<UUID, Set<UUID>> data = getUserChannelMap();
+
     private final MessageService messageService;
     private final ChannelService channelService;
     private final UserService userService;
@@ -22,105 +29,87 @@ public class FileChatService implements ChatService {
     }
 
     /**
+     * 파일에서 읽어온 채팅 데이터를 역직렬화하여 로드하는 메서드
+     *
+     * @return 파일에 저장된 채팅 데이터
+     * @throws RuntimeException 파일 역직렬화 중 예외가 발생한 경우
+     */
+    public Map<UUID, Set<UUID>> getUserChannelMap() {
+        if (!Files.exists(FILE_PATH)) {
+            return new HashMap<>();
+        }
+        try(ObjectInputStream ois = new ObjectInputStream(new FileInputStream(FILE_PATH.toFile()))
+        ) {
+            return (Map<UUID, Set<UUID>>) ois.readObject();
+        } catch (IOException | ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
      * 유저가 주어진 채널에 입장되도록 처리하는 메서드
      *
      * @param userId 입장할 유저ID
-     * @param channelName 입장할 채널명
-     * @return 입장 처리된 채널
-     * @throws IllegalStateException 유저가 이미 해당 채널에 입장해있는 경우
+     * @param channelId 입장할 채널ID
      */
     @Override
-    public Channel enterChannel(String userId, String channelName) {
+    public void enterChannel(UUID userId, UUID channelId) {
         // 채널/유저 유효성 체크
-        Channel ch = channelService.getChannelByChannelName(channelName);
-        User targetUser = userService.getUserByUserId(userId);
+        Channel ch = channelService.getChannelById(channelId);
+        User targetUser = userService.getUserById(userId);
         // 유저가 이미 해당 채널에 입장해있는 경우
-        if (targetUser.getJoinChannelList().contains(ch)) {
+        if (data.containsKey(userId) && data.get(userId).contains(channelId)) {
             throw new IllegalStateException("이미 해당 채널에 입장해있습니다.");
         }
-        //유저의 참여중인 채널리스트에 채널 추가, 채널의 유저리스트에 유저 추가
-        targetUser.updateJoinChannelList(ch);
-        ch.updateJoinUserList(targetUser);
-        // 파일에 저장
-        channelService.saveChannels();
-        userService.saveUsers();
-        return ch;
+
+        // 유저의 채널목록 가져와서 추가
+        data.computeIfAbsent(userId, k -> new HashSet<>()).add(channelId);
+        saveUserChannelMap();
     }
 
     /**
      * 유저가 주어진 채널에서 퇴장하도록 처리하는 메서드
      *
-     * @param user 퇴장할 유저
-     * @param joinChannel 퇴장할 채널
-     * @return 퇴장 처리된 채널
-     * @throws IllegalStateException 유저가 해당 채널에 없는 경우
-     * @throws IllegalArgumentException 유저가 탈퇴한 상태인 경우
+     * @param userId 퇴장할 유저ID
+     * @param channelId 퇴장할 채널ID
+     * @
      */
     @Override
-    public Channel leaveChannel(User user, Channel joinChannel) {
+    public void leaveChannel(UUID userId, UUID channelId) {
         // 채널/유저 유효성 체크
-        Channel ch = channelService.getChannelById(joinChannel.getId());
-        User joinUser = userService.getUserById(user.getId());
+        Channel ch = channelService.getChannelById(channelId);
+        User joinUser = userService.getUserById(userId);
 
-        if (!ch.getJoinUserList().contains(joinUser)) {
-            throw new IllegalStateException("채널에 해당 유저가 없으므로 퇴장이 불가합니다.");
-        } else if (!joinUser.getIsActive()) {
+        Set<UUID> channelList = data.get(userId);
+
+        if (!joinUser.getIsActive()) {
             throw new IllegalArgumentException("탈퇴한 회원이므로 퇴장이 불가합니다.");
         }
-        // 유저의 참여중인 채널리스트에서 채널 제거, 채널의 유저리스트에서 유저 제거
-        joinUser.deleteJoinChannelList(joinChannel);
-        ch.deleteJoinUserList(joinUser);
-        // 파일에 저장
-        channelService.saveChannels();
-        userService.saveUsers();
-        return ch;
-    }
 
-    /**
-     * 메시지를 전송처리 하는 메서드
-     *
-     * @param sendChannel 전송하는 채널
-     * @param sendUser 전송하는 유저
-     * @param msgContent 전송하는 메시지 내용
-     * @return 전송된 메시지
-     */
-    @Override
-    public Message sendMessage(Channel sendChannel, User sendUser, String msgContent) {
-        Message sendMessage = messageService.createMessage(sendChannel, sendUser, msgContent);
-        // 채널의 메시지리스트에 메시지 추가
-        sendChannel.updateMessageList(sendMessage);
-        // 파일에 저장
-        channelService.saveChannels();
-        return sendMessage;
-    }
-
-    /**
-     * 유저의 채널리스트로부터 채널을 삭제처리하는 메서드
-     *
-     * @param id 삭제처리할 채널 id
-     * @return 삭제된 채널
-     */
-    @Override
-    public Channel deleteChannelFromUsers(UUID id) {
-        Channel deletedChannel = channelService.deleteChannel(id);
-        // 유저의 채널리스트에서 채널 삭제
-        for (User user : deletedChannel.getJoinUserList()) {
-            user.deleteJoinChannelList(deletedChannel);
+        if (channelList != null) {
+            channelList.remove(channelId);
+            if (channelList.isEmpty()) {
+                data.remove(userId);
+            }
         }
-        // 파일에 저장
-        userService.saveUsers();
-        return deletedChannel;
+        saveUserChannelMap();
     }
 
     /**
-     * 채널의 메시지리스트로부터 메시지를 삭제처리하는 메서드
+     * 채팅 데이터를 직렬화하여 파일에 저장하는 메서드
      *
-     * @param id 삭제처리할 메시지 id
+     * @throws RuntimeException 파일 생성/직렬화 중 예외가 발생한 경우
      */
-    @Override
-    public void deleteMessageFromChannel(UUID id) {
-        Message deleteMessage = messageService.deleteMessage(id);
-        // 채널에 삭제된 메시지가 포함된 데이터 저장
-        channelService.saveChannels();
+    public void saveUserChannelMap() {
+        try{
+            Files.createDirectories(FILE_PATH.getParent());
+            try(ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(FILE_PATH.toFile()))){
+                oos.writeObject(data);
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
+
+
 }

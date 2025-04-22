@@ -17,7 +17,7 @@ public class FileUserRepository implements UserRepository {
     private final Map<UUID, User> data;
 
     public FileUserRepository() {
-        this.data = readAll();
+        this.data = findAll();
     }
 
     public FileUserRepository(Map<UUID, User> data) {
@@ -29,7 +29,6 @@ public class FileUserRepository implements UserRepository {
      *
      * @throws RuntimeException
      */
-    @Override
     public void saveAll() {
         try{
             Files.createDirectories(FILE_PATH.getParent());
@@ -70,7 +69,7 @@ public class FileUserRepository implements UserRepository {
      * @throws RuntimeException
      */
     @SuppressWarnings("unchecked")
-    public Map<UUID, User> readAll() {
+    public Map<UUID, User> findAll() {
         if (!Files.exists(FILE_PATH)) {
             return new HashMap<>();
         }
@@ -85,24 +84,24 @@ public class FileUserRepository implements UserRepository {
     /**
      * 주어진 id에 해당하는 유저를 조회하는 메서드
      *
-     * @param id 조회할 유저의 id
+     * @param userId 조회할 유저의 id
      * @return 조회된 유저
      */
     @Override
-    public Optional<User> readById(UUID id) {
-        return Optional.ofNullable(data.get(id));
+    public Optional<User> findById(UUID userId) {
+        return Optional.ofNullable(data.get(userId));
     }
 
     /**
      * 주어진 유저ID에 해당하는 유저를 조회하는 메서드
      *
-     * @param userId 조회할 유저ID
+     * @param loginId 조회할 유저ID
      * @return 조회된 유저
      */
     @Override
-    public Optional<User> readByUserId(String userId) {
+    public Optional<User> findByLoginId(String loginId) {
         return data.values().stream()
-                .filter(u->u.getUserId().equals(userId))
+                .filter(u->u.getLoginId().equals(loginId))
                 .findFirst();
     }
 }

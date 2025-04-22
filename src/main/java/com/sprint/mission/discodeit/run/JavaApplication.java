@@ -21,6 +21,7 @@ public class JavaApplication {
         /* 스프린트 미션 1 구현 메서드 */
 
         // CASE 1. JCF*Service 구현체를 이용한 테스트
+
         UserService userService = new JCFUserService();
         MessageService messageService = new JCFMessageService();
         ChannelService channelService = new JCFChannelService();
@@ -33,7 +34,7 @@ public class JavaApplication {
                 int choice = 0;
                 UserMenu userMenu = new UserMenu(userService);
                 ChannelMenu channelMenu = new ChannelMenu(channelService, chatService);
-                ChatMenu chatMenu = new ChatMenu(userService, channelService, messageService, chatService);
+                ChatMenu chatMenu = new ChatMenu(userService,channelService, messageService, chatService);
 
                 System.out.println("========= 디스코드잇 =========");
                 System.out.println("1. 유저 관리");

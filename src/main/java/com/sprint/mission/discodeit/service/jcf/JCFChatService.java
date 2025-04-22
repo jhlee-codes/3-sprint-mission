@@ -1,16 +1,18 @@
 package com.sprint.mission.discodeit.service.jcf;
 
 import com.sprint.mission.discodeit.entity.Channel;
-import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.service.ChannelService;
 import com.sprint.mission.discodeit.service.ChatService;
 import com.sprint.mission.discodeit.service.MessageService;
 import com.sprint.mission.discodeit.service.UserService;
 
-import java.util.UUID;
+import java.util.*;
 
 public class JCFChatService implements ChatService {
+
+    private final Map<UUID, Set<UUID>> data = new HashMap<>();
+
     private final MessageService messageService;
     private final ChannelService channelService;
     private final UserService userService;
@@ -22,94 +24,55 @@ public class JCFChatService implements ChatService {
     }
 
     /**
+     * 메모리에 저장되어있는 채팅 데이터를 리턴하는 메서드
+     *
+     * @return 메모리에 저장된 채팅 데이터
+     */
+    @Override
+    public Map<UUID, Set<UUID>> getUserChannelMap() {
+        return data;
+    }
+
+    /**
      * 유저가 주어진 채널에 입장되도록 처리하는 메서드
      *
      * @param userId 입장할 유저ID
-     * @param channelName 입장할 채널명
-     * @return 입장 처리된 채널
-     * @throws IllegalStateException 유저가 이미 해당 채널에 입장해있는 경우
+     * @param channelId 입장할 채널ID
      */
     @Override
-    public Channel enterChannel(String userId, String channelName) {
+    public void enterChannel(UUID userId, UUID channelId) {
         // 채널/유저 유효성 체크
-        Channel ch = channelService.getChannelByChannelName(channelName);
-        User targetUser = userService.getUserByUserId(userId);
-        // 유저가 이미 해당 채널에 입장해있는 경우
-        if (targetUser.getJoinChannelList().contains(ch)) {
-            throw new IllegalStateException("이미 해당 채널에 입장해있습니다.");
-        }
-        //유저의 참여중인 채널리스트에 채널 추가, 채널의 유저리스트에 유저 추가
-        targetUser.updateJoinChannelList(ch);
-        ch.updateJoinUserList(targetUser);
-        return ch;
+        Channel ch = channelService.getChannelById(channelId);
+        User targetUser = userService.getUserById(userId);
+        // 유저의 채널목록 가져와서 추가
+        data.computeIfAbsent(userId, k -> new HashSet<>()).add(channelId);
     }
 
     /**
      * 유저가 주어진 채널에서 퇴장하도록 처리하는 메서드
      *
-     * @param user 퇴장할 유저
-     * @param joinChannel 퇴장할 채널
-     * @return 퇴장 처리된 채널
-     * @throws IllegalStateException 유저가 해당 채널에 없는 경우
-     * @throws IllegalArgumentException 유저가 탈퇴한 상태인 경우
+     * @param userId 퇴장할 유저ID
+     * @param channelId 퇴장할 채널ID
+     * @
      */
     @Override
-    public Channel leaveChannel(User user, Channel joinChannel) {
+    public void leaveChannel(UUID userId, UUID channelId) {
         // 채널/유저 유효성 체크
-        Channel ch = channelService.getChannelById(joinChannel.getId());
-        User joinUser = userService.getUserById(user.getId());
+        Channel ch = channelService.getChannelById(channelId);
+        User joinUser = userService.getUserById(userId);
 
-        if (!ch.getJoinUserList().contains(joinUser)) {
-            throw new IllegalStateException("채널에 해당 유저가 없으므로 퇴장이 불가합니다.");
-        } else if (!joinUser.getIsActive()) {
+        Set<UUID> channelList = data.get(userId);
+
+        if (!joinUser.getIsActive()) {
             throw new IllegalArgumentException("탈퇴한 회원이므로 퇴장이 불가합니다.");
         }
-        // 유저의 참여중인 채널리스트에서 채널 제거, 채널의 유저리스트에서 유저 제거
-        joinUser.deleteJoinChannelList(joinChannel);
-        ch.deleteJoinUserList(joinUser);
-        return ch;
-    }
 
-    /**
-     * 메시지를 전송처리 하는 메서드
-     *
-     * @param sendChannel 전송하는 채널
-     * @param sendUser 전송하는 유저
-     * @param msgContent 전송하는 메시지 내용
-     * @return 전송된 메시지
-     */
-    @Override
-    public Message sendMessage(Channel sendChannel, User sendUser, String msgContent) {
-        Message sendMessage = messageService.createMessage(sendChannel, sendUser, msgContent);
-        // 채널의 메시지리스트에 메시지 추가
-        sendChannel.updateMessageList(sendMessage);
-        return sendMessage;
-    }
-
-    /**
-     * 유저의 채널리스트로부터 채널을 삭제처리하는 메서드
-     *
-     * @param id 삭제처리할 메시지 id
-     * @return 삭제된 메시지
-     */
-    @Override
-    public Channel deleteChannelFromUsers(UUID id) {
-        Channel deletedChannel = channelService.deleteChannel(id);
-        // 유저의 채널리스트에서 채널 삭제
-        for (User user : deletedChannel.getJoinUserList()) {
-            user.deleteJoinChannelList(deletedChannel);
+        if (channelList != null) {
+            channelList.remove(channelId);
+            if (channelList.isEmpty()) {
+                data.remove(userId);
+            }
         }
-        return deletedChannel;
     }
 
-    /**
-     * 채널의 메시지리스트로부터 메시지를 삭제처리하는 메서드
-     *
-     * @param id 삭제처리할 메시지 id
-     * @return 삭제된 메시지
-     */
-    @Override
-    public void deleteMessageFromChannel(UUID id) {
-        Message deleteMessage = messageService.deleteMessage(id);
-    }
 }

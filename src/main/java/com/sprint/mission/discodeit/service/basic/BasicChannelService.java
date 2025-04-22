@@ -24,7 +24,7 @@ public class BasicChannelService implements ChannelService {
      */
     @Override
     public Channel createChannel(String channelName) {
-        if (channelRepository.readByChannelName(channelName).isPresent()) {
+        if (channelRepository.findByChannelName(channelName).isPresent()) {
             throw new IllegalArgumentException("이미 존재하는 채널입니다. 다른 채널명을 입력해주세요.");
         };
         // 채널 생성
@@ -40,19 +40,19 @@ public class BasicChannelService implements ChannelService {
      */
     @Override
     public Map<UUID, Channel> getChannels() {
-        return channelRepository.readAll();
+        return channelRepository.findAll();
     }
 
     /**
      * 주어진 id에 해당하는 채널을 조회하는 메서드
      *
-     * @param id 조회할 채널의 ID
+     * @param channelId 조회할 채널의 ID
      * @return 조회된 채널
      * @throws NoSuchElementException 해당 ID의 채널이 존재하지 않는 경우
      */
     @Override
-    public Channel getChannelById(UUID id) {
-        return channelRepository.readById(id)
+    public Channel getChannelById(UUID channelId) {
+        return channelRepository.findById(channelId)
                 .orElseThrow(()->new NoSuchElementException("해당 ID의 채널이 존재하지 않습니다."));
     }
 
@@ -65,20 +65,20 @@ public class BasicChannelService implements ChannelService {
      */
     @Override
     public Channel getChannelByChannelName(String channelName) {
-        return channelRepository.readByChannelName(channelName)
+        return channelRepository.findByChannelName(channelName)
                 .orElseThrow(()->new NoSuchElementException("해당 이름의 채널이 존재하지 않습니다."));
     }
 
     /**
      * 주어진 채널을 새로운 채널명으로 수정하는 메서드
      *
-     * @param channel 수정할 대상 채널
+     * @param channelId 수정할 대상 채널 ID
      * @param channelName 새로운 채널명
      * @return 수정된 채널
      */
     @Override
-    public Channel updateChannel(Channel channel, String channelName) {
-        Channel ch = getChannelById(channel.getId());
+    public Channel updateChannel(UUID channelId, String channelName) {
+        Channel ch = getChannelById(channelId);
         // 채널 수정
         ch.updateChannelName(channelName);
         channelRepository.save(ch);
@@ -88,22 +88,15 @@ public class BasicChannelService implements ChannelService {
     /**
      * 주어진 id에 해당하는 채널을 삭제하는 메서드
      *
-     * @param id 삭제할 대상 채널 id
+     * @param channelId 삭제할 대상 채널 id
      * @return 삭제된 채널
      */
     @Override
-    public Channel deleteChannel(UUID id) {
-        Channel targetChannel = getChannelById(id);
+    public Channel deleteChannel(UUID channelId) {
+        Channel targetChannel = getChannelById(channelId);
         // 채널 삭제
-        channelRepository.delete(id);
+        channelRepository.delete(channelId);
         return targetChannel;
     }
 
-    /**
-     * 채널 데이터를 레포지토리를 통해 저장하는 메서드
-     */
-    @Override
-    public void saveChannels() {
-        channelRepository.saveAll();
-    }
 }

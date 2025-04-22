@@ -11,13 +11,12 @@ public interface ChannelService {
     // 전체 조회
     public Map<UUID, Channel> getChannels();
     // 조회(ID)
-    public Channel getChannelById(UUID id);
+    public Channel getChannelById(UUID channelId);
     // 조회(채널명)
     public Channel getChannelByChannelName(String channelName);
     // 수정
-    public Channel updateChannel(Channel channel, String channelName);
+    public Channel updateChannel(UUID channelId, String channelName);
     // 삭제
-    public Channel deleteChannel(UUID id);
-    // 전체 저장
-    void saveChannels();
+    public Channel deleteChannel(UUID channelId);
+
 }
