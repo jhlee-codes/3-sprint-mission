@@ -54,6 +54,7 @@ public class UserMenu {
 
                         System.out.print("유저 ID 입력: ");
                         String id = scanner.next();
+
                         userService.createUser(name, id);
                         System.out.println("유저 등록 ) " + name +"(" + id + ")가 등록되었습니다.");
                         break;
@@ -63,26 +64,31 @@ public class UserMenu {
                     case 3:     // 유저 단일 조회 (userId로 조회)
                         System.out.print("조회할 유저 ID 입력: ");
                         targetUserId = scanner.next();
-                        targetUser = userService.searchUserByUserId(targetUserId);
+
+                        targetUser = userService.getUserByLoginId(targetUserId);
                         System.out.println(targetUser);
                         break;
                     case 4:     // 유저 이름 수정 (userId로 조회)
                         System.out.print("수정할 유저 ID 입력: ");
                         targetUserId = scanner.next();
-                        targetUser = userService.searchUserByUserId(targetUserId);
+
+                        targetUser = userService.getUserByLoginId(targetUserId);
                         scanner.nextLine();
 
                         System.out.print("새로운 유저명 입력: ");
                         String newName = scanner.next();
-                        userService.updateUser(targetUser, newName);
-                        System.out.println("유저명 수정 ) " + newName +"(" + targetUser.getUserId() + ")로 수정되었습니다.");
+
+                        userService.updateUser(targetUser.getId(), newName);
+                        System.out.println("유저명 수정 ) " + newName +"(" + targetUser.getLoginId() + ")로 수정되었습니다.");
                         break;
                     case 5:     // 유저 삭제 (userId로 조회)
                         System.out.print("삭제할 유저 ID 입력: ");
                         targetUserId = scanner.next();
-                        targetUser = userService.searchUserByUserId(targetUserId);
+
+                        targetUser = userService.getUserByLoginId(targetUserId);
+
                         userService.deleteUser(targetUser.getId());
-                        System.out.println("유저 삭제 ) " +targetUser.getUserName() + "(" + targetUser.getUserId()+")가 삭제되었습니다.");
+                        System.out.println("유저 삭제 ) " +targetUser.getUserName() + "(" + targetUser.getLoginId()+")가 삭제되었습니다.");
                         break;
                     case 0:     // 이전 메뉴
                         isBack = true;
