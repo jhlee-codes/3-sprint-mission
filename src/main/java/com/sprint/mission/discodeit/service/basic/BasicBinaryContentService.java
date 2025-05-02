@@ -4,6 +4,7 @@ import com.sprint.mission.discodeit.dto.BinaryContent.BinaryContentCreateRequest
 import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.service.BinaryContentService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -13,13 +14,10 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class BasicBinaryContentService implements BinaryContentService {
 
     private final BinaryContentRepository binaryContentRepository;
-
-    public BasicBinaryContentService(BinaryContentRepository binaryContentRepository) {
-        this.binaryContentRepository = binaryContentRepository;
-    }
 
     /**
      * 주어진 요청 DTO를 기반으로 BinaryContent 생성 및 저장
