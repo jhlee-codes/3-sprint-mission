@@ -1,81 +1,51 @@
 package com.sprint.mission.discodeit.entity;
 
+import lombok.Getter;
+import lombok.ToString;
+
 import java.io.Serializable;
-import java.util.Objects;
+import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
-public class Message extends BaseEntity implements Serializable {
-    private static final long serialVersionUID = 3L;
+@Getter
+@ToString
+public class Message implements Serializable {
+    private static final long serialVersionUID = 2778505846092278216L;
 
-    private String msgContent;  // 메시지 내용
-    private UUID sendUserId;      // 송신자 id
-    private UUID channelId;    // 채널 id
-    private boolean isUpdated;  // 메시지 수정 여부
-    private boolean isDeleted;  // 메시지 삭제 여부
+    /* 공통 필드 */
+    private UUID id;
+    private Instant createdAt;
+    private Instant updatedAt;
 
-    public Message() {
-    }
+    private String content;             // 메시지 내용
+    private UUID authorId;              // 송신자 id
+    private UUID channelId;             // 채널 id
+    private List<UUID> attachmentIds;   // 첨부파일 리스트
+    private boolean isUpdated;          // 메시지 수정 여부
 
-    public Message(UUID channelId, UUID sendUserId, String msgContent) {
-        this.msgContent = msgContent;
-        this.sendUserId = sendUserId;
+    public Message(String content, UUID authorId, UUID channelId, List<UUID> attachmentIds) {
+        this.id = UUID.randomUUID();
+        this.createdAt = Instant.now();
+        this.updatedAt = Instant.now();
+
+        this.content = content;
+        this.authorId = authorId;
         this.channelId = channelId;
+        this.attachmentIds = attachmentIds;
         this.isUpdated = false;
-        this.isDeleted = false;
     }
 
+    public void update(String newContent) {
+        boolean isUpdated = false;
+        if (newContent != null && !newContent.equals(this.content)) {
+            this.content = newContent;
+            isUpdated = true;
+        }
 
-    public UUID getSendUserId() {
-        return sendUserId;
-    }
-
-    public UUID getChannelId() {
-        return channelId;
-    }
-
-    public String getMsgContent() {
-        return msgContent;
-    }
-
-    public boolean getIsUpdated() {
-        return isUpdated;
-    }
-
-    public boolean getIsDeleted() {
-        return isDeleted;
-    }
-
-    public void updateMsgContent(String msgContent) {
-        this.msgContent = msgContent;
-        this.isUpdated = true;
-        this.updateTimestamp();
-    }
-
-    public void deleteMsgContent() {
-        this.msgContent = "";
-        this.isDeleted = true;
-    }
-
-    @Override
-    public String toString() {
-        return "Message{" +
-                "msgContent='" + msgContent + '\'' +
-                (isUpdated ? "(수정됨)" : "") +
-                (isDeleted ? "--삭제된 메세지입니다.--" : "") +
-                ", senderId=" + sendUserId +
-                ", channelId=" + channelId +
-                "} " + super.toString();
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (o == null || getClass() != o.getClass()) return false;
-        Message message = (Message) o;
-        return Objects.equals(getId(), message.getId());
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hashCode(getId());
+        if (isUpdated) {
+            this.isUpdated = true;
+            this.updatedAt = Instant.now();
+        }
     }
 }

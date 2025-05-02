@@ -1,64 +1,59 @@
 package com.sprint.mission.discodeit.entity;
 
-import java.io.Serializable;
-import java.util.Objects;
+import lombok.Getter;
+import lombok.ToString;
 
-public class User extends BaseEntity implements Serializable {
-    private static final long serialVersionUID = 4L;
+import java.io.Serializable;
+import java.time.Instant;
+import java.util.UUID;
+
+@Getter
+@ToString
+public class User implements Serializable {
+    private static final long serialVersionUID = -3212462601778766776L;
+
+    /* 공통 필드 */
+    private UUID id;
+    private Instant createdAt;
+    private Instant updatedAt;
 
     private String userName;        // 유저 이름
-    private String loginId;          // 유저 ID (검색용 유니크값)
-    private boolean isActive;   // 활성여부 (탈퇴시 false)
+    private String email;           // 이메일
+    private String password;        // 비밀번호
+    private UUID profileId;         // 프로필 사진
 
-    public User() {
-    }
+    public User(String userName, String email, String password, UUID profileId) {
+        this.id = UUID.randomUUID();
+        this.createdAt = Instant.now();
+        this.updatedAt = Instant.now();
 
-    public User(String userName, String loginId) {
         this.userName = userName;
-        this.loginId = loginId;
-        this.isActive = true;
+        this.email = email;
+        this.password = password;
+        this.profileId = profileId;
     }
 
-    public String getUserName() {
-        return userName;
-    }
+    public void update(String newUsername, String newEmail, String newPassword, UUID newProfileId) {
+        boolean isUpdated = false;
+        if (newUsername != null && !newUsername.equals(this.userName)) {
+            this.userName = newUsername;
+            isUpdated = true;
+        }
+        if (newEmail != null && !newEmail.equals(this.email)) {
+            this.email = newEmail;
+            isUpdated = true;
+        }
+        if (newPassword != null && !newPassword.equals(this.password)) {
+            this.password = newPassword;
+            isUpdated = true;
+        }
+        if (newProfileId != null && !newProfileId.equals(this.profileId)) {
+            this.profileId = newProfileId;
+            isUpdated = true;
+        }
 
-    public void updateUserName(String userName) {
-        this.userName = userName;
-        this.updateTimestamp();
-    }
-
-    public String getLoginId() {
-        return loginId;
-    }
-
-    public boolean getIsActive() {
-        return isActive;
-    }
-
-    public void updateIsActive() {
-        this.isActive = false;
-        this.updateTimestamp();
-    }
-
-    @Override
-    public String toString() {
-        return "User{" +
-                "userName='" + userName + '\'' +
-                ", loginId='" + loginId + '\'' +
-                (isActive ? "" : "(탈퇴)") +
-                "} " + super.toString();
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (o == null || getClass() != o.getClass()) return false;
-        User user = (User) o;
-        return Objects.equals(getId(), user.getId());
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hashCode(getId());
+        if (isUpdated) {
+            this.updatedAt = Instant.now();
+        }
     }
 }
