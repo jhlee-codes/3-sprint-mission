@@ -17,6 +17,7 @@ import java.util.UUID;
 @Repository
 @ConditionalOnProperty(name = "discodeit.repository.type", havingValue = "file")
 public class FileUserStatusRepository implements UserStatusRepository {
+
     private final Path DIRECTORY;
     private final String EXTENSION = ".ser";
 
@@ -32,15 +33,15 @@ public class FileUserStatusRepository implements UserStatusRepository {
             try {
                 Files.createDirectories(DIRECTORY);
             } catch (IOException e) {
-                throw new RuntimeException(e);
+                throw new RuntimeException("UserStatus 저장 디렉토리를 생성하는 중 오류가 발생했습니다.");
             }
         }
     }
 
     /**
-     * 주어진 UUID에 대응하는 파일 경로 생성
+     * 주어진 ID에 해당하는 파일 경로 생성
      *
-     * @param id UserStatus UUID
+     * @param id UserStatus ID
      * @return 해당 UserStatus의 저장 경로
      */
     private Path resolvePath(UUID id) {
@@ -51,7 +52,7 @@ public class FileUserStatusRepository implements UserStatusRepository {
      * 주어진 UserStatus 데이터를 직렬화하여 파일에 저장
      *
      * @param userStatus 저장할 UserStatus
-     * @return 저장한 UserStatus
+     * @return 저장된 UserStatus
      * @throws RuntimeException 파일 직렬화 중 예외가 발생한 경우
      */
     @Override
@@ -66,7 +67,7 @@ public class FileUserStatusRepository implements UserStatusRepository {
     }
 
     /**
-     * 파일에서 읽어온 UserStatus 데이터를 역직렬화하여 로드
+     * 저장된 모든 UserStatus 데이터를 역직렬화하여 로드
      *
      * @return 읽어온 UserStatus 데이터 리스트
      * @throws RuntimeException 파일 역직렬화 중 예외가 발생한 경우
@@ -90,24 +91,23 @@ public class FileUserStatusRepository implements UserStatusRepository {
     }
 
     /**
-     * 주어진 id에 해당하는 UserStatus 조회
+     * 주어진 ID에 해당하는 UserStatus 조회
      *
-     * @param id 조회할 UserStatus의 id
+     * @param id 조회할 UserStatus의 ID
      * @return 조회된 UserStatus
      * @throws RuntimeException 파일 역직렬화 중 예외가 발생한 경우
      */
     @Override
     public Optional<UserStatus> findById(UUID id) {
-        UserStatus us = null;
         Path path = resolvePath(id);
         if (Files.exists(path)) {
             try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(path.toFile()));) {
-                us = (UserStatus) ois.readObject();
+                return Optional.of((UserStatus) ois.readObject());
             } catch (IOException | ClassNotFoundException e) {
                 throw new RuntimeException("UserStatus 데이터 파일을 읽는 중 오류가 발생하였습니다.");
             }
         }
-        return Optional.ofNullable(us);
+        return Optional.empty();
     }
 
     /**
@@ -131,14 +131,13 @@ public class FileUserStatusRepository implements UserStatusRepository {
      */
     @Override
     public boolean existsById(UUID id) {
-        Path path = resolvePath(id);
-        return Files.exists(path);
+        return Files.exists(resolvePath(id));
     }
 
     /**
      * 주어진 id에 해당하는 UserStatus 삭제
      *
-     * @param id 삭제할 대상 UserStatus ID
+     * @param id 삭제 대상 UserStatus ID
      * @throws RuntimeException 데이터 삭제중 예외가 발생한 경우
      */
     @Override

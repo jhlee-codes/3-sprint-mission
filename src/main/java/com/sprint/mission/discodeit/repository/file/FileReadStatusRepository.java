@@ -32,15 +32,15 @@ public class FileReadStatusRepository implements ReadStatusRepository {
             try {
                 Files.createDirectories(DIRECTORY);
             } catch (IOException e) {
-                throw new RuntimeException(e);
+                throw new RuntimeException("ReadStatus 저장 디렉토리를 생성하는 중 오류가 발생했습니다.");
             }
         }
     }
 
     /**
-     * 주어진 UUID에 대응하는 파일 경로 생성
+     * 주어진 ID에 해당하는 파일 경로 생성
      *
-     * @param id ReadStatus UUID
+     * @param id ReadStatus ID
      * @return 해당 ReadStatus의 저장 경로
      */
     private Path resolvePath(UUID id) {
@@ -51,7 +51,7 @@ public class FileReadStatusRepository implements ReadStatusRepository {
      * 주어진 ReadStatus 데이터를 직렬화하여 파일에 저장
      *
      * @param readStatus 저장할 ReadStatus
-     * @return 저장한 ReadStatus
+     * @return 저장된 ReadStatus
      * @throws RuntimeException 파일 직렬화 중 예외가 발생한 경우
      */
     @Override
@@ -66,7 +66,7 @@ public class FileReadStatusRepository implements ReadStatusRepository {
     }
 
     /**
-     * 파일에서 읽어온 ReadStatus 데이터를 역직렬화하여 로드
+     * 저장된 모든 ReadStatus 데이터를 역직렬화하여 로드
      *
      * @return 읽어온 ReadStatus 데이터
      * @throws RuntimeException 파일 역직렬화 중 예외가 발생한 경우
@@ -90,24 +90,23 @@ public class FileReadStatusRepository implements ReadStatusRepository {
     }
 
     /**
-     * 주어진 id에 해당하는 ReadStatus 조회
+     * 주어진 ID에 해당하는 ReadStatus 조회
      *
-     * @param id 조회할 ReadStatus의 id
+     * @param id 조회할 ReadStatus ID
      * @return 조회된 ReadStatus
      * @throws RuntimeException 파일 역직렬화 중 예외가 발생한 경우
      */
     @Override
     public Optional<ReadStatus> findById(UUID id) {
-        ReadStatus rs = null;
         Path path = resolvePath(id);
         if (Files.exists(path)) {
             try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(path.toFile()));) {
-                rs = (ReadStatus) ois.readObject();
+                return Optional.of((ReadStatus) ois.readObject());
             } catch (IOException | ClassNotFoundException e) {
                 throw new RuntimeException("ReadStatus 데이터 파일을 읽는 중 오류가 발생하였습니다.");
             }
         }
-        return Optional.ofNullable(rs);
+        return Optional.empty();
     }
 
     /**
@@ -137,7 +136,7 @@ public class FileReadStatusRepository implements ReadStatusRepository {
     }
 
     /**
-     * 주어진 channelId에 해당하는 ReadStatus의 유저ID 리스트 조회
+     * 주어진 채널Id에 해당하는 ReadStatus의 유저ID 리스트 조회
      *
      * @param channelId 조회할 channelId
      * @return 조회된 유저ID 리스트
@@ -151,15 +150,14 @@ public class FileReadStatusRepository implements ReadStatusRepository {
     }
 
     /**
-     * 주어진 id에 해당하는 ReadStatus 존재여부 판단
+     * 주어진 ID에 해당하는 ReadStatus 존재여부 판단
      *
-     * @param id ReadStatus ID
+     * @param id 확인할 ReadStatus ID
      * @return 해당 ReadStatus 존재여부
      */
     @Override
     public boolean existsById(UUID id) {
-        Path path = resolvePath(id);
-        return Files.exists(path);
+        return Files.exists(resolvePath(id));
     }
 
     /**
@@ -189,9 +187,9 @@ public class FileReadStatusRepository implements ReadStatusRepository {
     }
 
     /**
-     * 주어진 id에 해당하는 ReadStatus 삭제
+     * 주어진 ID에 해당하는 ReadStatus 삭제
      *
-     * @param id 삭제할 대상 ReadStatus ID
+     * @param id 삭제 대상 ReadStatus ID
      * @throws RuntimeException 데이터 삭제중 예외가 발생한 경우
      */
     @Override

@@ -17,6 +17,7 @@ import java.util.UUID;
 @Repository
 @ConditionalOnProperty(name = "discodeit.repository.type", havingValue = "file")
 public class FileBinaryContentRepository implements BinaryContentRepository {
+
     private final Path DIRECTORY;
     private final String EXTENSION = ".ser";
 
@@ -32,16 +33,16 @@ public class FileBinaryContentRepository implements BinaryContentRepository {
             try {
                 Files.createDirectories(DIRECTORY);
             } catch (IOException e) {
-                throw new RuntimeException(e);
+                throw new RuntimeException("BinaryContent 저장 디렉토리를 생성하는 중 오류가 발생했습니다.");
             }
         }
     }
 
     /**
-     * 주어진 UUID에 대응하는 파일 경로 생성
+     * 주어진 ID에 해당하는 파일 경로 생성
      *
-     * @param id BinaryContent UUID
-     * @return 해당 BinaryContent의 저장 경로
+     * @param id BinaryContent ID
+     * @return 해당 BinaryContent 파일의 저장 경로
      */
     private Path resolvePath(UUID id) {
         return DIRECTORY.resolve(id + EXTENSION);
@@ -51,7 +52,7 @@ public class FileBinaryContentRepository implements BinaryContentRepository {
      * 주어진 BinaryContent를 직렬화하여 파일에 저장
      *
      * @param binaryContent 저장할 BinaryContent
-     * @return binaryContent 저장한 BinaryContent
+     * @return 저장된 BinaryContent
      * @throws RuntimeException 파일 생성/직렬화 중 예외가 발생한 경우
      */
     @Override
@@ -66,7 +67,7 @@ public class FileBinaryContentRepository implements BinaryContentRepository {
     }
 
     /**
-     * 파일에서 읽어온 BinaryContent 데이터를 역직렬화하여 로드
+     * 저장된 모든 BinaryContent 데이터를 역직렬화하여 로드
      *
      * @return 저장된 BinaryContent 데이터 리스트
      * @throws RuntimeException 파일 역직렬화 중 예외가 발생한 경우
@@ -90,42 +91,40 @@ public class FileBinaryContentRepository implements BinaryContentRepository {
     }
 
     /**
-     * 주어진 id에 해당하는 BinaryContent를 조회
+     * 주어진 ID에 해당하는 BinaryContent 조회
      *
-     * @param id 조회할 BinaryContent의 ID
+     * @param id 조회할 BinaryContent ID
      * @return 조회된 BinaryContent
      * @throws RuntimeException 파일 역직렬화 중 예외가 발생한 경우
      */
     @Override
     public Optional<BinaryContent> findById(UUID id) {
-        BinaryContent bc = null;
         Path path = resolvePath(id);
         if (Files.exists(path)) {
             try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(path.toFile()));) {
-                bc = (BinaryContent) ois.readObject();
+                return Optional.of((BinaryContent) ois.readObject());
             } catch (IOException | ClassNotFoundException e) {
                 throw new RuntimeException("BinaryContent 데이터 파일을 읽는 중 오류가 발생하였습니다.");
             }
         }
-        return Optional.ofNullable(bc);
+        return Optional.empty();
     }
 
     /**
-     * 주어진 id에 해당하는 BinaryContent의 존재여부 판단
+     * 주어진 ID에 해당하는 BinaryContent 존재여부 판단
      *
-     * @param id BinaryContent ID
-     * @return 존재여부
+     * @param id 확인할 BinaryContent ID
+     * @return 해당 BinaryContent 존재여부
      */
     @Override
     public boolean existsById(UUID id) {
-        Path path = resolvePath(id);
-        return Files.exists(path);
+        return Files.exists(resolvePath(id));
     }
 
     /**
-     * 주어진 id에 해당하는 BinaryContent 삭제
+     * 주어진 ID에 해당하는 BinaryContent 삭제
      *
-     * @param id 삭제할 대상 BinaryContent ID
+     * @param id 삭제 대상 BinaryContent ID
      * @throws RuntimeException 데이터 삭제중 예외가 발생한 경우
      */
     @Override

@@ -18,6 +18,7 @@ import java.util.UUID;
 @Repository
 @ConditionalOnProperty(name = "discodeit.repository.type", havingValue = "file")
 public class FileChannelRepository implements ChannelRepository {
+
     private final Path DIRECTORY;
     private final String EXTENSION = ".ser";
 
@@ -33,15 +34,15 @@ public class FileChannelRepository implements ChannelRepository {
             try {
                 Files.createDirectories(DIRECTORY);
             } catch (IOException e) {
-                throw new RuntimeException(e);
+                throw new RuntimeException("채널 저장 디렉토리를 생성하는 중 오류가 발생했습니다.");
             }
         }
     }
 
     /**
-     * 주어진 UUID에 대응하는 파일 경로 생성
+     * 주어진 ID에 해당하는 파일 경로 생성
      *
-     * @param id 채널 UUID
+     * @param id 채널 ID
      * @return 해당 채널의 저장 경로
      */
     private Path resolvePath(UUID id) {
@@ -52,7 +53,7 @@ public class FileChannelRepository implements ChannelRepository {
      * 주어진 채널을 직렬화하여 파일에 저장
      *
      * @param channel 저장할 채널
-     * @return channel 저장한 채널
+     * @return 저장된 채널
      * @throws RuntimeException 파일 직렬화 중 예외가 발생한 경우
      */
     @Override
@@ -67,7 +68,7 @@ public class FileChannelRepository implements ChannelRepository {
     }
 
     /**
-     * 파일에서 읽어온 채널 데이터를 역직렬화하여 로드
+     * 저장된 모든 채널 데이터를 역직렬화하여 로드
      *
      * @return 저장된 채널 데이터 리스트
      * @throws RuntimeException 파일 역직렬화 중 예외가 발생한 경우
@@ -91,44 +92,40 @@ public class FileChannelRepository implements ChannelRepository {
     }
 
     /**
-     * 주어진 id에 해당하는 채널 조회
+     * 주어진 ID에 해당하는 채널 조회
      *
-     * @param id 조회할 채널의 ID
+     * @param id 조회할 채널 ID
      * @return 조회된 채널
      * @throws RuntimeException 파일 역직렬화 중 예외가 발생한 경우
      */
     @Override
     public Optional<Channel> findById(UUID id) {
-        Channel ch = null;
         Path path = resolvePath(id);
         if (Files.exists(path)) {
-            try (
-                    ObjectInputStream ois = new ObjectInputStream(new FileInputStream(path.toFile()));
-                    ) {
-                ch = (Channel) ois.readObject();
+            try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(path.toFile()));) {
+                return Optional.of((Channel) ois.readObject());
             } catch (IOException | ClassNotFoundException e) {
                 throw new RuntimeException("채널 데이터 파일을 읽는 중 오류가 발생하였습니다.");
             }
         }
-        return Optional.ofNullable(ch);
+        return Optional.empty();
     }
 
     /**
-     * 주어진 id에 해당하는 채널의 존재여부 판단
+     * 주어진 ID에 해당하는 채널의 존재여부 판단
      *
-     * @param id 채널 id
+     * @param id 확인할 채널 ID
      * @return 해당 채널 존재여부
      */
     @Override
     public boolean existsById(UUID id) {
-        Path path = resolvePath(id);
-        return Files.exists(path);
+        return Files.exists(resolvePath(id));
     }
 
     /**
      * 주어진 id에 해당하는 채널 삭제
      *
-     * @param id 삭제할 대상 채널 id
+     * @param id 삭제 대상 채널 id
      * @throws RuntimeException 데이터 삭제 중 예외가 발생한 경우
      */
     @Override

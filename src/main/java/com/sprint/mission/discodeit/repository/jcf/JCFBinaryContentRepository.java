@@ -29,9 +29,9 @@ public class JCFBinaryContentRepository implements BinaryContentRepository{
     }
 
     /**
-     * 메모리에 저장되어있는 BinaryContent 데이터를 리턴
+     * 메모리에 저장되어있는 BinaryContent 리턴
      *
-     * @return 메모리에 저장된 BinaryContent 데이터
+     * @return 저장된 BinaryContent
      */
     @Override
     public List<BinaryContent> findAll() {
@@ -39,9 +39,9 @@ public class JCFBinaryContentRepository implements BinaryContentRepository{
     }
 
     /**
-     * 주어진 id에 해당하는 BinaryContent 조회
+     * 주어진 ID에 해당하는 BinaryContent 조회
      *
-     * @param id 조회할 BinaryContent의 ID
+     * @param id 조회할 BinaryContent ID
      * @return 조회된 BinaryContent
      */
     @Override
@@ -50,9 +50,9 @@ public class JCFBinaryContentRepository implements BinaryContentRepository{
     }
 
     /**
-     * 주어진 id에 해당하는 BinaryContent의 존재여부 판단
+     * 주어진 ID에 해당하는 BinaryContent의 존재여부 판단
      *
-     * @param id BinaryContent id
+     * @param id BinaryContent ID
      * @return 해당 BinaryContent 존재여부
      */
     @Override
@@ -61,9 +61,9 @@ public class JCFBinaryContentRepository implements BinaryContentRepository{
     }
 
     /**
-     * 주어진 id에 해당하는 BinaryContent 삭제
+     * 주어진 ID에 해당하는 BinaryContent 삭제
      *
-     * @param id 삭제할 대상 BinaryContent id
+     * @param id 삭제할 대상 BinaryContent ID
      */
     @Override
     public void deleteById(UUID id) {

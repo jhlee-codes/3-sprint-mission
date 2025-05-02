@@ -29,9 +29,9 @@ public class JCFUserRepository implements UserRepository {
     }
 
     /**
-     * 주어진 id에 해당하는 유저 조회
+     * 주어진 ID에 해당하는 유저 조회
      *
-     * @param id 조회할 유저의 id
+     * @param id 조회할 유저 ID
      * @return 조회된 유저
      */
     @Override
@@ -40,9 +40,9 @@ public class JCFUserRepository implements UserRepository {
     }
 
     /**
-     * 메모리에 저장되어있는 유저 데이터를 리턴
+     * 메모리에 저장되어있는 유저 데이터 리턴
      *
-     * @return 메모리에 저장된 유저데이터
+     * @return 저장된 유저데이터
      */
     @Override
     public List<User> findAll() {
@@ -63,9 +63,9 @@ public class JCFUserRepository implements UserRepository {
     }
 
     /**
-     * 주어진 id에 해당하는 유저 존재여부 판단
+     * 주어진 ID에 해당하는 유저 존재여부 판단
      *
-     * @param id 유저 id
+     * @param id 유저 ID
      * @return 해당 유저 존재여부
      */
     @Override
@@ -98,9 +98,9 @@ public class JCFUserRepository implements UserRepository {
     }
 
     /**
-     * 주어진 id에 해당하는 유저 삭제
+     * 주어진 ID에 해당하는 유저 삭제
      *
-     * @param id 삭제할 대상 유저 id
+     * @param id 삭제할 대상 유저 ID
      */
     @Override
     public void deleteById(UUID id) {

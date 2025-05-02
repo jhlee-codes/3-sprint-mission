@@ -18,6 +18,7 @@ import java.util.stream.Collectors;
 @Repository
 @ConditionalOnProperty(name = "discodeit.repository.type", havingValue = "file")
 public class FileMessageRepository implements MessageRepository {
+
     private final Path DIRECTORY;
     private final String EXTENSION = ".ser";
 
@@ -33,15 +34,15 @@ public class FileMessageRepository implements MessageRepository {
             try {
                 Files.createDirectories(DIRECTORY);
             } catch (IOException e) {
-                throw new RuntimeException(e);
+                throw new RuntimeException("메시지 저장 디렉토리를 생성하는 중 오류가 발생했습니다.");
             }
         }
     }
 
     /**
-     * 주어진 UUID에 대응하는 파일 경로 생성
+     * 주어진 ID에 해당하는 파일 경로 생성
      *
-     * @param id 메세지 UUID
+     * @param id 메세지 ID
      * @return 해당 메세지의 저장 경로
      */
     private Path resolvePath(UUID id) {
@@ -67,9 +68,9 @@ public class FileMessageRepository implements MessageRepository {
     }
 
     /**
-     * 파일에서 읽어온 메시지 데이터를 역직렬화하여 로드
+     * 저장된 모든 메시지 데이터를 역직렬화하여 로드
      *
-     * @return 역직렬화된 메시지 데이터
+     * @return 저장된 메시지 데이터
      * @throws RuntimeException 파일 역직렬화 중 예외가 발생한 경우
      */
     public List<Message> findAll() {
@@ -90,24 +91,23 @@ public class FileMessageRepository implements MessageRepository {
     }
 
     /**
-     * 주어진 id에 해당하는 메시지 조회
+     * 주어진 ID에 해당하는 메시지 조회
      *
-     * @param id 조회할 메시지의 ID
+     * @param id 조회할 메시지 ID
      * @return 조회된 메시지
      * @throws RuntimeException 파일 역직렬화 중 예외가 발생한 경우
      */
     @Override
     public Optional<Message> findById(UUID id) {
-        Message msg = null;
         Path path = resolvePath(id);
         if (Files.exists(path)) {
             try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(path.toFile()));) {
-                msg = (Message) ois.readObject();
+                return Optional.of((Message) ois.readObject());
             } catch (IOException | ClassNotFoundException e) {
                 throw new RuntimeException("메시지 데이터 파일을 읽는 중 오류가 발생하였습니다.");
             }
         }
-        return Optional.ofNullable(msg);
+        return Optional.empty();
     }
 
     /**
@@ -124,21 +124,20 @@ public class FileMessageRepository implements MessageRepository {
     }
 
     /**
-     * 주어진 id에 해당하는 메시지 존재여부 판단
+     * 주어진 ID에 해당하는 메시지 존재여부 판단
      *
-     * @param id 메시지 id
+     * @param id 확인할 메시지 ID
      * @return 해당 메시지 존재여부
      */
     @Override
     public boolean existsById(UUID id) {
-        Path path = resolvePath(id);
-        return Files.exists(path);
+        return Files.exists(resolvePath(id));
     }
 
     /**
      * 주어진 id에 해당하는 메시지 삭제
      *
-     * @param id 삭제할 대상 메시지 id
+     * @param id 삭제 대상 메시지 id
      * @throws RuntimeException 데이터 삭제중 예외가 발생한 경우
      */
     @Override

@@ -19,6 +19,7 @@ import java.util.UUID;
 
 @Service
 public class BasicMessageService implements MessageService {
+
     private final MessageRepository messageRepository;
     private final BinaryContentRepository binaryContentRepository;
     private final ChannelRepository channelRepository;
@@ -47,17 +48,15 @@ public class BasicMessageService implements MessageService {
         } else if (!channelRepository.existsById(createRequestDTO.channelId())) {
             throw new NoSuchElementException("존재하지 않는 채널입니다.");
         }
-        // BinaryContent 생성
-        boolean isbinaryContentCreated = !binaryContentCreateRequestsDTO.isEmpty();
+
+        // 첨부파일 저장
         List<UUID> binaryContents = new ArrayList<>();
-        // 첨부파일 파라미터가 있는 경우
-        if (isbinaryContentCreated) {
-            for (BinaryContentCreateRequestDTO dto : binaryContentCreateRequestsDTO) {
-                BinaryContent content = new BinaryContent(dto.content());
-                binaryContentRepository.save(content);
-                binaryContents.add(content.getId());
-            }
+        for (BinaryContentCreateRequestDTO dto : binaryContentCreateRequestsDTO) {
+            BinaryContent content = new BinaryContent(dto.content());
+            binaryContentRepository.save(content);
+            binaryContents.add(content.getId());
         }
+
         // 메시지 생성
         Message msg = new Message(
                 createRequestDTO.content(),
@@ -105,10 +104,9 @@ public class BasicMessageService implements MessageService {
     public Message update(UUID messageId, MessageUpdateRequestDTO updateRequestDTO) {
         Message msg = messageRepository.findById(messageId)
                 .orElseThrow(()->new NoSuchElementException("해당 메시지를 찾을 수 없습니다."));
+
         // 메시지 수정
-        msg.update(
-                updateRequestDTO.newContent()
-        );
+        msg.update(updateRequestDTO.newContent());
         messageRepository.save(msg);
         return msg;
     }
@@ -123,8 +121,10 @@ public class BasicMessageService implements MessageService {
     public void delete(UUID messageId) {
         Message msg = messageRepository.findById(messageId)
                 .orElseThrow(()->new NoSuchElementException("해당 메시지를 찾을 수 없습니다."));
+
         // 메시지 삭제
         messageRepository.deleteById(messageId);
+
         // 관련 도메인 삭제 (BinaryContent)
         msg.getAttachmentIds()
                 .forEach(binaryContentRepository::deleteById);

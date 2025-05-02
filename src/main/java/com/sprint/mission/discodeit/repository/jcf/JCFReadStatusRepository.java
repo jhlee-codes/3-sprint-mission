@@ -29,9 +29,9 @@ public class JCFReadStatusRepository implements ReadStatusRepository {
     }
 
     /**
-     * 메모리에 저장되어있는 ReadStatus 데이터를 리턴
+     * 메모리에 저장되어있는 ReadStatus 데이터 리턴
      *
-     * @return 메모리에 저장된 ReadStatus 데이터
+     * @return 저장된 ReadStatus 데이터
      */
     @Override
     public List<ReadStatus> findAll() {
@@ -39,7 +39,7 @@ public class JCFReadStatusRepository implements ReadStatusRepository {
     }
 
     /**
-     * 주어진 id에 해당하는 ReadStatus 조회
+     * 주어진 ID에 해당하는 ReadStatus 조회
      *
      * @param id 조회할 ReadStatus의 ID
      * @return 조회된 ReadStatus
@@ -76,9 +76,9 @@ public class JCFReadStatusRepository implements ReadStatusRepository {
     }
 
     /**
-     * 주어진 channelId에 해당하는 ReadStatus의 유저ID 리스트 조회
+     * 주어진 채널Id에 해당하는 ReadStatus의 유저ID 리스트 조회
      *
-     * @param channelId 조회할 channelId
+     * @param channelId 조회할 채널Id
      * @return 조회된 유저ID 리스트
      */
     @Override
@@ -90,7 +90,7 @@ public class JCFReadStatusRepository implements ReadStatusRepository {
     }
 
     /**
-     * 주어진 id에 해당하는 ReadStatus 존재여부 판단
+     * 주어진 ID에 해당하는 ReadStatus 존재여부 판단
      *
      * @param id ReadStatus ID
      * @return 해당 ReadStatus 존재여부
@@ -114,7 +114,7 @@ public class JCFReadStatusRepository implements ReadStatusRepository {
     }
 
     /**
-     * 주어진 id에 해당하는 ReadStatus 삭제
+     * 주어진 ID에 해당하는 ReadStatus 삭제
      *
      * @param id 삭제할 대상 ReadStatus ID
      */

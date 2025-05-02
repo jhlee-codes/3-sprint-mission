@@ -18,6 +18,7 @@ import java.util.stream.Collectors;
 
 @Service
 public class BasicUserService implements UserService {
+
     private final UserRepository userRepository;
     private final UserStatusRepository userStatusRepository;
     private final BinaryContentRepository binaryContentRepository;
@@ -44,6 +45,7 @@ public class BasicUserService implements UserService {
         } else if (userRepository.existsByEmail(userCreateRequestDTO.email())) {
             throw new IllegalStateException("이미 존재하는 이메일입니다. 다른 이메일을 입력해주세요.");
         }
+
         // BinaryContent 생성
         boolean isProfileCreated = profileCreateRequestDTO.isPresent();
         BinaryContent binaryContent = null;
@@ -54,6 +56,7 @@ public class BasicUserService implements UserService {
             );
             binaryContentRepository.save(binaryContent);
         }
+
         // 유저 생성
         User user = new User(
                 userCreateRequestDTO.userName(),
@@ -61,6 +64,7 @@ public class BasicUserService implements UserService {
                 userCreateRequestDTO.password(),
                 isProfileCreated ? binaryContent.getId(): null
         );
+
         // UserStatus 생성
         UserStatus userStatus = new UserStatus(user.getId());
 
@@ -78,10 +82,11 @@ public class BasicUserService implements UserService {
     @Override
     public List<UserDTO> findAll() {
         List<User> userList = userRepository.findAll();
+
         // userStatus를 UserID와 매핑
-        Map<UUID, UserStatus> userStatusMap = userStatusRepository.findAll()
-                .stream()
+        Map<UUID, UserStatus> userStatusMap = userStatusRepository.findAll().stream()
                 .collect(Collectors.toMap(UserStatus::getUserId, us->us));
+
         // UserResponseDTO 리스트 형태로 리턴
         return userList.stream()
                 .map(u-> UserDTO.from(u,userStatusMap.get(u.getId())))
@@ -99,8 +104,10 @@ public class BasicUserService implements UserService {
     public UserDTO find(UUID userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(()->new NoSuchElementException("해당 ID의 유저가 존재하지 않습니다."));
+
         UserStatus userStatus = userStatusRepository.findByUserId(userId)
                 .orElseThrow(() -> new NoSuchElementException("해당 유저ID의 UserStatus가 존재하지 않습니다."));
+
         // UserResponseDTO 형태로 리턴
         return UserDTO.from(user,userStatus);
     }
@@ -118,6 +125,7 @@ public class BasicUserService implements UserService {
     public User update(UUID userId, UserUpdateRequestDTO updateRequestDTO, Optional<BinaryContentCreateRequestDTO> profileCreateRequestDTO) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NoSuchElementException("해당 ID의 유저가 존재하지 않습니다."));
+
         // BinaryContent 생성
         boolean isProfileCreated = profileCreateRequestDTO.isPresent();
         BinaryContent binaryContent = null;
@@ -128,13 +136,15 @@ public class BasicUserService implements UserService {
             );
             binaryContentRepository.save(binaryContent);
         }
+
         // 유저 수정
         user.update(
                 updateRequestDTO.newUsername(),
                 updateRequestDTO.newEmail(),
                 updateRequestDTO.newPassword(),
                 isProfileCreated ? binaryContent.getId(): null
-                );
+        );
+
         // 데이터 저장
         userRepository.save(user);
         return user;
@@ -150,14 +160,18 @@ public class BasicUserService implements UserService {
     public void delete(UUID userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NoSuchElementException("해당 ID의 유저가 존재하지 않습니다."));
+
+        UUID userStatusId = userStatusRepository.findByUserId(userId)
+                .map(userStatus -> userStatus.getId())
+                .orElseThrow(()-> new NoSuchElementException("해당 유저ID의 UserStatus가 존재하지 않습니다."));
+
         // 유저 삭제
         userRepository.deleteById(userId);
 
         // 관련 도메인 삭제 (BinaryContent, UserStatus)
-        UUID userStatusId = userStatusRepository.findByUserId(userId)
-                .map(userStatus -> userStatus.getId())
-                .orElseThrow(()-> new NoSuchElementException("해당 유저ID의 UserStatus가 존재하지 않습니다."));
         userStatusRepository.deleteById(userStatusId);
-        binaryContentRepository.deleteById(user.getProfileId());
+        if (user.getProfileId() != null) {
+            binaryContentRepository.deleteById(user.getProfileId());
+        }
     }
 }

@@ -29,9 +29,9 @@ public class JCFUserStatusRepository implements UserStatusRepository {
     }
 
     /**
-     * 메모리에 저장되어있는 UserStatus 데이터를 리턴
+     * 메모리에 저장되어있는 UserStatus 데이터 리턴
      *
-     * @return 메모리에 저장된 UserStatus 데이터
+     * @return 저장된 UserStatus 데이터
      */
     @Override
     public List<UserStatus> findAll() {
@@ -39,9 +39,9 @@ public class JCFUserStatusRepository implements UserStatusRepository {
     }
 
     /**
-     * 주어진 id에 해당하는 UserStatus 조회
+     * 주어진 ID에 해당하는 UserStatus 조회
      *
-     * @param id 조회할 UserStatus id
+     * @param id 조회할 UserStatus ID
      * @return 조회된 UserStatus
      */
     @Override
@@ -63,9 +63,9 @@ public class JCFUserStatusRepository implements UserStatusRepository {
     }
 
     /**
-     * 주어진 id에 해당하는 UserStatus 존재여부 판단
+     * 주어진 ID에 해당하는 UserStatus 존재여부 판단
      *
-     * @param id UserStatus id
+     * @param id 확인할 UserStatus ID
      * @return 해당 UserStatus 존재여부
      */
     @Override
@@ -74,7 +74,7 @@ public class JCFUserStatusRepository implements UserStatusRepository {
     }
 
     /**
-     * 주어진 id에 해당하는 UserStatus 삭제
+     * 주어진 ID에 해당하는 UserStatus 삭제
      *
      * @param id 삭제할 대상 UserStatus ID
      */

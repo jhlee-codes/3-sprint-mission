@@ -29,9 +29,9 @@ public class JCFMessageRepository implements MessageRepository {
     }
 
     /**
-     * 메모리에 저장되어있는 메시지 데이터를 리턴
+     * 메모리에 저장되어있는 메시지 데이터 리턴
      *
-     * @return 메모리에 저장된 메시지데이터
+     * @return 저장된 메시지데이터
      */
     @Override
     public List<Message> findAll() {
@@ -39,7 +39,7 @@ public class JCFMessageRepository implements MessageRepository {
     }
 
     /**
-     * 주어진 id에 해당하는 메시지 조회
+     * 주어진 ID에 해당하는 메시지 조회
      *
      * @param id 조회할 메시지의 ID
      * @return 조회된 메시지
@@ -63,9 +63,9 @@ public class JCFMessageRepository implements MessageRepository {
     }
 
     /**
-     * 주어진 id에 해당하는 메시지의 존재여부 판단
+     * 주어진 ID에 해당하는 메시지의 존재여부 판단
      *
-     * @param id 메시지 id
+     * @param id 메시지 ID
      * @return 해당 메시지 존재여부
      */
     @Override
@@ -74,9 +74,9 @@ public class JCFMessageRepository implements MessageRepository {
     }
 
     /**
-     * 주어진 id에 해당하는 메시지 삭제
+     * 주어진 ID에 해당하는 메시지 삭제
      *
-     * @param id 삭제할 대상 메시지 id
+     * @param id 삭제할 대상 메시지 ID
      */
     @Override
     public void deleteById(UUID id) {

@@ -14,6 +14,7 @@ import java.util.UUID;
 
 @Service
 public class BasicUserStatusService implements UserStatusService {
+
     private final UserStatusRepository userStatusRepository;
     private final UserRepository userRepository;
 
@@ -33,14 +34,17 @@ public class BasicUserStatusService implements UserStatusService {
     @Override
     public UserStatus create(UserStatusCreateRequestDTO createRequestDTO) {
         UUID userId = createRequestDTO.userId();
+
         // 관련된 User가 존재하지 않으면 예외처리
         if (!userRepository.existsById(userId)) {
             throw new NoSuchElementException("해당 ID의 유저가 존재하지 않습니다.");
         }
+
        // 같은 User와 관련된 객체가 이미 존재하면 예외처리
         if (userStatusRepository.findByUserId(userId).isPresent()) {
             throw new IllegalStateException("이미 존재하는 UserStatus입니다.");
         }
+
         // UserStatus 생성
         UserStatus userStatus = new UserStatus(userId);
         return userStatus;
@@ -69,6 +73,13 @@ public class BasicUserStatusService implements UserStatusService {
                 .orElseThrow(()->new NoSuchElementException("해당 ID의 UserStatus가 존재하지 않습니다."));
     }
 
+    /**
+     * 주어진 유저ID에 해당하는 UserStatus 조회
+     *
+     * @param userId 조회할 UserStatus의 유저ID
+     * @return 조회된 UserStatus
+     * @throws NoSuchElementException 해당 유저ID의 UserStatus가 존재하지 않는 경우
+     */
     @Override
     public UserStatus findByUserId(UUID userId) {
         return userStatusRepository.findByUserId(userId)
@@ -87,8 +98,10 @@ public class BasicUserStatusService implements UserStatusService {
     public UserStatus update(UUID userStatusId, UserStatusUpdateRequestDTO updateRequestDTO) {
         UserStatus userStatus = userStatusRepository.findById(userStatusId)
                 .orElseThrow(() -> new NoSuchElementException("해당 ID의 UserStatus가 존재하지 않습니다."));
+
         // UserStatus 수정
         userStatus.update(updateRequestDTO.lastAccessedAt());
+
         // 데이터 저장
         userStatusRepository.save(userStatus);
         return userStatus;
@@ -106,8 +119,10 @@ public class BasicUserStatusService implements UserStatusService {
     public UserStatus updateByUserId(UUID userId, UserStatusUpdateRequestDTO updateRequestDTO) {
         UserStatus userStatus = userStatusRepository.findByUserId(userId)
                 .orElseThrow(() -> new NoSuchElementException("해당 유저ID의 UserStatus가 존재하지 않습니다."));
+
         // UserStatus 수정
         userStatus.update(updateRequestDTO.lastAccessedAt());
+
         // 데이터 저장
         userStatusRepository.save(userStatus);
         return userStatus;

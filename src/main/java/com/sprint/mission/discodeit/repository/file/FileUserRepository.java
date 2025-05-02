@@ -15,6 +15,7 @@ import java.util.*;
 @Repository
 @ConditionalOnProperty(name = "discodeit.repository.type", havingValue = "file")
 public class FileUserRepository implements UserRepository {
+
     private final Path DIRECTORY;
     private final String EXTENSION = ".ser";
 
@@ -30,15 +31,15 @@ public class FileUserRepository implements UserRepository {
             try {
                 Files.createDirectories(DIRECTORY);
             } catch (IOException e) {
-                throw new RuntimeException(e);
+                throw new RuntimeException("유저 저장 디렉토리를 생성하는 중 오류가 발생했습니다.");
             }
         }
     }
 
     /**
-     * 주어진 UUID에 대응하는 파일 경로 생성
+     * 주어진 ID에 해당하는 파일 경로 생성
      *
-     * @param id 유저 UUID
+     * @param id 유저 ID
      * @return 해당 유저의 저장 경로
      */
     private Path resolvePath(UUID id) {
@@ -49,7 +50,7 @@ public class FileUserRepository implements UserRepository {
      * 주어진 유저 데이터를 직렬화하여 파일에 저장
      *
      * @param user 저장할 유저
-     * @return 저장한 유저
+     * @return 저장된 유저
      * @throws RuntimeException 파일 직렬화 중 예외가 발생한 경우
      */
     @Override
@@ -64,7 +65,7 @@ public class FileUserRepository implements UserRepository {
     }
 
     /**
-     * 파일에서 읽어온 유저 데이터를 역직렬화하여 로드
+     * 저장된 모든 유저 데이터를 역직렬화하여 로드
      *
      * @return 읽어온 유저 데이터
      * @throws RuntimeException 파일 역직렬화 중 예외가 발생한 경우
@@ -88,24 +89,23 @@ public class FileUserRepository implements UserRepository {
     }
 
     /**
-     * 주어진 id에 해당하는 유저 조회
+     * 주어진 ID에 해당하는 유저 조회
      *
-     * @param id 조회할 유저의 id
+     * @param id 조회할 유저 ID
      * @return 조회된 유저
      * @throws RuntimeException 파일 역직렬화 중 예외가 발생한 경우
      */
     @Override
     public Optional<User> findById(UUID id) {
-        User user = null;
         Path path = resolvePath(id);
         if (Files.exists(path)) {
             try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(path.toFile()));) {
-                user = (User) ois.readObject();
+                return Optional.of((User) ois.readObject());
             } catch (IOException | ClassNotFoundException e) {
                 throw new RuntimeException("User 데이터 파일을 읽는 중 오류가 발생하였습니다.");
             }
         }
-        return Optional.ofNullable(user);
+        return Optional.empty();
     }
 
     /**
@@ -117,7 +117,6 @@ public class FileUserRepository implements UserRepository {
      */
     @Override
     public Optional<User> findByUserName(String userName) {
-        User user = null;
         try {
             return Files.list(DIRECTORY)
                     .filter(path -> path.toString().endsWith(EXTENSION))
@@ -136,19 +135,18 @@ public class FileUserRepository implements UserRepository {
     }
 
     /**
-     * 주어진 id에 해당하는 유저 존재여부 판단
+     * 주어진 ID에 해당하는 유저 존재여부 판단
      *
-     * @param id 유저 id
+     * @param id 확인할 유저 ID
      * @return 해당 유저 존재여부
      */
     @Override
     public boolean existsById(UUID id) {
-        Path path = resolvePath(id);
-        return Files.exists(path);
+        return Files.exists(resolvePath(id));
     }
 
     /**
-     * 주어진 userName에 해당하는 유저 존재여부 판단
+     * 주어진 유저명에 해당하는 유저 존재여부 판단
      *
      * @param userName 유저명
      * @return 해당 유저 존재여부
@@ -200,7 +198,7 @@ public class FileUserRepository implements UserRepository {
     /**
      * 주어진 id에 해당하는 유저 삭제
      *
-     * @param id 삭제할 대상 유저 ID
+     * @param id 삭제 대상 유저 ID
      * @throws RuntimeException 데이터 삭제중 예외가 발생한 경우
      */
     @Override

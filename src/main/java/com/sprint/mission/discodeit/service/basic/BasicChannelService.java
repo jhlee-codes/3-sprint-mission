@@ -20,6 +20,7 @@ import java.util.stream.Collectors;
 
 @Service
 public class BasicChannelService implements ChannelService {
+
     private final ChannelRepository channelRepository;
     private final ReadStatusRepository readStatusRepository;
     private final MessageRepository messageRepository;
@@ -57,11 +58,11 @@ public class BasicChannelService implements ChannelService {
     @Override
     public Channel create(PrivateChannelCreateRequestDTO createRequestDTO) {
         // 채널 생성
-        Channel ch = new Channel(
-                true
-        );
+        Channel ch = new Channel(true);
+
         // User별 ReadStatus 생성
         ReadStatus readStatus = new ReadStatus(createRequestDTO.userId(), ch.getId());
+
         // 데이터 저장
         channelRepository.save(ch);
         readStatusRepository.save(readStatus);
@@ -79,6 +80,7 @@ public class BasicChannelService implements ChannelService {
         Message msg = messageRepository.findByChannelId(ch.getId()).stream()
                 .reduce((a, b) -> b)
                 .orElse(null);
+
         // PRIVATE 채널인 경우 참여한 User의 id 정보 포함
         if (ch.isPrivate()) {
             List<UUID> userIdList = readStatusRepository.findUserIdByChannelId(ch.getId());
@@ -116,7 +118,7 @@ public class BasicChannelService implements ChannelService {
     }
 
     /**
-     * 주어진 id에 해당하는 채널 조회
+     * 주어진 ID에 해당하는 채널 조회
      *
      * @param channelId 조회할 채널의 ID
      * @return 조회된 채널
@@ -142,10 +144,12 @@ public class BasicChannelService implements ChannelService {
     public Channel update(UUID channelId, PublicChannelUpdateRequestDTO updateRequestDTO) {
         Channel ch = channelRepository.findById(channelId)
                 .orElseThrow(() -> new NoSuchElementException("해당 채널이 존재하지 않습니다."));
+
         // PRIVATE 채널 예외처리
         if (ch.isPrivate()) {
           throw new IllegalArgumentException("PRIVATE 채널은 수정할 수 없습니다.");
         }
+
         // 채널 수정
         ch.update(
                 updateRequestDTO.newName(),
@@ -156,9 +160,9 @@ public class BasicChannelService implements ChannelService {
     }
 
     /**
-     * 주어진 id에 해당하는 채널 삭제
+     * 주어진 ID에 해당하는 채널 삭제
      *
-     * @param channelId 삭제할 대상 채널 id
+     * @param channelId 삭제할 대상 채널 ID
      */
     @Override
     public void delete(UUID channelId) {
@@ -169,6 +173,7 @@ public class BasicChannelService implements ChannelService {
         messageRepository.findByChannelId(channelId).stream()
                 .map(Message::getId)
                 .forEach(messageRepository::deleteById);
+
         readStatusRepository.findByChannelId(channelId).stream()
                 .map(ReadStatus::getId)
                 .forEach(readStatusRepository::deleteById);

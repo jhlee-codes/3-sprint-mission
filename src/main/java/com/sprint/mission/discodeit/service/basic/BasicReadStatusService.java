@@ -15,6 +15,7 @@ import java.util.UUID;
 
 @Service
 public class BasicReadStatusService implements ReadStatusService {
+
     private final ReadStatusRepository readStatusRepository;
     private final UserRepository userRepository;
     private final ChannelRepository channelRepository;
@@ -48,11 +49,10 @@ public class BasicReadStatusService implements ReadStatusService {
         if (readStatusRepository.existsByChannelIdAndUserId(channelId,userId)) {
             throw new IllegalStateException("이미 존재하는 ReadStatus입니다.");
         }
+
         // ReadStatus 생성
-        ReadStatus readStatus = new ReadStatus(
-                userId,
-                channelId
-        );
+        ReadStatus readStatus = new ReadStatus(userId, channelId);
+
         // 데이터 저장
         readStatusRepository.save(readStatus);
         return readStatus;
@@ -94,10 +94,10 @@ public class BasicReadStatusService implements ReadStatusService {
     public ReadStatus update(UUID id, ReadStatusUpdateRequestDTO updateRequestDTO) {
         ReadStatus readStatus = readStatusRepository.findById(id)
                 .orElseThrow(()->new NoSuchElementException("해당 ID의 ReadStatus를 찾을 수 없습니다."));
+
         // ReadStatus 수정
-        readStatus.update(
-                updateRequestDTO.lastReadAt()
-        );
+        readStatus.update(updateRequestDTO.lastReadAt());
+
         // 데이터 저장
         readStatusRepository.save(readStatus);
         return readStatus;

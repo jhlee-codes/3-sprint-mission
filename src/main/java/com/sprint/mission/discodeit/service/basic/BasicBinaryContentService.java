@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 
 @Service
 public class BasicBinaryContentService implements BinaryContentService {
+
     private final BinaryContentRepository binaryContentRepository;
 
     public BasicBinaryContentService(BinaryContentRepository binaryContentRepository) {
@@ -30,6 +31,7 @@ public class BasicBinaryContentService implements BinaryContentService {
     public BinaryContent create(BinaryContentCreateRequestDTO createRequestDTO) {
         // BinaryContent 생성
         BinaryContent binaryContent = new BinaryContent(createRequestDTO.content());
+
         // 데이터 저장
         binaryContentRepository.save(binaryContent);
         return binaryContent;
