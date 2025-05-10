@@ -1,45 +1,57 @@
 package com.sprint.mission.discodeit.entity;
 
-import java.io.Serializable;
-import java.util.Objects;
+import lombok.Getter;
+import lombok.ToString;
 
-public class Channel extends BaseEntity implements Serializable {
-    private static final long serialVersionUID = 2L;
+import java.io.Serializable;
+import java.time.Instant;
+import java.util.UUID;
+
+@Getter
+@ToString
+public class Channel implements Serializable {
+    private static final long serialVersionUID = 79529852066494114L;
+
+    /* 공통 필드 */
+    private UUID id;
+    private Instant createdAt;
+    private Instant updatedAt;
 
     private String channelName;     // 채널 이름
+    private String description;     // 채널 설명
+    private boolean isPrivate;      // 비공개채널 여부
 
-    public Channel() {
+    public Channel(boolean isPrivate) {
+        this.id = UUID.randomUUID();
+        this.createdAt = Instant.now();
+        this.updatedAt = Instant.now();
+
+        this.isPrivate = isPrivate;
     }
 
-    public Channel(String channelName) {
+    public Channel(String channelName, String description, boolean isPrivate) {
+        this.id = UUID.randomUUID();
+        this.createdAt = Instant.now();
+        this.updatedAt = Instant.now();
+
         this.channelName = channelName;
+        this.description = description;
+        this.isPrivate = isPrivate;
     }
 
-    public String getChannelName() {
-        return channelName;
-    }
+    public void update(String newChannelName, String newDescription) {
+        boolean isUpdated = false;
 
-    public void updateChannelName(String channelName) {
-        this.channelName = channelName;
-        this.updateTimestamp();
-    }
-
-    @Override
-    public String toString() {
-        return "Channel{" +
-                "channelName='" + channelName + '\'' +
-                "} " + super.toString();
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (o == null || getClass() != o.getClass()) return false;
-        Channel channel = (Channel) o;
-        return Objects.equals(this.getId(), channel.getId());
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(getId());
+        if (newChannelName != null && !newChannelName.equals(this.channelName)) {
+            this.channelName = newChannelName;
+            isUpdated = true;
+        }
+        if (newDescription != null && !newDescription.equals(this.description)) {
+            this.description = newDescription;
+            isUpdated = true;
+        }
+        if (isUpdated) {
+            this.updatedAt = Instant.now();
+        }
     }
 }

@@ -2,106 +2,212 @@ package com.sprint.mission.discodeit.repository.file;
 
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.stereotype.Repository;
 
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
+@Repository
+@ConditionalOnProperty(name = "discodeit.repository.type", havingValue = "file")
 public class FileUserRepository implements UserRepository {
-    private static final Path FILE_PATH = Paths.get("data/user.ser");
-    private final Map<UUID, User> data;
 
-    public FileUserRepository() {
-        this.data = findAll();
-    }
-
-    public FileUserRepository(Map<UUID, User> data) {
-        this.data = data;
-    }
+    private final Path DIRECTORY;
+    private final String EXTENSION = ".ser";
 
     /**
-     * 유저 데이터를 직렬화하여 파일에 저장하는 메서드
+     * 파일 저장 디렉토리를 설정하고, 해당 디렉토리가 없는 경우 생성
      *
-     * @throws RuntimeException
+     * @param directory 루트 디렉토리
+     * @throws RuntimeException 디렉토리 생성 중 예외가 발생한 경우
      */
-    public void saveAll() {
-        try{
-            Files.createDirectories(FILE_PATH.getParent());
-            try(ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(FILE_PATH.toFile()))){
-                oos.writeObject(data);
+    public FileUserRepository(@Value("${discodeit.repository.file-directory}") String directory) {
+        this.DIRECTORY = Paths.get(System.getProperty("user.dir"), directory, User.class.getSimpleName());
+        if (Files.notExists(DIRECTORY)) {
+            try {
+                Files.createDirectories(DIRECTORY);
+            } catch (IOException e) {
+                throw new RuntimeException("유저 저장 디렉토리를 생성하는 중 오류가 발생했습니다.");
             }
-        } catch (IOException e) {
-            throw new RuntimeException("메시지 데이터 파일을 저장하는 중 오류가 발생하였습니다.");
         }
     }
 
     /**
-     * 유저를 파일에 저장하는 메서드
+     * 주어진 ID에 해당하는 파일 경로 생성
+     *
+     * @param id 유저 ID
+     * @return 해당 유저의 저장 경로
+     */
+    private Path resolvePath(UUID id) {
+        return DIRECTORY.resolve(id + EXTENSION);
+    }
+
+    /**
+     * 주어진 유저 데이터를 직렬화하여 파일에 저장
      *
      * @param user 저장할 유저
+     * @return 저장된 유저
+     * @throws RuntimeException 파일 직렬화 중 예외가 발생한 경우
      */
     @Override
-    public void save(User user) {
-        data.put(user.getId(), user);
-        saveAll();
-    }
-
-    /**
-     * 주어진 id에 해당하는 유저를 삭제하는 메서드
-     *
-     * @param id 삭제할 대상 유저 id
-     */
-    @Override
-    public void delete(UUID id) {
-        data.remove(id);
-        saveAll();
-    }
-
-    /**
-     * 파일에서 읽어온 유저 데이터를 역직렬화하여 로드하는 메서드
-     *
-     * @return Map<UUID, User> 형태
-     * @throws RuntimeException
-     */
-    @SuppressWarnings("unchecked")
-    public Map<UUID, User> findAll() {
-        if (!Files.exists(FILE_PATH)) {
-            return new HashMap<>();
+    public User save(User user) {
+        Path path = resolvePath(user.getId());
+        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(path.toFile()));) {
+            oos.writeObject(user);
+        } catch (IOException e) {
+            throw new RuntimeException("User 데이터 파일을 저장하는 중 오류가 발생하였습니다.");
         }
-        try(ObjectInputStream ois = new ObjectInputStream(new FileInputStream(FILE_PATH.toFile()))
-        ) {
-            return (Map<UUID, User>) ois.readObject();
-        } catch (IOException | ClassNotFoundException e) {
+        return user;
+    }
+
+    /**
+     * 저장된 모든 유저 데이터를 역직렬화하여 로드
+     *
+     * @return 읽어온 유저 데이터
+     * @throws RuntimeException 파일 역직렬화 중 예외가 발생한 경우
+     */
+    @Override
+    public List<User> findAll() {
+        try {
+            return Files.list(DIRECTORY)
+                    .filter(path -> path.toString().endsWith(EXTENSION))
+                    .map(path -> {
+                        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(path.toFile()));) {
+                            return (User) ois.readObject();
+                        } catch (IOException | ClassNotFoundException e) {
+                            throw new RuntimeException("유저 데이터 파일을 읽는 중 오류가 발생하였습니다.");
+                        }
+                    })
+                    .toList();
+        } catch (IOException e) {
             throw new RuntimeException("유저 데이터 파일을 읽는 중 오류가 발생하였습니다.");
         }
     }
 
     /**
-     * 주어진 id에 해당하는 유저를 조회하는 메서드
+     * 주어진 ID에 해당하는 유저 조회
      *
-     * @param userId 조회할 유저의 id
+     * @param id 조회할 유저 ID
      * @return 조회된 유저
+     * @throws RuntimeException 파일 역직렬화 중 예외가 발생한 경우
      */
     @Override
-    public Optional<User> findById(UUID userId) {
-        return Optional.ofNullable(data.get(userId));
+    public Optional<User> findById(UUID id) {
+        Path path = resolvePath(id);
+        if (Files.exists(path)) {
+            try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(path.toFile()));) {
+                return Optional.of((User) ois.readObject());
+            } catch (IOException | ClassNotFoundException e) {
+                throw new RuntimeException("User 데이터 파일을 읽는 중 오류가 발생하였습니다.");
+            }
+        }
+        return Optional.empty();
     }
 
     /**
-     * 주어진 유저ID에 해당하는 유저를 조회하는 메서드
+     * 주어진 유저명에 해당하는 유저 조회
      *
-     * @param loginId 조회할 유저ID
+     * @param userName 조회할 유저의 유저명
      * @return 조회된 유저
+     * @throws RuntimeException 파일 역직렬화 중 예외가 발생한 경우
      */
     @Override
-    public Optional<User> findByLoginId(String loginId) {
-        return data.values().stream()
-                .filter(u->u.getLoginId().equals(loginId))
-                .findFirst();
+    public Optional<User> findByUserName(String userName) {
+        try {
+            return Files.list(DIRECTORY)
+                    .filter(path -> path.toString().endsWith(EXTENSION))
+                    .map(path -> {
+                        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(path.toFile()))) {
+                            return (User) ois.readObject();
+                        } catch (IOException | ClassNotFoundException e) {
+                            throw new RuntimeException("유저 데이터 파일을 읽는 중 오류가 발생하였습니다.");
+                        }
+                    })
+                    .filter(u -> u.getUserName().equals(userName))
+                    .findFirst();
+        } catch (IOException e) {
+            throw new RuntimeException("유저 데이터 파일을 읽는 중 오류가 발생하였습니다.");
+        }
+    }
+
+    /**
+     * 주어진 ID에 해당하는 유저 존재여부 판단
+     *
+     * @param id 확인할 유저 ID
+     * @return 해당 유저 존재여부
+     */
+    @Override
+    public boolean existsById(UUID id) {
+        return Files.exists(resolvePath(id));
+    }
+
+    /**
+     * 주어진 유저명에 해당하는 유저 존재여부 판단
+     *
+     * @param userName 유저명
+     * @return 해당 유저 존재여부
+     * @throws RuntimeException 파일 역직렬화 중 예외가 발생한 경우
+     */
+    @Override
+    public boolean existsByUserName(String userName) {
+        try {
+            return Files.list(DIRECTORY)
+                    .filter(path -> path.toString().endsWith(EXTENSION))
+                    .anyMatch(path -> {
+                        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(path.toFile()))) {
+                            User user = (User) ois.readObject();
+                            return user.getUserName().equals(userName);
+                        } catch (IOException | ClassNotFoundException e) {
+                            throw new RuntimeException("유저 데이터 파일을 읽는 중 오류가 발생하였습니다.");
+                        }
+                    });
+        } catch (IOException e) {
+            throw new RuntimeException("유저 데이터 파일을 읽는 중 오류가 발생하였습니다.");
+        }
+    }
+
+    /**
+     * 주어진 email에 해당하는 유저 존재여부 판단
+     *
+     * @param email 이메일
+     * @return 해당 유저 존재여부
+     * @throws RuntimeException 파일 역직렬화 중 예외가 발생한 경우
+     */
+    @Override
+    public boolean existsByEmail(String email) {
+        try {
+            return Files.list(DIRECTORY)
+                    .filter(path -> path.toString().endsWith(EXTENSION))
+                    .anyMatch(path -> {
+                        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(path.toFile()))) {
+                            User user = (User) ois.readObject();
+                            return user.getEmail().equals(email);
+                        } catch (IOException | ClassNotFoundException e) {
+                            throw new RuntimeException("유저 데이터 파일을 읽는 중 오류가 발생하였습니다.");
+                        }
+                    });
+        } catch (IOException e) {
+            throw new RuntimeException("유저 데이터 파일을 읽는 중 오류가 발생하였습니다.");
+        }
+    }
+
+    /**
+     * 주어진 id에 해당하는 유저 삭제
+     *
+     * @param id 삭제 대상 유저 ID
+     * @throws RuntimeException 데이터 삭제중 예외가 발생한 경우
+     */
+    @Override
+    public void deleteById(UUID id) {
+        Path path = resolvePath(id);
+        try {
+            Files.delete(path);
+        } catch (IOException e) {
+            throw new RuntimeException("User 데이터 삭제 중 오류가 발생하였습니다.");
+        }
     }
 }

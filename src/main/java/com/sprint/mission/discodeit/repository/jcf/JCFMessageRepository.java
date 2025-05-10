@@ -2,12 +2,13 @@ package com.sprint.mission.discodeit.repository.jcf;
 
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.repository.MessageRepository;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.stereotype.Repository;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
+@Repository
+@ConditionalOnProperty(name = "discodeit.repository.type", havingValue = "jcf")
 public class JCFMessageRepository implements MessageRepository {
     private final Map<UUID, Message> data;
 
@@ -15,50 +16,71 @@ public class JCFMessageRepository implements MessageRepository {
         this.data = new HashMap<>();
     }
 
-    public JCFMessageRepository(Map<UUID, Message> data) {
-        this.data = data;
-    }
-
     /**
-     * 주어진 메시지를 메모리에 저장하는 메서드
+     * 주어진 메시지를 메모리에 저장
      *
      * @param message 저장할 메시지
+     * @return 저장된 메시지
      */
     @Override
-    public void save(Message message) {
-        data.put(message.getId(), message);
+    public Message save(Message message) {
+        this.data.put(message.getId(), message);
+        return message;
     }
 
     /**
-     * 메모리에 저장되어있는 메시지 데이터를 리턴하는 메서드
+     * 메모리에 저장되어있는 메시지 데이터 리턴
      *
-     * @return 메모리에 저장된 메시지데이터
+     * @return 저장된 메시지데이터
      */
-    public Map<UUID, Message> findAll() {
-        return data;
+    @Override
+    public List<Message> findAll() {
+        return this.data.values().stream().toList();
     }
 
     /**
-     * 주어진 id에 해당하는 메시지를 조회하는 메서드
+     * 주어진 ID에 해당하는 메시지 조회
      *
-     * @param messageId 조회할 메시지의 ID
+     * @param id 조회할 메시지의 ID
      * @return 조회된 메시지
      */
     @Override
-    public Optional<Message> findById(UUID messageId) {
-        return Optional.ofNullable(data.get(messageId));
+    public Optional<Message> findById(UUID id) {
+        return Optional.ofNullable(this.data.get(id));
     }
 
     /**
-     * 주어진 메시지내용에 해당하는 메시지를 조회하는 메서드
+     * 주어진 채널ID에 해당하는 메시지 리스트 조회
      *
-     * @param msgContent 조회할 메시지내용
-     * @return 조회된 메시지
+     * @param channelId 조회할 메시지의 채널ID
+     * @return 조회된 메시지리스트
      */
     @Override
-    public Optional<Message> findByMessageContent(String msgContent) {
+    public List<Message> findByChannelId(UUID channelId) {
         return data.values().stream()
-                .filter(m->m.getMsgContent().equals(msgContent))
-                .findFirst();
+                .filter(m->m.getChannelId().equals(channelId))
+                .toList();
     }
+
+    /**
+     * 주어진 ID에 해당하는 메시지의 존재여부 판단
+     *
+     * @param id 메시지 ID
+     * @return 해당 메시지 존재여부
+     */
+    @Override
+    public boolean existsById(UUID id) {
+        return this.data.containsKey(id);
+    }
+
+    /**
+     * 주어진 ID에 해당하는 메시지 삭제
+     *
+     * @param id 삭제할 대상 메시지 ID
+     */
+    @Override
+    public void deleteById(UUID id) {
+        this.data.remove(id);
+    }
+
 }
