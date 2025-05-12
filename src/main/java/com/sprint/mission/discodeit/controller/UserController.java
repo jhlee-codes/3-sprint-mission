@@ -76,7 +76,7 @@ public class UserController {
                 .body(createdUser);
     }
 
-    /**
+    /** 
      * MultipartFile 타입의 요청값을 BinaryContentCreateReqeust 타입으로 변환
      *
      * @param profile 프로필 (MultipartFile)
