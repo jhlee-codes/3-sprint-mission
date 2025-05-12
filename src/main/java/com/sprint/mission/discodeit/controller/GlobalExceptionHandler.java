@@ -12,7 +12,7 @@ public class GlobalExceptionHandler {
 
     // 이미 존재하는 데이터가 있는 경우
     @ExceptionHandler(IllegalStateException.class)
-    public ResponseEntity<String> IllegalStateExceptionHandler(IllegalStateException e) {
+    public ResponseEntity<String> illegalStateExceptionHandler(IllegalStateException e) {
 
         return ResponseEntity
                 .status(HttpStatus.CONFLICT)
@@ -21,7 +21,7 @@ public class GlobalExceptionHandler {
 
     // 데이터가 존재하지 않는 경우
     @ExceptionHandler(NoSuchElementException.class)
-    public ResponseEntity<String> NoSuchElementExcepitonHandler(NoSuchElementException e) {
+    public ResponseEntity<String> noSuchElementExceptionHandler(NoSuchElementException e) {
 
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
@@ -30,7 +30,7 @@ public class GlobalExceptionHandler {
 
     // 잘못된 요청
     @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<String> BadRequestExcepitonHandler(IllegalArgumentException e) {
+    public ResponseEntity<String> badRequestExceptionHandler(IllegalArgumentException e) {
 
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
@@ -39,7 +39,7 @@ public class GlobalExceptionHandler {
 
     // 파일 입출력 실패
     @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<String> RuntimeExceptionExcepitonHandler(RuntimeException e) {
+    public ResponseEntity<String> runtimeExceptionExceptionHandler(RuntimeException e) {
 
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -48,7 +48,7 @@ public class GlobalExceptionHandler {
 
     // Default 에러 처리
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<String> ExceptionHandler(Exception e) {
+    public ResponseEntity<String> exceptionHandler(Exception e) {
 
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)

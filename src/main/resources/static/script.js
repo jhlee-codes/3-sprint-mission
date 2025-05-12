@@ -29,6 +29,11 @@ async function fetchUserProfile(profileId) {
         if (!response.ok) throw new Error('Failed to fetch profile');
         const profile = await response.json();
 
+        if (!profile || !profile.content) {
+            console.log("프로필 이미지 없음");
+            return '/default-avatar.png';
+        }
+
         console.log( `data:${profile.contentType};base64,${profile.content}`);
 
         // Convert base64 encoded bytes to data URL

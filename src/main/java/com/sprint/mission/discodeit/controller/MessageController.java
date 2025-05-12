@@ -3,9 +3,12 @@ package com.sprint.mission.discodeit.controller;
 import com.sprint.mission.discodeit.dto.BinaryContent.BinaryContentCreateRequestDTO;
 import com.sprint.mission.discodeit.dto.Message.MessageCreateRequestDTO;
 import com.sprint.mission.discodeit.dto.Message.MessageUpdateRequestDTO;
+import com.sprint.mission.discodeit.dto.UserStatus.UserStatusUpdateRequestDTO;
 import com.sprint.mission.discodeit.entity.Message;
+import com.sprint.mission.discodeit.repository.UserStatusRepository;
 import com.sprint.mission.discodeit.service.ChannelService;
 import com.sprint.mission.discodeit.service.MessageService;
+import com.sprint.mission.discodeit.service.UserStatusService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -15,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -26,6 +30,7 @@ public class MessageController {
 
     private final MessageService messageService;
     private final ChannelService channelService;
+    private final UserStatusService userStatusService;
 
     /**
      * 메시지 전송
@@ -54,6 +59,12 @@ public class MessageController {
 
         // 메시지 생성
         Message createdMessage = messageService.create(messageCreateRequestDTO,attachmentsRequestDTO);
+
+        // UserStatus 업데이트
+        UUID authorId = createdMessage.getAuthorId();
+        UserStatusUpdateRequestDTO updateRequestDTO = new UserStatusUpdateRequestDTO(Instant.now());
+
+        userStatusService.updateByUserId(authorId, updateRequestDTO);
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
