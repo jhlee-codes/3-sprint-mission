@@ -16,6 +16,7 @@ import java.util.UUID;
 
 @RequiredArgsConstructor
 @RequestMapping("/api/binaryContent")
+@ResponseBody
 @Controller
 public class BinaryContentController {
 
@@ -31,8 +32,8 @@ public class BinaryContentController {
             path = "/find",
             method = RequestMethod.GET
     )
-    public ResponseEntity<BinaryContent> find (
-            @RequestParam UUID binaryContentId
+    public ResponseEntity<BinaryContent> find(
+            @RequestParam("binaryContentId") UUID binaryContentId
     ) {
         // 바이너리 파일 조회
         BinaryContent content = binaryContentService.find(binaryContentId);
@@ -53,8 +54,8 @@ public class BinaryContentController {
             method = RequestMethod.GET
     )
     @ResponseBody
-    public ResponseEntity<List<BinaryContent>> findAllByIdIn (
-            @RequestParam List<UUID> binaryContentIds
+    public ResponseEntity<List<BinaryContent>> findAllByIdIn(
+            @RequestParam("binaryContentIds") List<UUID> binaryContentIds
     ) {
         // ID 목록에 해당되는 바이너리 파일 전체 조회
         List<BinaryContent> contents = binaryContentService.findAllByIdIn(binaryContentIds);

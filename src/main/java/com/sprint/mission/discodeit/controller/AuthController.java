@@ -15,14 +15,15 @@ import org.springframework.web.bind.annotation.RequestMethod;
 
 import java.time.Instant;
 import java.util.UUID;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 @RequiredArgsConstructor
 @RequestMapping("/api/auth")
+@ResponseBody
 @Controller
 public class AuthController {
 
     public final AuthService authService;
-    public final UserStatusService userStatusService;
 
     /**
      * 사용자 로그인 인증
@@ -31,20 +32,13 @@ public class AuthController {
      * @return 로그인된 User(HTTP 200 OK)
      */
     @RequestMapping(
-            path = "/login",
-            method = RequestMethod.POST
+            path = "/login"
     )
     public ResponseEntity<User> login(
             @RequestBody UserLoginRequestDTO userLoginRequestDTO
     ) {
         // 로그인
         User authUser = authService.login(userLoginRequestDTO);
-
-        // UserStatus 업데이트
-        UUID userId = authUser.getId();
-        UserStatusUpdateRequestDTO updateRequestDTO = new UserStatusUpdateRequestDTO(Instant.now());
-
-        userStatusService.updateByUserId(userId, updateRequestDTO);
 
         return ResponseEntity
                 .status(HttpStatus.OK)

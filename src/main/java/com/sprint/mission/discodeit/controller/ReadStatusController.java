@@ -17,6 +17,7 @@ import java.util.UUID;
 
 @RequiredArgsConstructor
 @RequestMapping("/api/readStatus")
+@ResponseBody
 @Controller
 public class ReadStatusController {
 
@@ -31,8 +32,7 @@ public class ReadStatusController {
      */
     @RequestMapping(
             path = "/create",
-            method = RequestMethod.POST,
-            consumes = MediaType.APPLICATION_JSON_VALUE
+            method = RequestMethod.POST
     )
     @ResponseBody
     public ResponseEntity<ReadStatus> create(
@@ -49,22 +49,22 @@ public class ReadStatusController {
     /**
      * 특정 채널의 메시지 수신 정보 수정
      *
-     * @param readStatusId 조회할 메시지 수신 정보 ID
+     * @param readStatusId               조회할 메시지 수신 정보 ID
      * @param readStatusUpdateRequestDTO 메시지 수신 정보 수정 요청 DTO
      * @return 수정된 메시지 수신 정보 (HTTP 200 OK)
      */
     @RequestMapping(
             path = "/update",
-            method = RequestMethod.PUT,
-            consumes = MediaType.APPLICATION_JSON_VALUE
+            method = RequestMethod.PUT
     )
     @ResponseBody
     public ResponseEntity<ReadStatus> update(
-            @RequestParam UUID readStatusId,
+            @RequestParam("readStatusId") UUID readStatusId,
             @RequestBody ReadStatusUpdateRequestDTO readStatusUpdateRequestDTO
     ) {
         // 메시지 수신 정보 수정
-        ReadStatus updatedReadStatus = readStatusService.update(readStatusId,readStatusUpdateRequestDTO);
+        ReadStatus updatedReadStatus = readStatusService.update(readStatusId,
+                readStatusUpdateRequestDTO);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
@@ -82,8 +82,8 @@ public class ReadStatusController {
             method = RequestMethod.GET
     )
     @ResponseBody
-    public ResponseEntity<List<ReadStatus>> findAllByUserId (
-            @RequestParam UUID userId
+    public ResponseEntity<List<ReadStatus>> findAllByUserId(
+            @RequestParam("userId") UUID userId
     ) {
         // 유저 유효성 검사
         userService.find(userId);

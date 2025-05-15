@@ -25,18 +25,18 @@ import java.util.UUID;
 
 @RequiredArgsConstructor
 @RequestMapping("/api/message")
+@ResponseBody
 @Controller
 public class MessageController {
 
     private final MessageService messageService;
     private final ChannelService channelService;
-    private final UserStatusService userStatusService;
 
     /**
      * 메시지 전송
      *
      * @param messageCreateRequestDTO 메시지 생성 요청 DTO
-     * @param attachments 첨부파일 목록
+     * @param attachments             첨부파일 목록
      * @return 생성된 Message (HTTP 201 CREATED)
      */
     @RequestMapping(
@@ -46,7 +46,7 @@ public class MessageController {
     )
     @ResponseBody
     public ResponseEntity<Message> create(
-            @RequestPart("messageCreateRequestDTO") MessageCreateRequestDTO messageCreateRequestDTO,
+            @RequestPart("messageCreateRequest") MessageCreateRequestDTO messageCreateRequestDTO,
             @RequestPart(value = "attachments", required = false) List<MultipartFile> attachments
     ) {
         // 첨부파일 생성 요청 DTO 목록 설정
@@ -58,13 +58,8 @@ public class MessageController {
                         .toList();
 
         // 메시지 생성
-        Message createdMessage = messageService.create(messageCreateRequestDTO,attachmentsRequestDTO);
-
-        // UserStatus 업데이트
-        UUID authorId = createdMessage.getAuthorId();
-        UserStatusUpdateRequestDTO updateRequestDTO = new UserStatusUpdateRequestDTO(Instant.now());
-
-        userStatusService.updateByUserId(authorId, updateRequestDTO);
+        Message createdMessage = messageService.create(messageCreateRequestDTO,
+                attachmentsRequestDTO);
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
@@ -77,7 +72,8 @@ public class MessageController {
      * @param attachment 첨부파일 (MultipartFile)
      * @return 생성된 바이너리 파일 생성 요청 DTO
      */
-    private Optional<BinaryContentCreateRequestDTO> resolveAttachmentRequest(MultipartFile attachment){
+    private Optional<BinaryContentCreateRequestDTO> resolveAttachmentRequest(
+            MultipartFile attachment) {
         if (attachment.isEmpty()) {
             // 컨트롤러가 요청받은 파라미터 중 MultipartFile 타입의 데이터가 비어있다면:
             return Optional.empty();
@@ -99,21 +95,20 @@ public class MessageController {
     /**
      * 메시지 수정
      *
-     * @param messageId 수정할 메시지 ID
+     * @param messageId               수정할 메시지 ID
      * @param messageUpdateRequestDTO 메시지 수정 요청 DTO
      * @return 수정된 Message (HTTP 200 OK)
      */
     @RequestMapping(
             path = "/update",
-            method = RequestMethod.PUT,
-            consumes = MediaType.APPLICATION_JSON_VALUE
+            method = RequestMethod.PUT
     )
     public ResponseEntity<Message> update(
-            @RequestParam UUID messageId,
+            @RequestParam("messageId") UUID messageId,
             @RequestBody MessageUpdateRequestDTO messageUpdateRequestDTO
     ) {
         // 메시지 수정
-        Message updatedMessage = messageService.update(messageId,messageUpdateRequestDTO);
+        Message updatedMessage = messageService.update(messageId, messageUpdateRequestDTO);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
@@ -131,14 +126,14 @@ public class MessageController {
             method = RequestMethod.DELETE
     )
     public ResponseEntity<String> delete(
-            @RequestParam UUID messageId
+            @RequestParam("messageId") UUID messageId
     ) {
         // 메시지 삭제
         messageService.delete(messageId);
 
         return ResponseEntity
-                .status(HttpStatus.OK)
-                .body("메시지가 삭제되었습니다.");
+                .status(HttpStatus.NO_CONTENT)
+                .build();
     }
 
     /**
@@ -152,7 +147,7 @@ public class MessageController {
             method = RequestMethod.GET
     )
     public ResponseEntity<List<Message>> findAllByChannelId(
-            @RequestParam UUID channelId
+            @RequestParam("channelId") UUID channelId
     ) {
         // 채널 유효성 검사
         channelService.find(channelId);

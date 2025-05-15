@@ -1,4 +1,4 @@
-package com.sprint.mission.discodeit.controller;
+package com.sprint.mission.discodeit.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -6,8 +6,10 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import java.util.NoSuchElementException;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 @ControllerAdvice
+@ResponseBody
 public class GlobalExceptionHandler {
 
     // 이미 존재하는 데이터가 있는 경우
@@ -52,6 +54,6 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body("에러가 발생하였습니다.(서버 내부 오류)");
+                .body(e.getMessage());
     }
 }

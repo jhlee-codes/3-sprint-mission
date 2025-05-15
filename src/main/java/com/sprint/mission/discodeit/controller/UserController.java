@@ -5,10 +5,12 @@ import com.sprint.mission.discodeit.dto.User.UserCreateRequestDTO;
 import com.sprint.mission.discodeit.dto.User.UserDTO;
 import com.sprint.mission.discodeit.dto.User.UserUpdateRequestDTO;
 import com.sprint.mission.discodeit.dto.UserStatus.UserStatusUpdateRequestDTO;
+import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.entity.UserStatus;
 import com.sprint.mission.discodeit.service.UserService;
 import com.sprint.mission.discodeit.service.UserStatusService;
+import javax.swing.text.html.Option;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -38,6 +40,7 @@ import java.util.UUID;
 
 @RequiredArgsConstructor
 @RequestMapping("/api/user")
+@ResponseBody
 @Controller
 public class UserController {
 
@@ -48,7 +51,7 @@ public class UserController {
      * 신규 사용자 등록
      *
      * @param userCreateRequestDTO 유저 생성 요청 DTO
-     * @param profile 프로필 이미지
+     * @param profile              프로필 이미지
      * @return 생성된 User (HTTP 201 CREATED)
      */
     @RequestMapping(
@@ -56,7 +59,6 @@ public class UserController {
             method = RequestMethod.POST,
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE
     )
-    @ResponseBody
     public ResponseEntity<User> create(
             @RequestPart("userCreateRequestDTO") UserCreateRequestDTO userCreateRequestDTO,
             @RequestPart(value = "profile", required = false) MultipartFile profile
@@ -76,13 +78,13 @@ public class UserController {
                 .body(createdUser);
     }
 
-    /** 
+    /**
      * MultipartFile 타입의 요청값을 BinaryContentCreateReqeust 타입으로 변환
      *
      * @param profile 프로필 (MultipartFile)
      * @return 생성된 바이너리 파일 생성 요청 DTO
      */
-    private Optional<BinaryContentCreateRequestDTO> resolveProfileRequest(MultipartFile profile){
+    private Optional<BinaryContentCreateRequestDTO> resolveProfileRequest(MultipartFile profile) {
         if (profile.isEmpty()) {
             // 컨트롤러가 요청받은 파라미터 중 MultipartFile 타입의 데이터가 비어있다면:
             return Optional.empty();
@@ -104,9 +106,9 @@ public class UserController {
     /**
      * 사용자 정보 수정
      *
-     * @param userId 수정할 사용자 ID
+     * @param userId               수정할 사용자 ID
      * @param userUpdateRequestDTO 유저 수정 요청 DTO
-     * @param profile 수정할 프로필 이미지
+     * @param profile              수정할 프로필 이미지
      * @return 수정된 User (HTTP 200 OK)
      */
     @RequestMapping(
@@ -114,10 +116,9 @@ public class UserController {
             method = RequestMethod.PUT,
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE
     )
-    @ResponseBody
     public ResponseEntity<User> update(
-            @RequestParam UUID userId,
-            @RequestPart("userUpdateRequestDTO") UserUpdateRequestDTO userUpdateRequestDTO,
+            @RequestParam("userId") UUID userId,
+            @RequestPart("userUpdateRequest") UserUpdateRequestDTO userUpdateRequestDTO,
             @RequestPart(value = "profile", required = false) MultipartFile profile
     ) {
         // 프로필 수정 요청 DTO 설정
@@ -128,7 +129,7 @@ public class UserController {
         }
 
         // 유저 정보 수정
-        User updatedUser = userService.update(userId,userUpdateRequestDTO,profileRequestDTO);
+        User updatedUser = userService.update(userId, userUpdateRequestDTO, profileRequestDTO);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
@@ -145,16 +146,15 @@ public class UserController {
             path = "/delete",
             method = RequestMethod.DELETE
     )
-    @ResponseBody
     public ResponseEntity<String> delete(
-            @RequestParam UUID userId
+            @RequestParam("userId") UUID userId
     ) {
         // 유저 삭제
         userService.delete(userId);
 
         return ResponseEntity
-                .status(HttpStatus.OK)
-                .body("유저가 삭제되었습니다.");
+                .status(HttpStatus.NO_CONTENT)
+                .build();
     }
 
     /**
@@ -166,7 +166,6 @@ public class UserController {
             path = "/findAll",
             method = RequestMethod.GET
     )
-    @ResponseBody
     public ResponseEntity<List<UserDTO>> findAllUsers() {
         // 유저 전체 조회
         List<UserDTO> userDTOList = userService.findAll();
@@ -186,15 +185,13 @@ public class UserController {
             path = "/update/userStatus",
             method = RequestMethod.PUT
     )
-    @ResponseBody
     public ResponseEntity<UserStatus> updateUserStatus(
-            @RequestParam UUID userId
+            @RequestParam("userId") UUID userId,
+            @RequestBody UserStatusUpdateRequestDTO userStatusUpdateRequestDTO
     ) {
-        // UpdateRequestDTO 값 설정
-        UserStatusUpdateRequestDTO userStatusUpdateRequestDTO = new UserStatusUpdateRequestDTO(Instant.now());
-
         // 업데이트
-        UserStatus updatedUserStatus = userStatusService.updateByUserId(userId, userStatusUpdateRequestDTO);
+        UserStatus updatedUserStatus = userStatusService.updateByUserId(userId,
+                userStatusUpdateRequestDTO);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
