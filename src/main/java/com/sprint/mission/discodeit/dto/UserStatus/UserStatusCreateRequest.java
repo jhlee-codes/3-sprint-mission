@@ -5,5 +5,7 @@ import java.util.UUID;
 
 public record UserStatusCreateRequestDTO(
         UUID userId,
-        Instant lastAccessedAt
-) {}
+        Instant lastActiveAt
+) {
+
+}
