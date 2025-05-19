@@ -30,9 +30,11 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
-
     // Swagger UI 활성화
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.6'
+    // aop 추가
+    implementation 'org.springframework.boot:spring-boot-starter-aop'
+
 }
 
 tasks.named('test') {

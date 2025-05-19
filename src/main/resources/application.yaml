@@ -4,4 +4,6 @@ discodeit:
     file-directory: .discodeit
 server:
   port: 8080
-
+logging:
+  level:
+    root: INFO
