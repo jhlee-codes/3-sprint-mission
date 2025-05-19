@@ -1,9 +1,9 @@
 package com.sprint.mission.discodeit.service.basic;
 
-import com.sprint.mission.discodeit.dto.BinaryContent.BinaryContentCreateRequestDTO;
-import com.sprint.mission.discodeit.dto.User.UserCreateRequestDTO;
-import com.sprint.mission.discodeit.dto.User.UserDTO;
-import com.sprint.mission.discodeit.dto.User.UserUpdateRequestDTO;
+import com.sprint.mission.discodeit.dto.BinaryContent.BinaryContentCreateRequest;
+import com.sprint.mission.discodeit.dto.User.UserCreateRequest;
+import com.sprint.mission.discodeit.dto.User.UserDto;
+import com.sprint.mission.discodeit.dto.User.UserUpdateRequest;
 import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.entity.UserStatus;
@@ -29,18 +29,19 @@ public class BasicUserService implements UserService {
     /**
      * 주어진 생성 요청 DTO(유저, 프로필사진)를 기반으로 유저 생성
      *
-     * @param userCreateRequestDTO 유저 생성 요청 DTO
+     * @param userCreateRequest       유저 생성 요청 DTO
      * @param profileCreateRequestDTO 프로필사진 생성 요청 DTO
      * @return 생성된 유저
      * @throws IllegalStateException 유저명/이메일 중복시 예외처리
      */
     @Override
-    public User create(UserCreateRequestDTO userCreateRequestDTO, BinaryContentCreateRequestDTO profileCreateRequestDTO) {
-        String userName = userCreateRequestDTO.userName();
-        String email = userCreateRequestDTO.email();
+    public User create(UserCreateRequest userCreateRequest,
+            BinaryContentCreateRequest profileCreateRequestDTO) {
+        String username = userCreateRequest.username();
+        String email = userCreateRequest.email();
 
         // username, email 중복체크
-        if (userRepository.existsByUserName(userName)) {
+        if (userRepository.existsByUserName(username)) {
             throw new IllegalStateException("이미 존재하는 유저명입니다. 다른 유저명을 입력해주세요.");
         }
         if (userRepository.existsByEmail(email)) {
@@ -55,32 +56,32 @@ public class BasicUserService implements UserService {
         if (isProfileCreated) {
             String fileName = profileCreateRequestDTO.fileName();
             String contentType = profileCreateRequestDTO.contentType();
-            byte[] content = profileCreateRequestDTO.content();
+            byte[] bytes = profileCreateRequestDTO.bytes();
 
             binaryContent = BinaryContent.builder()
                     .contentType(contentType)
                     .fileName(fileName)
-                    .content(content)
-                    .size((long) content.length)
+                    .bytes(bytes)
+                    .size((long) bytes.length)
                     .build();
 
             binaryContentRepository.save(binaryContent);
         }
 
-        String password = userCreateRequestDTO.password();
+        String password = userCreateRequest.password();
 
         // 유저 생성
         User user = User.builder()
-                .userName(userName)
+                .username(username)
                 .email(email)
                 .password(password)
-                .profileId(isProfileCreated ? binaryContent.getId(): null)
+                .profileId(isProfileCreated ? binaryContent.getId() : null)
                 .build();
 
         // UserStatus 생성
         UserStatus userStatus = UserStatus.builder()
                 .userId(user.getId())
-                .lastAccessedAt(Instant.now())
+                .lastActiveAt(Instant.now())
                 .build();
 
         // 데이터 저장
@@ -95,16 +96,16 @@ public class BasicUserService implements UserService {
      * @return 조회된 유저 데이터
      */
     @Override
-    public List<UserDTO> findAll() {
+    public List<UserDto> findAll() {
         List<User> userList = userRepository.findAll();
 
         // userStatus를 UserID와 매핑
         Map<UUID, UserStatus> userStatusMap = userStatusRepository.findAll().stream()
-                .collect(Collectors.toMap(UserStatus::getUserId, us->us));
+                .collect(Collectors.toMap(UserStatus::getUserId, us -> us));
 
         // UserResponseDTO 리스트 형태로 리턴
         return userList.stream()
-                .map(u-> UserDTO.from(u,userStatusMap.get(u.getId())))
+                .map(u -> UserDto.from(u, userStatusMap.get(u.getId())))
                 .collect(Collectors.toList());
     }
 
@@ -116,28 +117,29 @@ public class BasicUserService implements UserService {
      * @throws NoSuchElementException 해당 ID의 유저가 존재하지 않는 경우
      */
     @Override
-    public UserDTO find(UUID userId) {
+    public UserDto find(UUID userId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(()->new NoSuchElementException("해당 ID의 유저가 존재하지 않습니다."));
+                .orElseThrow(() -> new NoSuchElementException("해당 ID의 유저가 존재하지 않습니다."));
 
         UserStatus userStatus = userStatusRepository.findByUserId(userId)
                 .orElseThrow(() -> new NoSuchElementException("해당 유저ID의 UserStatus가 존재하지 않습니다."));
 
         // UserResponseDTO 형태로 리턴
-        return UserDTO.from(user,userStatus);
+        return UserDto.from(user, userStatus);
     }
 
     /**
      * 주어진 ID에 해당하는 유저를 수정 요청 DTO(유저, 프로필사진) 값으로 수정
      *
-     * @param userId 수정 대상 유저 ID
-     * @param updateRequestDTO 유저 수정 요청 DTO
+     * @param userId                  수정 대상 유저 ID
+     * @param updateRequestDTO        유저 수정 요청 DTO
      * @param profileCreateRequestDTO 프로필사진 수정 요청 DTO
      * @return 수정된 유저
      * @throws NoSuchElementException 해당 ID의 유저가 존재하지 않는 경우
      */
     @Override
-    public User update(UUID userId, UserUpdateRequestDTO updateRequestDTO, BinaryContentCreateRequestDTO profileCreateRequestDTO) {
+    public User update(UUID userId, UserUpdateRequest updateRequestDTO,
+            BinaryContentCreateRequest profileCreateRequestDTO) {
         // 유저 유효성 검사
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NoSuchElementException("해당 ID의 유저가 존재하지 않습니다."));
@@ -160,13 +162,13 @@ public class BasicUserService implements UserService {
         if (isProfileCreated) {
             String fileName = profileCreateRequestDTO.fileName();
             String contentType = profileCreateRequestDTO.contentType();
-            byte[] content = profileCreateRequestDTO.content();
+            byte[] bytes = profileCreateRequestDTO.bytes();
 
             binaryContent = BinaryContent.builder()
                     .fileName(fileName)
-                    .size((long) content.length)
+                    .size((long) bytes.length)
                     .contentType(contentType)
-                    .content(content)
+                    .bytes(bytes)
                     .build();
 
             binaryContentRepository.save(binaryContent);
@@ -179,7 +181,7 @@ public class BasicUserService implements UserService {
                 newUsername,
                 newEmail,
                 newPassword,
-                isProfileCreated ? binaryContent.getId(): null
+                isProfileCreated ? binaryContent.getId() : null
         );
 
         // 데이터 저장
@@ -200,7 +202,7 @@ public class BasicUserService implements UserService {
 
         UUID userStatusId = userStatusRepository.findByUserId(userId)
                 .map(UserStatus::getId)
-                .orElseThrow(()-> new NoSuchElementException("해당 유저ID의 UserStatus가 존재하지 않습니다."));
+                .orElseThrow(() -> new NoSuchElementException("해당 유저ID의 UserStatus가 존재하지 않습니다."));
 
         // 관련 도메인 삭제 (BinaryContent, UserStatus)
         userStatusRepository.deleteById(userStatusId);

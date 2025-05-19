@@ -1,5 +1,11 @@
 package com.sprint.mission.discodeit.entity;
 
-public class ResponseEntity {
+import java.util.Map;
+
+public class ResponseMessage {
+
+    private int httpStatus;
+    private String description;
+    private Map<String, Object> result;
 
 }

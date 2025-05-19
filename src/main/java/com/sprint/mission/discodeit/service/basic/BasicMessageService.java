@@ -1,8 +1,8 @@
 package com.sprint.mission.discodeit.service.basic;
 
-import com.sprint.mission.discodeit.dto.BinaryContent.BinaryContentCreateRequestDTO;
-import com.sprint.mission.discodeit.dto.Message.MessageCreateRequestDTO;
-import com.sprint.mission.discodeit.dto.Message.MessageUpdateRequestDTO;
+import com.sprint.mission.discodeit.dto.BinaryContent.BinaryContentCreateRequest;
+import com.sprint.mission.discodeit.dto.Message.MessageCreateRequest;
+import com.sprint.mission.discodeit.dto.Message.MessageUpdateRequest;
 import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
@@ -30,13 +30,14 @@ public class BasicMessageService implements MessageService {
     /**
      * 주어진 생성 요청 DTO(메시지, BinaryContent)를 기반으로 메시지 생성
      *
-     * @param createRequestDTO 메시지 생성 요청 DTO
+     * @param createRequestDTO               메시지 생성 요청 DTO
      * @param binaryContentCreateRequestsDTO 첨부파일(BinaryContent) 생성 요청 DTO 리스트
      * @return 생성된 메시지
      * @throws NoSuchElementException 작성자 또는 채널이 존재하지 않는 경우
      */
     @Override
-    public Message create(MessageCreateRequestDTO createRequestDTO, List<BinaryContentCreateRequestDTO> binaryContentCreateRequestsDTO) {
+    public Message create(MessageCreateRequest createRequestDTO,
+            List<BinaryContentCreateRequest> binaryContentCreateRequestsDTO) {
         UUID authorId = createRequestDTO.authorId();
         UUID channelId = createRequestDTO.channelId();
 
@@ -50,16 +51,16 @@ public class BasicMessageService implements MessageService {
 
         // 첨부파일 저장
         List<UUID> binaryContents = new ArrayList<>();
-        for (BinaryContentCreateRequestDTO dto : binaryContentCreateRequestsDTO) {
+        for (BinaryContentCreateRequest dto : binaryContentCreateRequestsDTO) {
             String fileName = dto.fileName();
             String contentType = dto.contentType();
-            byte[] content = dto.content();
+            byte[] bytes = dto.bytes();
 
             BinaryContent binaryContent = BinaryContent.builder()
                     .fileName(fileName)
-                    .size((long)content.length)
+                    .size((long) bytes.length)
                     .contentType(contentType)
-                    .content(content)
+                    .bytes(bytes)
                     .build();
 
             binaryContentRepository.save(binaryContent);
@@ -101,21 +102,21 @@ public class BasicMessageService implements MessageService {
     @Override
     public Message find(UUID messageId) {
         return messageRepository.findById(messageId)
-                .orElseThrow(()->new NoSuchElementException("해당 메시지를 찾을 수 없습니다."));
+                .orElseThrow(() -> new NoSuchElementException("해당 메시지를 찾을 수 없습니다."));
     }
 
     /**
      * 주어진 ID에 해당하는 메시지를 수정 요청 DTO의 값으로 수정
      *
-     * @param messageId 수정 대상 메시지ID
+     * @param messageId        수정 대상 메시지ID
      * @param updateRequestDTO 수정 요청 DTO
      * @return 수정된 메시지
      * @throws NoSuchElementException 해당 ID의 메시지가 존재하지 않는 경우
      */
     @Override
-    public Message update(UUID messageId, MessageUpdateRequestDTO updateRequestDTO) {
+    public Message update(UUID messageId, MessageUpdateRequest updateRequestDTO) {
         Message msg = messageRepository.findById(messageId)
-                .orElseThrow(()->new NoSuchElementException("해당 메시지를 찾을 수 없습니다."));
+                .orElseThrow(() -> new NoSuchElementException("해당 메시지를 찾을 수 없습니다."));
 
         String newContent = updateRequestDTO.newContent();
 
@@ -135,7 +136,7 @@ public class BasicMessageService implements MessageService {
     @Override
     public void delete(UUID messageId) {
         Message msg = messageRepository.findById(messageId)
-                .orElseThrow(()->new NoSuchElementException("해당 메시지를 찾을 수 없습니다."));
+                .orElseThrow(() -> new NoSuchElementException("해당 메시지를 찾을 수 없습니다."));
 
         // 관련 도메인 삭제 (BinaryContent)
         msg.getAttachmentIds()

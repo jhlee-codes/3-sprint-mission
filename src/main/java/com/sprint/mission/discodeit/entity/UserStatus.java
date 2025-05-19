@@ -12,6 +12,7 @@ import java.util.UUID;
 @Getter
 @ToString
 public class UserStatus implements Serializable {
+
     private static final long serialVersionUID = -8208733885105787316L;
 
     /* 공통 필드 */
@@ -20,27 +21,27 @@ public class UserStatus implements Serializable {
     private Instant updatedAt;
 
     private UUID userId;                // 유저ID
-    private Instant lastAccessedAt;     // 마지막으로 확인된 접속시간
+    private Instant lastActiveAt;     // 마지막으로 확인된 접속시간
 
     @Builder
-    public UserStatus(UUID userId, Instant lastAccessedAt) {
+    public UserStatus(UUID userId, Instant lastActiveAt) {
         this.id = UUID.randomUUID();
         this.createdAt = Instant.now();
         this.updatedAt = Instant.now();
 
         this.userId = userId;
-        this.lastAccessedAt = lastAccessedAt;
+        this.lastActiveAt = lastActiveAt;
     }
 
-    public void update(Instant lastAccessedAt) {
+    public void update(Instant lastActiveAt) {
         this.updatedAt = Instant.now();
-        this.lastAccessedAt = lastAccessedAt != null ? lastAccessedAt : Instant.now();
+        this.lastActiveAt = lastActiveAt != null ? lastActiveAt : Instant.now();
     }
 
     public boolean isOnline() {
 
         Instant instantFiveMinuteAgo = Instant.now().minus(Duration.ofMinutes(5));
 
-        return this.lastAccessedAt.isAfter(instantFiveMinuteAgo);
+        return this.lastActiveAt.isAfter(instantFiveMinuteAgo);
     }
 }

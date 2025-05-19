@@ -7,18 +7,19 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
-public record ChannelDTO(
+public record ChannelDto(
         UUID id,
-        String channelName,
+        String name,
         String description,
         ChannelType type,
         Instant lastMessageAt,
         List<UUID> participantIds
 ) {
-    public static ChannelDTO from(Channel ch, Instant lastMessageAt, List<UUID> userIdList) {
-        return new ChannelDTO(
+
+    public static ChannelDto from(Channel ch, Instant lastMessageAt, List<UUID> userIdList) {
+        return new ChannelDto(
                 ch.getId(),
-                ch.getChannelName(),
+                ch.getName(),
                 ch.getDescription(),
                 ch.getType(),
                 lastMessageAt,
@@ -27,7 +28,7 @@ public record ChannelDTO(
     }
 
     /* public 채널 */
-    public static ChannelDTO from(Channel ch, Instant lastMessageAt) {
-        return from(ch,lastMessageAt,null);
+    public static ChannelDto from(Channel ch, Instant lastMessageAt) {
+        return from(ch, lastMessageAt, null);
     }
 }
