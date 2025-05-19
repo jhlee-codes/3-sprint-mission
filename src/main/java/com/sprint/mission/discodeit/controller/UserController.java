@@ -88,7 +88,6 @@ public class UserController {
             profileRequestDTO = resolveProfileRequest(profile).orElse(null);
         }
 
-        // 유저 생성
         User createdUser = userService.create(userCreateRequest, profileRequestDTO);
 
         return ResponseEntity
@@ -155,7 +154,6 @@ public class UserController {
             profileRequestDTO = resolveProfileRequest(profile).orElse(null);
         }
 
-        // 유저 정보 수정
         User updatedUser = userService.update(userId, userUpdateRequest, profileRequestDTO);
 
         return ResponseEntity

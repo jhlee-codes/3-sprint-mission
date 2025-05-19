@@ -45,7 +45,6 @@ public class BasicUserStatusService implements UserStatusService {
 
         Instant lastActiveAt = createRequestDTO.lastActiveAt();
 
-        // UserStatus 생성
         UserStatus userStatus = UserStatus.builder()
                 .userId(userId)
                 .lastActiveAt(lastActiveAt)
@@ -105,10 +104,8 @@ public class BasicUserStatusService implements UserStatusService {
 
         Instant lastActiveAt = updateRequestDTO.newLastActiveAt();
 
-        // UserStatus 수정
         userStatus.update(lastActiveAt);
 
-        // 데이터 저장
         userStatusRepository.save(userStatus);
         return userStatus;
     }
@@ -128,10 +125,8 @@ public class BasicUserStatusService implements UserStatusService {
 
         Instant lastActiveAt = updateRequestDTO.newLastActiveAt();
 
-        // UserStatus 수정
         userStatus.update(lastActiveAt);
 
-        // 데이터 저장
         userStatusRepository.save(userStatus);
         return userStatus;
     }

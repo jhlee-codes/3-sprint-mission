@@ -48,11 +48,9 @@ public class BasicUserService implements UserService {
             throw new IllegalStateException("이미 존재하는 이메일입니다. 다른 이메일을 입력해주세요.");
         }
 
-        // BinaryContent 생성
         boolean isProfileCreated = profileCreateRequestDTO != null;
         BinaryContent binaryContent = null;
 
-        // 프로필 파라미터가 있는 경우
         if (isProfileCreated) {
             String fileName = profileCreateRequestDTO.fileName();
             String contentType = profileCreateRequestDTO.contentType();
@@ -70,7 +68,6 @@ public class BasicUserService implements UserService {
 
         String password = userCreateRequest.password();
 
-        // 유저 생성
         User user = User.builder()
                 .username(username)
                 .email(email)
@@ -78,13 +75,11 @@ public class BasicUserService implements UserService {
                 .profileId(isProfileCreated ? binaryContent.getId() : null)
                 .build();
 
-        // UserStatus 생성
         UserStatus userStatus = UserStatus.builder()
                 .userId(user.getId())
                 .lastActiveAt(Instant.now())
                 .build();
 
-        // 데이터 저장
         userRepository.save(user);
         userStatusRepository.save(userStatus);
         return user;
@@ -103,7 +98,6 @@ public class BasicUserService implements UserService {
         Map<UUID, UserStatus> userStatusMap = userStatusRepository.findAll().stream()
                 .collect(Collectors.toMap(UserStatus::getUserId, us -> us));
 
-        // UserResponseDTO 리스트 형태로 리턴
         return userList.stream()
                 .map(u -> UserDto.from(u, userStatusMap.get(u.getId())))
                 .collect(Collectors.toList());
@@ -124,7 +118,6 @@ public class BasicUserService implements UserService {
         UserStatus userStatus = userStatusRepository.findByUserId(userId)
                 .orElseThrow(() -> new NoSuchElementException("해당 유저ID의 UserStatus가 존재하지 않습니다."));
 
-        // UserResponseDTO 형태로 리턴
         return UserDto.from(user, userStatus);
     }
 
@@ -154,11 +147,9 @@ public class BasicUserService implements UserService {
             throw new IllegalStateException("이미 존재하는 이메일입니다. 다른 이메일을 입력해주세요.");
         }
 
-        // BinaryContent 생성
         boolean isProfileCreated = profileCreateRequestDTO != null;
         BinaryContent binaryContent = null;
 
-        // 프로필 파라미터가 있는 경우
         if (isProfileCreated) {
             String fileName = profileCreateRequestDTO.fileName();
             String contentType = profileCreateRequestDTO.contentType();
@@ -176,7 +167,6 @@ public class BasicUserService implements UserService {
 
         String newPassword = updateRequestDTO.newPassword();
 
-        // 유저 수정
         user.update(
                 newUsername,
                 newEmail,
@@ -184,7 +174,6 @@ public class BasicUserService implements UserService {
                 isProfileCreated ? binaryContent.getId() : null
         );
 
-        // 데이터 저장
         userRepository.save(user);
         return user;
     }
@@ -204,13 +193,11 @@ public class BasicUserService implements UserService {
                 .map(UserStatus::getId)
                 .orElseThrow(() -> new NoSuchElementException("해당 유저ID의 UserStatus가 존재하지 않습니다."));
 
-        // 관련 도메인 삭제 (BinaryContent, UserStatus)
         userStatusRepository.deleteById(userStatusId);
         if (user.getProfileId() != null) {
             binaryContentRepository.deleteById(user.getProfileId());
         }
 
-        // 유저 삭제
         userRepository.deleteById(userId);
     }
 }

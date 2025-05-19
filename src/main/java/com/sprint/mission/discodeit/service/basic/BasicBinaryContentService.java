@@ -29,7 +29,6 @@ public class BasicBinaryContentService implements BinaryContentService {
         byte[] bytes = createRequestDTO.bytes();
         String contentType = createRequestDTO.contentType();
 
-        // BinaryContent 생성
         BinaryContent binaryContent = BinaryContent.builder()
                 .fileName(fileName)
                 .size((long) bytes.length)
@@ -37,7 +36,6 @@ public class BasicBinaryContentService implements BinaryContentService {
                 .bytes(bytes)
                 .build();
 
-        // 데이터 저장
         binaryContentRepository.save(binaryContent);
         return binaryContent;
     }

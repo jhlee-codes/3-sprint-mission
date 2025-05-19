@@ -50,14 +50,12 @@ public class BasicReadStatusService implements ReadStatusService {
 
         Instant lastReadAt = createRequestDTO.lastReadAt();
 
-        // ReadStatus 생성
         ReadStatus readStatus = ReadStatus.builder()
                 .channelId(channelId)
                 .userId(userId)
                 .lastReadAt(lastReadAt)
                 .build();
 
-        // 데이터 저장
         readStatusRepository.save(readStatus);
         return readStatus;
     }
@@ -101,10 +99,8 @@ public class BasicReadStatusService implements ReadStatusService {
 
         Instant lastReadAt = updateRequestDTO.newLastReadAt();
 
-        // ReadStatus 수정
         readStatus.update(lastReadAt);
 
-        // 데이터 저장
         readStatusRepository.save(readStatus);
         return readStatus;
     }

@@ -38,7 +38,6 @@ public class BasicChannelService implements ChannelService {
         String name = createRequestDTO.name();
         String description = createRequestDTO.description();
 
-        // 채널 생성
         Channel ch = Channel.builder()
                 .type(ChannelType.PUBLIC)
                 .name(name)
@@ -57,12 +56,10 @@ public class BasicChannelService implements ChannelService {
      */
     @Override
     public Channel create(PrivateChannelCreateRequest createRequestDTO) {
-        // 채널 생성
         Channel ch = Channel.builder()
                 .type(ChannelType.PRIVATE)
                 .build();
 
-        // User별 ReadStatus 생성
         createRequestDTO.participantIds().stream()
                 .map(userId -> ReadStatus.builder()
                         .userId(userId)
@@ -71,7 +68,6 @@ public class BasicChannelService implements ChannelService {
                         .build())
                 .forEach(readStatusRepository::save);
 
-        // 데이터 저장
         channelRepository.save(ch);
         return ch;
     }
@@ -156,7 +152,6 @@ public class BasicChannelService implements ChannelService {
         Channel ch = channelRepository.findById(channelId)
                 .orElseThrow(() -> new NoSuchElementException("해당 채널이 존재하지 않습니다."));
 
-        // PRIVATE 채널 예외처리
         if (ch.getType().equals(ChannelType.PRIVATE)) {
             throw new IllegalArgumentException("PRIVATE 채널은 수정할 수 없습니다.");
         }
@@ -164,7 +159,6 @@ public class BasicChannelService implements ChannelService {
         String newName = updateRequestDTO.newName();
         String newDescription = updateRequestDTO.newDescription();
 
-        // 채널 수정
         ch.update(newName, newDescription);
 
         channelRepository.save(ch);
@@ -182,7 +176,6 @@ public class BasicChannelService implements ChannelService {
         channelRepository.findById(channelId)
                 .orElseThrow(() -> new NoSuchElementException("존재하지 않는 채널입니다."));
 
-        // 관련 도메인 삭제
         messageRepository.findByChannelId(channelId).stream()
                 .map(Message::getId)
                 .forEach(messageRepository::deleteById);
@@ -191,7 +184,6 @@ public class BasicChannelService implements ChannelService {
                 .map(ReadStatus::getId)
                 .forEach(readStatusRepository::deleteById);
 
-        // 채널 삭제
         channelRepository.deleteById(channelId);
     }
 }

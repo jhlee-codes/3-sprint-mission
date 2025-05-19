@@ -49,7 +49,6 @@ public class BasicMessageService implements MessageService {
             throw new NoSuchElementException("존재하지 않는 채널입니다.");
         }
 
-        // 첨부파일 저장
         List<UUID> binaryContents = new ArrayList<>();
         for (BinaryContentCreateRequest dto : binaryContentCreateRequestsDTO) {
             String fileName = dto.fileName();
@@ -69,7 +68,6 @@ public class BasicMessageService implements MessageService {
 
         String content = createRequestDTO.content();
 
-        // 메시지 생성
         Message msg = Message.builder()
                 .content(content)
                 .authorId(authorId)
@@ -120,7 +118,6 @@ public class BasicMessageService implements MessageService {
 
         String newContent = updateRequestDTO.newContent();
 
-        // 메시지 수정
         msg.update(newContent);
 
         messageRepository.save(msg);
@@ -138,11 +135,9 @@ public class BasicMessageService implements MessageService {
         Message msg = messageRepository.findById(messageId)
                 .orElseThrow(() -> new NoSuchElementException("해당 메시지를 찾을 수 없습니다."));
 
-        // 관련 도메인 삭제 (BinaryContent)
         msg.getAttachmentIds()
                 .forEach(binaryContentRepository::deleteById);
 
-        // 메시지 삭제
         messageRepository.deleteById(messageId);
     }
 }
