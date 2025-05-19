@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class AuthController {
 
-    public final AuthService authService;
+    private final AuthService authService;
 
     /**
      * 사용자 로그인 인증
