@@ -1,4 +1,4 @@
-package com.sprint.mission.discodeit.dto;
+package com.sprint.mission.discodeit.dto.Common;
 
 import java.time.LocalDateTime;
 import org.springframework.http.HttpStatus;

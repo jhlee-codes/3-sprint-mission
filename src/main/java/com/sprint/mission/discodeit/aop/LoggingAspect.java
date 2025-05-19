@@ -36,7 +36,6 @@ public class LoggingAspect {
             } else {
                 log.info("[실행 완료] : {} = {}ms ", methodName, time);
             }
-            log.info("[반환값] : {}", result);
         }
     }
 }
