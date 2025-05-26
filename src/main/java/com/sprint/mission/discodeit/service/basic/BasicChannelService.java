@@ -64,7 +64,7 @@ public class BasicChannelService implements ChannelService {
                 .map(userId -> ReadStatus.builder()
                         .userId(userId)
                         .channelId(ch.getId())
-                        .lastReadAt(Instant.now())
+                        .lastReadAt(ch.getCreatedAt())
                         .build())
                 .forEach(readStatusRepository::save);
 
