@@ -1,5 +1,6 @@
 package com.sprint.mission.discodeit.controller;
 
+import com.sprint.mission.discodeit.controller.api.BinaryContentApi;
 import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.service.BinaryContentService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -22,11 +23,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-@Tag(name = "BinaryContent", description = "첨부 파일 API")
 @RequiredArgsConstructor
 @RequestMapping("/api/binaryContents")
 @RestController
-public class BinaryContentController {
+public class BinaryContentController implements BinaryContentApi {
 
     private final BinaryContentService binaryContentService;
 
@@ -36,19 +36,9 @@ public class BinaryContentController {
      * @param binaryContentId 조회할 바이너리 파일 ID
      * @return 조회된 바이너리 파일 (HTTP 200 OK)
      */
-    @Operation(
-            summary = "첨부 파일 조회",
-            operationId = "find"
-    )
-    @ApiResponses(
-            value = {
-                    @ApiResponse(responseCode = "200", description = "첨부 파일 조회 성공", content = @Content(schema = @Schema(implementation = BinaryContent.class))),
-                    @ApiResponse(responseCode = "404", description = "첨부 파일을 찾을 수 없음", content = @Content(examples = @ExampleObject("BinaryContent with id {binaryContentId} not found")))
-            }
-    )
     @GetMapping(path = "/{binaryContentId}")
+    @Override
     public ResponseEntity<BinaryContent> find(
-            @Parameter(description = "조회할 첨부 파일 ID", required = true)
             @PathVariable UUID binaryContentId
     ) {
         BinaryContent content = binaryContentService.find(binaryContentId);
@@ -64,18 +54,9 @@ public class BinaryContentController {
      * @param binaryContentIds 조회할 바이너리 파일 ID 목록
      * @return 조회된 바이너리 파일 목록 (HTTP 200 OK)
      */
-    @Operation(
-            summary = "여러 첨부 파일 조회",
-            operationId = "findAllByIdIn"
-    )
-    @ApiResponses(
-            value = {
-                    @ApiResponse(responseCode = "200", description = "첨부 파일 목록 조회 성공", content = @Content(array = @ArraySchema(schema = @Schema(implementation = BinaryContent.class)))),
-            }
-    )
     @GetMapping
+    @Override
     public ResponseEntity<List<BinaryContent>> findAllByIdIn(
-            @Parameter(description = "조회할 첨부 파일 ID 목록", required = true)
             @RequestParam("binaryContentIds") List<UUID> binaryContentIds
     ) {
         List<BinaryContent> contents = binaryContentService.findAllByIdIn(binaryContentIds);

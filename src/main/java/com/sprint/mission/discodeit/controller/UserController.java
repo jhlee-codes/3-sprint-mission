@@ -1,5 +1,6 @@
 package com.sprint.mission.discodeit.controller;
 
+import com.sprint.mission.discodeit.controller.api.UserApi;
 import com.sprint.mission.discodeit.dto.BinaryContent.BinaryContentCreateRequest;
 import com.sprint.mission.discodeit.dto.User.UserCreateRequest;
 import com.sprint.mission.discodeit.dto.User.UserDto;
@@ -9,6 +10,7 @@ import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.entity.UserStatus;
 import com.sprint.mission.discodeit.service.UserService;
 import com.sprint.mission.discodeit.service.UserStatusService;
+import io.micrometer.observation.annotation.Observed;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -50,11 +52,11 @@ import org.springframework.web.multipart.MultipartFile;
  *  - (옵션) 응답 헤더 정의
  * */
 
-@Tag(name = "User", description = "User API")
+
 @RequiredArgsConstructor
 @RequestMapping("/api/users")
 @RestController
-public class UserController {
+public class UserController implements UserApi {
 
     private final UserService userService;
     private final UserStatusService userStatusService;
@@ -66,20 +68,10 @@ public class UserController {
      * @param profile           프로필 이미지
      * @return 생성된 User (HTTP 201 CREATED)
      */
-    @Operation(
-            summary = "User 등록",
-            operationId = "create"
-    )
-    @ApiResponses(
-            value = {
-                    @ApiResponse(responseCode = "201", description = "User가 성공적으로 생성됨", content = @Content(schema = @Schema(implementation = User.class))),
-                    @ApiResponse(responseCode = "400", description = "같은 email 또는 username를 사용하는 User가 이미 존재함", content = @Content(examples = @ExampleObject("User with email {email} already exists")))
-            }
-    )
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Override
     public ResponseEntity<User> create(
             @RequestPart("userCreateRequest") UserCreateRequest userCreateRequest,
-            @Parameter(description = "User 프로필 이미지", required = false)
             @RequestPart(value = "profile", required = false) MultipartFile profile
     ) {
         BinaryContentCreateRequest profileRequestDTO = null;
@@ -126,26 +118,15 @@ public class UserController {
      * @param profile           수정할 프로필 이미지
      * @return 수정된 User (HTTP 200 OK)
      */
-    @Operation(
-            summary = "User 정보 수정",
-            operationId = "update"
-    )
-    @ApiResponses(
-            value = {
-                    @ApiResponse(responseCode = "200", description = "User 정보가 성공적으로 수정됨", content = @Content(schema = @Schema(implementation = User.class))),
-                    @ApiResponse(responseCode = "400", description = "같은 email 또는 username를 사용하는 User가 이미 존재함", content = @Content(examples = @ExampleObject("user with email {newEmail} already exists"))),
-                    @ApiResponse(responseCode = "404", description = "User를 찾을 수 없음", content = @Content(examples = @ExampleObject("User with id {userId} not found")))
-            }
-    )
+
     @PatchMapping(
             path = "/{userId}",
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE
     )
+    @Override
     public ResponseEntity<User> update(
-            @Parameter(description = "수정할 User ID", required = true)
             @PathVariable UUID userId,
             @RequestPart("userUpdateRequest") UserUpdateRequest userUpdateRequest,
-            @Parameter(description = "수정할 User 프로필 이미지", required = false)
             @RequestPart(value = "profile", required = false) MultipartFile profile
     ) {
         BinaryContentCreateRequest profileRequestDTO = null;
@@ -167,19 +148,9 @@ public class UserController {
      * @param userId 삭제할 유저 ID
      * @return 삭제 완료 메시지 (HTTP 200 OK)
      */
-    @Operation(
-            summary = "User 삭제",
-            operationId = "delete"
-    )
-    @ApiResponses(
-            value = {
-                    @ApiResponse(responseCode = "204", description = "User가 성공적으로 삭제됨"),
-                    @ApiResponse(responseCode = "404", description = "User를 찾을 수 없음", content = @Content(examples = @ExampleObject("User with id {id} not found")))
-            }
-    )
     @DeleteMapping(path = "/{userId}")
+    @Override
     public ResponseEntity<Void> delete(
-            @Parameter(description = "삭제할 User ID", required = true)
             @PathVariable UUID userId
     ) {
         userService.delete(userId);
@@ -194,16 +165,8 @@ public class UserController {
      *
      * @return 조회된 전체 User 목록 (HTTP 200 OK)
      */
-    @Operation(
-            summary = "전체 User 목록 조회",
-            operationId = "findAll"
-    )
-    @ApiResponses(
-            value = {
-                    @ApiResponse(responseCode = "200", description = "User 목록 조회 성공", content = @Content(array = @ArraySchema(schema = @Schema(implementation = UserDto.class))))
-            }
-    )
     @GetMapping
+    @Override
     public ResponseEntity<List<UserDto>> findAll() {
         List<UserDto> userDtoList = userService.findAll();
 
@@ -218,19 +181,9 @@ public class UserController {
      * @param userId 대상 사용자 ID
      * @return 업데이트 된 UserStatus (HTTP 200 OK)
      */
-    @Operation(
-            summary = "User 온라인 상태 업데이트",
-            operationId = "updateUserStatusByUserId"
-    )
-    @ApiResponses(
-            value = {
-                    @ApiResponse(responseCode = "200", description = "User 온라인 상태가 성공적으로 업데이트됨", content = @Content(schema = @Schema(implementation = UserStatus.class))),
-                    @ApiResponse(responseCode = "404", description = "해당 User의 UserStatus를 찾을 수 없음", content = @Content(examples = @ExampleObject("UserStatus with userId {userId} not found")))
-            }
-    )
     @PatchMapping(path = "/{userId}/userStatus")
+    @Override
     public ResponseEntity<UserStatus> updateUserStatusByUserId(
-            @Parameter(description = "상태를 변경할 User ID", required = true)
             @PathVariable UUID userId,
             @RequestBody UserStatusUpdateRequest userStatusUpdateRequest
     ) {
