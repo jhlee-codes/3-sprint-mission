@@ -85,7 +85,7 @@ public class BasicChannelService implements ChannelService {
                 .orElse(null);
 
         // PRIVATE 채널인 경우 참여한 User의 id 정보 포함
-        if (ch.getType().equals(ChannelType.PRIVATE)) {
+        if (ChannelType.PRIVATE.equals(ch.getType())) {
             List<UUID> userIdList = readStatusRepository.findUserIdByChannelId(ch.getId());
             return ChannelDto.from(ch,
                     msg != null ? msg.getCreatedAt() : null,
