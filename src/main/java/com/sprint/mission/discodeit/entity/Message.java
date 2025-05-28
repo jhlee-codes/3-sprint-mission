@@ -12,6 +12,7 @@ import java.util.UUID;
 @Getter
 @ToString
 public class Message implements Serializable {
+
     private static final long serialVersionUID = 2778505846092278216L;
 
     /* 공통 필드 */
@@ -20,7 +21,6 @@ public class Message implements Serializable {
     private Instant updatedAt;
 
     private String content;// 메시지 내용
-    private boolean isUpdated;          // 메시지 수정 여부
 
     private UUID authorId;              // 송신자 id
     private UUID channelId;             // 채널 id
@@ -36,18 +36,15 @@ public class Message implements Serializable {
         this.authorId = authorId;
         this.channelId = channelId;
         this.attachmentIds = attachmentIds;
-        this.isUpdated = false;
     }
 
     public void update(String newContent) {
         boolean isUpdated = false;
         if (newContent != null && !newContent.equals(this.content)) {
             this.content = newContent;
-            isUpdated = true;
         }
 
         if (isUpdated) {
-            this.isUpdated = true;
             this.updatedAt = Instant.now();
         }
     }

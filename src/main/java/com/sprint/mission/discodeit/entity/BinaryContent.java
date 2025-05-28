@@ -11,6 +11,7 @@ import java.util.UUID;
 @Getter
 @ToString
 public class BinaryContent implements Serializable {
+
     private static final long serialVersionUID = -6905250809722555385L;
 
     /* 공통 필드 */
@@ -20,16 +21,16 @@ public class BinaryContent implements Serializable {
     private String fileName;    // 파일명
     private Long size;          // 파일 크기
     private String contentType; // 데이터 타입
-    private byte[] content;     // byte 형태의 데이터
+    private byte[] bytes;     // byte 형태의 데이터
 
     @Builder
-    public BinaryContent(String fileName, Long size, String contentType, byte[] content) {
+    public BinaryContent(String fileName, Long size, String contentType, byte[] bytes) {
         this.id = UUID.randomUUID();
         this.createdAt = Instant.now();
 
         this.fileName = fileName;
         this.size = size;
         this.contentType = contentType;
-        this.content = content;
+        this.bytes = bytes;
     }
 }

@@ -8,21 +8,22 @@ import java.time.Instant;
 import java.util.UUID;
 
 @Builder
-public record UserDTO(
-   UUID id,
-   Instant createdAt,
-   Instant updatedAt,
-   String userName,
-   String email,
-   UUID profileId,
-   boolean isOnline
-){
-    public static UserDTO from(User user, UserStatus userStatus) {
-        return new UserDTO(
+public record UserDto(
+        UUID id,
+        Instant createdAt,
+        Instant updatedAt,
+        String username,
+        String email,
+        UUID profileId,
+        boolean online
+) {
+
+    public static UserDto from(User user, UserStatus userStatus) {
+        return new UserDto(
                 user.getId(),
                 user.getCreatedAt(),
                 user.getUpdatedAt(),
-                user.getUserName(),
+                user.getUsername(),
                 user.getEmail(),
                 user.getProfileId(),
                 userStatus.isOnline()

@@ -1,6 +1,6 @@
 package com.sprint.mission.discodeit.service.basic;
 
-import com.sprint.mission.discodeit.dto.BinaryContent.BinaryContentCreateRequestDTO;
+import com.sprint.mission.discodeit.dto.BinaryContent.BinaryContentCreateRequest;
 import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.service.BinaryContentService;
@@ -9,9 +9,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -26,20 +24,18 @@ public class BasicBinaryContentService implements BinaryContentService {
      * @return 생성된 BinaryContent
      */
     @Override
-    public BinaryContent create(BinaryContentCreateRequestDTO createRequestDTO) {
+    public BinaryContent create(BinaryContentCreateRequest createRequestDTO) {
         String fileName = createRequestDTO.fileName();
-        byte[] content = createRequestDTO.content();
+        byte[] bytes = createRequestDTO.bytes();
         String contentType = createRequestDTO.contentType();
 
-        // BinaryContent 생성
         BinaryContent binaryContent = BinaryContent.builder()
                 .fileName(fileName)
-                .size((long) content.length)
+                .size((long) bytes.length)
                 .contentType(contentType)
-                .content(content)
+                .bytes(bytes)
                 .build();
 
-        // 데이터 저장
         binaryContentRepository.save(binaryContent);
         return binaryContent;
     }
@@ -59,7 +55,7 @@ public class BasicBinaryContentService implements BinaryContentService {
     }
 
     /**
-     *주어진 id에 해당하는 BinaryContent 조회
+     * 주어진 id에 해당하는 BinaryContent 조회
      *
      * @param id 조회할 BinaryContent ID
      * @return 조회된 BinaryContent
@@ -68,7 +64,7 @@ public class BasicBinaryContentService implements BinaryContentService {
     @Override
     public BinaryContent find(UUID id) {
         return binaryContentRepository.findById(id)
-                .orElseThrow(()-> new NoSuchElementException("존재하지 않는 BinaryContent입니다."));
+                .orElseThrow(() -> new NoSuchElementException("존재하지 않는 BinaryContent입니다."));
     }
 
     /**

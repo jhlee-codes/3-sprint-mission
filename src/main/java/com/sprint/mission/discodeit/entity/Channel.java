@@ -11,6 +11,7 @@ import java.util.UUID;
 @Getter
 @ToString
 public class Channel implements Serializable {
+
     private static final long serialVersionUID = 79529852066494114L;
 
     /* 공통 필드 */
@@ -18,26 +19,26 @@ public class Channel implements Serializable {
     private Instant createdAt;
     private Instant updatedAt;
 
-    private String channelName;     // 채널 이름
+    private String name;     // 채널 이름
     private String description;     // 채널 설명
     private ChannelType type;       // 채널 타입
 
     @Builder
-    public Channel(ChannelType type, String channelName, String description) {
+    public Channel(ChannelType type, String name, String description) {
         this.id = UUID.randomUUID();
         this.createdAt = Instant.now();
         this.updatedAt = Instant.now();
 
         this.type = type;
-        this.channelName = channelName;
+        this.name = name;
         this.description = description;
     }
 
     public void update(String newChannelName, String newDescription) {
         boolean isUpdated = false;
 
-        if (newChannelName != null && !newChannelName.equals(this.channelName)) {
-            this.channelName = newChannelName;
+        if (newChannelName != null && !newChannelName.equals(this.name)) {
+            this.name = newChannelName;
             isUpdated = true;
         }
         if (newDescription != null && !newDescription.equals(this.description)) {
