@@ -3,24 +3,18 @@ package com.sprint.mission.discodeit.controller;
 import com.sprint.mission.discodeit.controller.api.MessageApi;
 import com.sprint.mission.discodeit.dto.BinaryContent.BinaryContentCreateRequest;
 import com.sprint.mission.discodeit.dto.Message.MessageCreateRequest;
+import com.sprint.mission.discodeit.dto.Message.MessageDto;
 import com.sprint.mission.discodeit.dto.Message.MessageUpdateRequest;
-import com.sprint.mission.discodeit.entity.Message;
+import com.sprint.mission.discodeit.dto.response.PageResponse;
 import com.sprint.mission.discodeit.service.ChannelService;
 import com.sprint.mission.discodeit.service.MessageService;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.ArraySchema;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.ExampleObject;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import java.io.IOException;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -54,7 +48,7 @@ public class MessageController implements MessageApi {
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Override
-    public ResponseEntity<Message> create(
+    public ResponseEntity<MessageDto> create(
             @RequestPart("messageCreateRequest") MessageCreateRequest messageCreateRequest,
             @RequestPart(value = "attachments", required = false) List<MultipartFile> attachments
     ) {
@@ -66,7 +60,7 @@ public class MessageController implements MessageApi {
                         .flatMap(Optional::stream)
                         .toList();
 
-        Message createdMessage = messageService.create(messageCreateRequest,
+        MessageDto createdMessage = messageService.create(messageCreateRequest,
                 attachmentsRequestDTO);
 
         return ResponseEntity
@@ -107,11 +101,11 @@ public class MessageController implements MessageApi {
      */
     @PatchMapping(path = "/{messageId}")
     @Override
-    public ResponseEntity<Message> update(
+    public ResponseEntity<MessageDto> update(
             @PathVariable UUID messageId,
             @RequestBody MessageUpdateRequest messageUpdateRequest
     ) {
-        Message updatedMessage = messageService.update(messageId, messageUpdateRequest);
+        MessageDto updatedMessage = messageService.update(messageId, messageUpdateRequest);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
@@ -144,13 +138,13 @@ public class MessageController implements MessageApi {
      */
     @GetMapping
     @Override
-    public ResponseEntity<List<Message>> findAllByChannelId(
-            @RequestParam("channelId") UUID channelId
+    public ResponseEntity<PageResponse<MessageDto>> findAllByChannelId(
+            @RequestParam("channelId") UUID channelId,
+            @RequestParam(required = false) Instant cursor,
+            Pageable pageable
     ) {
-        // 채널 유효성 검사
-        channelService.find(channelId);
-
-        List<Message> messages = messageService.findAllByChannelId(channelId);
+        PageResponse<MessageDto> messages = messageService.findAllByChannelId(channelId,
+                cursor, pageable);
 
         return ResponseEntity
                 .status(HttpStatus.OK)

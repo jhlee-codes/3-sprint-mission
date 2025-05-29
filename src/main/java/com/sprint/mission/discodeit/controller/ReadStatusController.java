@@ -2,19 +2,10 @@ package com.sprint.mission.discodeit.controller;
 
 import com.sprint.mission.discodeit.controller.api.ReadStatusApi;
 import com.sprint.mission.discodeit.dto.ReadStatus.ReadStatusCreateRequest;
+import com.sprint.mission.discodeit.dto.ReadStatus.ReadStatusDto;
 import com.sprint.mission.discodeit.dto.ReadStatus.ReadStatusUpdateRequest;
-import com.sprint.mission.discodeit.entity.ReadStatus;
 import com.sprint.mission.discodeit.service.ReadStatusService;
 import com.sprint.mission.discodeit.service.UserService;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.ArraySchema;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.ExampleObject;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -45,10 +36,10 @@ public class ReadStatusController implements ReadStatusApi {
      */
     @PostMapping
     @Override
-    public ResponseEntity<ReadStatus> create(
+    public ResponseEntity<ReadStatusDto> create(
             @RequestBody ReadStatusCreateRequest readStatusCreateRequest
     ) {
-        ReadStatus createdReadStatus = readStatusService.create(readStatusCreateRequest);
+        ReadStatusDto createdReadStatus = readStatusService.create(readStatusCreateRequest);
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
@@ -65,11 +56,11 @@ public class ReadStatusController implements ReadStatusApi {
 
     @PatchMapping(path = "/{readStatusId}")
     @Override
-    public ResponseEntity<ReadStatus> update(
+    public ResponseEntity<ReadStatusDto> update(
             @PathVariable UUID readStatusId,
             @RequestBody ReadStatusUpdateRequest readStatusUpdateRequest
     ) {
-        ReadStatus updatedReadStatus = readStatusService.update(readStatusId,
+        ReadStatusDto updatedReadStatus = readStatusService.update(readStatusId,
                 readStatusUpdateRequest);
 
         return ResponseEntity
@@ -85,13 +76,10 @@ public class ReadStatusController implements ReadStatusApi {
      */
     @GetMapping
     @Override
-    public ResponseEntity<List<ReadStatus>> findAllByUserId(
+    public ResponseEntity<List<ReadStatusDto>> findAllByUserId(
             @RequestParam("userId") UUID userId
     ) {
-        // 유저 유효성 검사
-        userService.find(userId);
-
-        List<ReadStatus> readStatusList = readStatusService.findAllByUserId(userId);
+        List<ReadStatusDto> readStatusList = readStatusService.findAllByUserId(userId);
 
         return ResponseEntity
                 .status(HttpStatus.OK)

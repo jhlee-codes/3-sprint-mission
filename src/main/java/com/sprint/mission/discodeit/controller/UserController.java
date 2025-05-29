@@ -5,21 +5,10 @@ import com.sprint.mission.discodeit.dto.BinaryContent.BinaryContentCreateRequest
 import com.sprint.mission.discodeit.dto.User.UserCreateRequest;
 import com.sprint.mission.discodeit.dto.User.UserDto;
 import com.sprint.mission.discodeit.dto.User.UserUpdateRequest;
+import com.sprint.mission.discodeit.dto.UserStatus.UserStatusDto;
 import com.sprint.mission.discodeit.dto.UserStatus.UserStatusUpdateRequest;
-import com.sprint.mission.discodeit.entity.User;
-import com.sprint.mission.discodeit.entity.UserStatus;
 import com.sprint.mission.discodeit.service.UserService;
 import com.sprint.mission.discodeit.service.UserStatusService;
-import io.micrometer.observation.annotation.Observed;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.ArraySchema;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.ExampleObject;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
@@ -70,7 +59,7 @@ public class UserController implements UserApi {
      */
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Override
-    public ResponseEntity<User> create(
+    public ResponseEntity<UserDto> create(
             @RequestPart("userCreateRequest") UserCreateRequest userCreateRequest,
             @RequestPart(value = "profile", required = false) MultipartFile profile
     ) {
@@ -80,7 +69,7 @@ public class UserController implements UserApi {
             profileRequestDTO = resolveProfileRequest(profile).orElse(null);
         }
 
-        User createdUser = userService.create(userCreateRequest, profileRequestDTO);
+        UserDto createdUser = userService.create(userCreateRequest, profileRequestDTO);
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
@@ -124,7 +113,7 @@ public class UserController implements UserApi {
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE
     )
     @Override
-    public ResponseEntity<User> update(
+    public ResponseEntity<UserDto> update(
             @PathVariable UUID userId,
             @RequestPart("userUpdateRequest") UserUpdateRequest userUpdateRequest,
             @RequestPart(value = "profile", required = false) MultipartFile profile
@@ -135,7 +124,7 @@ public class UserController implements UserApi {
             profileRequestDTO = resolveProfileRequest(profile).orElse(null);
         }
 
-        User updatedUser = userService.update(userId, userUpdateRequest, profileRequestDTO);
+        UserDto updatedUser = userService.update(userId, userUpdateRequest, profileRequestDTO);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
@@ -183,11 +172,11 @@ public class UserController implements UserApi {
      */
     @PatchMapping(path = "/{userId}/userStatus")
     @Override
-    public ResponseEntity<UserStatus> updateUserStatusByUserId(
+    public ResponseEntity<UserStatusDto> updateUserStatusByUserId(
             @PathVariable UUID userId,
             @RequestBody UserStatusUpdateRequest userStatusUpdateRequest
     ) {
-        UserStatus updatedUserStatus = userStatusService.updateByUserId(userId,
+        UserStatusDto updatedUserStatus = userStatusService.updateByUserId(userId,
                 userStatusUpdateRequest);
 
         return ResponseEntity

@@ -5,18 +5,8 @@ import com.sprint.mission.discodeit.dto.Channel.ChannelDto;
 import com.sprint.mission.discodeit.dto.Channel.PrivateChannelCreateRequest;
 import com.sprint.mission.discodeit.dto.Channel.PublicChannelCreateRequest;
 import com.sprint.mission.discodeit.dto.Channel.PublicChannelUpdateRequest;
-import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.service.ChannelService;
 import com.sprint.mission.discodeit.service.UserService;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.ArraySchema;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.ExampleObject;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -48,10 +38,10 @@ public class ChannelController implements ChannelApi {
      */
     @PostMapping(path = "/public")
     @Override
-    public ResponseEntity<Channel> create(
+    public ResponseEntity<ChannelDto> create(
             @RequestBody PublicChannelCreateRequest publicChannelCreateRequest
     ) {
-        Channel createdChannel = channelService.create(publicChannelCreateRequest);
+        ChannelDto createdChannel = channelService.create(publicChannelCreateRequest);
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
@@ -66,13 +56,11 @@ public class ChannelController implements ChannelApi {
      */
     @PostMapping(path = "/private")
     @Override
-    public ResponseEntity<Channel> create(
+    public ResponseEntity<ChannelDto> create(
             @RequestBody PrivateChannelCreateRequest privateChannelCreateRequest
     ) {
-        // 유저 유효성 검증
-        privateChannelCreateRequest.participantIds().forEach(userService::find);
 
-        Channel createdChannel = channelService.create(privateChannelCreateRequest);
+        ChannelDto createdChannel = channelService.create(privateChannelCreateRequest);
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
@@ -88,11 +76,11 @@ public class ChannelController implements ChannelApi {
      */
     @PatchMapping(path = "/{channelId}")
     @Override
-    public ResponseEntity<Channel> update(
+    public ResponseEntity<ChannelDto> update(
             @PathVariable UUID channelId,
             @RequestBody PublicChannelUpdateRequest publicChannelUpdateRequest
     ) {
-        Channel updatedChannel = channelService.update(channelId, publicChannelUpdateRequest);
+        ChannelDto updatedChannel = channelService.update(channelId, publicChannelUpdateRequest);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
@@ -128,8 +116,6 @@ public class ChannelController implements ChannelApi {
     public ResponseEntity<List<ChannelDto>> findAll(
             @RequestParam("userId") UUID userId
     ) {
-        // 유저 유효성 검증
-        userService.find(userId);
 
         List<ChannelDto> channels = channelService.findAllByUserId(userId);
 
