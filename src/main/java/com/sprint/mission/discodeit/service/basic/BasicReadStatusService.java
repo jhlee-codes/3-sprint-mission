@@ -1,5 +1,6 @@
 package com.sprint.mission.discodeit.service.basic;
 
+import com.sprint.mission.discodeit.annotation.Logging;
 import com.sprint.mission.discodeit.dto.ReadStatus.ReadStatusCreateRequest;
 import com.sprint.mission.discodeit.dto.ReadStatus.ReadStatusDto;
 import com.sprint.mission.discodeit.dto.ReadStatus.ReadStatusUpdateRequest;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@Logging
 @RequiredArgsConstructor
 public class BasicReadStatusService implements ReadStatusService {
 

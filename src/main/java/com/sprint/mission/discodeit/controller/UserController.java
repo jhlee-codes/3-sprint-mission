@@ -9,6 +9,7 @@ import com.sprint.mission.discodeit.dto.UserStatus.UserStatusDto;
 import com.sprint.mission.discodeit.dto.UserStatus.UserStatusUpdateRequest;
 import com.sprint.mission.discodeit.service.UserService;
 import com.sprint.mission.discodeit.service.UserStatusService;
+import com.sprint.mission.discodeit.util.BinaryContentUtil;
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
@@ -41,7 +42,6 @@ import org.springframework.web.multipart.MultipartFile;
  *  - (옵션) 응답 헤더 정의
  * */
 
-
 @RequiredArgsConstructor
 @RequestMapping("/api/users")
 @RestController
@@ -66,7 +66,7 @@ public class UserController implements UserApi {
         BinaryContentCreateRequest profileRequestDTO = null;
 
         if (profile != null) {
-            profileRequestDTO = resolveProfileRequest(profile).orElse(null);
+            profileRequestDTO = BinaryContentUtil.resolveFile(profile).orElse(null);
         }
 
         UserDto createdUser = userService.create(userCreateRequest, profileRequestDTO);
@@ -74,29 +74,6 @@ public class UserController implements UserApi {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(createdUser);
-    }
-
-    /**
-     * MultipartFile 타입의 요청값을 BinaryContentCreateReqeust 타입으로 변환
-     *
-     * @param profile 프로필 (MultipartFile)
-     * @return 생성된 바이너리 파일 생성 요청 DTO
-     */
-    private Optional<BinaryContentCreateRequest> resolveProfileRequest(MultipartFile profile) {
-        if (profile.isEmpty()) {
-            return Optional.empty();
-        } else {
-            try {
-                BinaryContentCreateRequest binaryContentCreateRequest = new BinaryContentCreateRequest(
-                        profile.getOriginalFilename(),
-                        profile.getContentType(),
-                        profile.getBytes()
-                );
-                return Optional.of(binaryContentCreateRequest);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
     }
 
     /**
@@ -121,7 +98,7 @@ public class UserController implements UserApi {
         BinaryContentCreateRequest profileRequestDTO = null;
 
         if (profile != null) {
-            profileRequestDTO = resolveProfileRequest(profile).orElse(null);
+            profileRequestDTO = BinaryContentUtil.resolveFile(profile).orElse(null);
         }
 
         UserDto updatedUser = userService.update(userId, userUpdateRequest, profileRequestDTO);

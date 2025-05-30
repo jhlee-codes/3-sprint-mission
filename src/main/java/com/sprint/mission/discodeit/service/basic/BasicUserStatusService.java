@@ -1,5 +1,6 @@
 package com.sprint.mission.discodeit.service.basic;
 
+import com.sprint.mission.discodeit.annotation.Logging;
 import com.sprint.mission.discodeit.dto.UserStatus.UserStatusCreateRequest;
 import com.sprint.mission.discodeit.dto.UserStatus.UserStatusDto;
 import com.sprint.mission.discodeit.dto.UserStatus.UserStatusUpdateRequest;
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@Logging
 @RequiredArgsConstructor
 public class BasicUserStatusService implements UserStatusService {
 
@@ -89,7 +91,7 @@ public class BasicUserStatusService implements UserStatusService {
 
         return userStatusMapper.toDto(userStatus);
     }
-    
+
     /**
      * 주어진 ID에 해당하는 UserStatus를 수정 요청 DTO 값으로 수정
      *

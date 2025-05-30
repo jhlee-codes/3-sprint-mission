@@ -8,6 +8,7 @@ import com.sprint.mission.discodeit.dto.Message.MessageUpdateRequest;
 import com.sprint.mission.discodeit.dto.response.PageResponse;
 import com.sprint.mission.discodeit.service.ChannelService;
 import com.sprint.mission.discodeit.service.MessageService;
+import com.sprint.mission.discodeit.util.BinaryContentUtil;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.List;
@@ -55,8 +56,9 @@ public class MessageController implements MessageApi {
         // 첨부파일 생성 요청 DTO 목록 설정
         List<BinaryContentCreateRequest> attachmentsRequestDTO =
                 Optional.ofNullable(attachments)
-                        .orElse(List.of()).stream()
-                        .map(this::resolveAttachmentRequest)
+                        .orElse(List.of())
+                        .stream()
+                        .map(BinaryContentUtil::resolveFile)
                         .flatMap(Optional::stream)
                         .toList();
 
@@ -66,30 +68,6 @@ public class MessageController implements MessageApi {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(createdMessage);
-    }
-
-    /**
-     * MultipartFile 타입의 요청값을 BinaryContentCreateReqeust 타입으로 변환
-     *
-     * @param attachment 첨부파일 (MultipartFile)
-     * @return 생성된 바이너리 파일 생성 요청 DTO
-     */
-    private Optional<BinaryContentCreateRequest> resolveAttachmentRequest(
-            MultipartFile attachment) {
-        if (attachment.isEmpty()) {
-            return Optional.empty();
-        } else {
-            try {
-                BinaryContentCreateRequest binaryContentCreateRequest = new BinaryContentCreateRequest(
-                        attachment.getOriginalFilename(),
-                        attachment.getContentType(),
-                        attachment.getBytes()
-                );
-                return Optional.of(binaryContentCreateRequest);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
     }
 
     /**

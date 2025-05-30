@@ -27,6 +27,8 @@ public class UserStatus extends BaseUpdatableEntity {
     @Column(name = "last_active_at", nullable = false)
     private Instant lastActiveAt;   // 마지막으로 확인된 접속시간
 
+    private static final int TIMEOUT_MINUTES = 5;
+
     protected UserStatus() {
     }
 
@@ -42,9 +44,8 @@ public class UserStatus extends BaseUpdatableEntity {
 
     public boolean isOnline() {
 
-        Instant instantFiveMinuteAgo = Instant.now().minus(Duration.ofMinutes(5));
+        Instant instantFiveMinuteAgo = Instant.now().minus(Duration.ofMinutes(TIMEOUT_MINUTES));
 
         return this.lastActiveAt.isAfter(instantFiveMinuteAgo);
     }
-
 }

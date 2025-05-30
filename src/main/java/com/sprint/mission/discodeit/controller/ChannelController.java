@@ -49,7 +49,7 @@ public class ChannelController implements ChannelApi {
     }
 
     /**
-     * 새로운 비공개 채널 생성 요청에 포함된 참여자 ID 목록의 유효성 검증 후, 채널 생성
+     * 새로운 비공개 채널 생성
      *
      * @param privateChannelCreateRequest 비공개 채널 생성 요청 DTO
      * @return 생성된 Channel (HTTP 201 CREATED)
@@ -59,7 +59,6 @@ public class ChannelController implements ChannelApi {
     public ResponseEntity<ChannelDto> create(
             @RequestBody PrivateChannelCreateRequest privateChannelCreateRequest
     ) {
-
         ChannelDto createdChannel = channelService.create(privateChannelCreateRequest);
 
         return ResponseEntity
@@ -72,7 +71,7 @@ public class ChannelController implements ChannelApi {
      *
      * @param channelId                  수정할 채널의 ID
      * @param publicChannelUpdateRequest 공개 채널 수정 요청 DTO
-     * @return 생성된 Channel (HTTP 200 OK)
+     * @return 수정된 Channel (HTTP 200 OK)
      */
     @PatchMapping(path = "/{channelId}")
     @Override
