@@ -21,15 +21,15 @@ import lombok.ToString;
 public class Message extends BaseUpdatableEntity {
 
     @Column(name = "content")
-    private String content;// 메시지 내용
+    private String content;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "channel_id")
-    private Channel channel;    // 송신 채널
+    private Channel channel;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "author_id")
-    private User author;        // 송신자
+    private User author;
 
     @OneToMany
     @JoinTable(
@@ -37,7 +37,7 @@ public class Message extends BaseUpdatableEntity {
             joinColumns = @JoinColumn(name = "message_id"),
             inverseJoinColumns = @JoinColumn(name = "attachment_id")
     )
-    private List<BinaryContent> attachments;   // 첨부파일 리스트
+    private List<BinaryContent> attachments;
 
     protected Message() {
     }

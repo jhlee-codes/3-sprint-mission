@@ -4,7 +4,6 @@ import com.sprint.mission.discodeit.dto.BinaryContent.BinaryContentDto;
 import java.util.UUID;
 import lombok.Builder;
 
-@Builder
 public record UserDto(
         UUID id,
         String username,

@@ -84,7 +84,6 @@ public class UserController implements UserApi {
      * @param profile           수정할 프로필 이미지
      * @return 수정된 User (HTTP 200 OK)
      */
-
     @PatchMapping(
             path = "/{userId}",
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE
@@ -134,6 +133,7 @@ public class UserController implements UserApi {
     @GetMapping
     @Override
     public ResponseEntity<List<UserDto>> findAll() {
+
         List<UserDto> userDtoList = userService.findAll();
 
         return ResponseEntity
@@ -144,7 +144,8 @@ public class UserController implements UserApi {
     /**
      * 사용자의 온라인 상태 업데이트
      *
-     * @param userId 대상 사용자 ID
+     * @param userId                  대상 사용자 ID
+     * @param userStatusUpdateRequest 유저상태 수정 요청 DTO
      * @return 업데이트 된 UserStatus (HTTP 200 OK)
      */
     @PatchMapping(path = "/{userId}/userStatus")

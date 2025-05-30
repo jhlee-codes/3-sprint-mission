@@ -25,15 +25,15 @@ import lombok.ToString;
 public class ReadStatus extends BaseUpdatableEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "channel_id")
+    @JoinColumn(name = "channel_id", nullable = false)
     private Channel channel;
 
     @Column(name = "last_read_at", nullable = false)
-    private Instant lastReadAt;     // 메시지를 마지막으로 읽은 시간
+    private Instant lastReadAt;
 
     protected ReadStatus() {
     }

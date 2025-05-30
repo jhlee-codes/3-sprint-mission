@@ -11,19 +11,17 @@ DROP TABLE IF EXISTS message_attachments CASCADE;
 -- binary_contents
 CREATE TABLE IF NOT EXISTS binary_contents
 (
-    id           UUID,
+    id           UUID PRIMARY KEY,
     created_at   TIMESTAMPTZ  NOT NULL,
     file_name    VARCHAR(255) NOT NULL,
     size         BIGINT       NOT NULL,
-    content_type VARCHAR(100) NOT NULL,
-
-    CONSTRAINT pk_binary_content_id PRIMARY KEY (id)
+    content_type VARCHAR(100) NOT NULL
 );
 
 -- users
 CREATE TABLE IF NOT EXISTS users
 (
-    id         UUID,
+    id         UUID PRIMARY KEY,
     created_at TIMESTAMPTZ         NOT NULL,
     updated_at TIMESTAMPTZ,
     username   VARCHAR(50) UNIQUE  NOT NULL,
@@ -31,7 +29,6 @@ CREATE TABLE IF NOT EXISTS users
     password   VARCHAR(60)         NOT NULL,
     profile_id UUID,
 
-    CONSTRAINT pk_user_id PRIMARY KEY (id),
     CONSTRAINT fk_profile_id FOREIGN KEY (profile_id)
         REFERENCES binary_contents (id)
         ON DELETE SET NULL
@@ -40,13 +37,12 @@ CREATE TABLE IF NOT EXISTS users
 -- user_statuses
 CREATE TABLE IF NOT EXISTS user_statuses
 (
-    id             UUID,
+    id             UUID PRIMARY KEY,
     created_at     TIMESTAMPTZ NOT NULL,
     updated_at     TIMESTAMPTZ,
     user_id        UUID UNIQUE NOT NULL,
     last_active_at TIMESTAMPTZ NOT NULL,
 
-    CONSTRAINT pk_user_status_id PRIMARY KEY (id),
     CONSTRAINT fk_user_id FOREIGN KEY (user_id)
         REFERENCES users (id)
         ON DELETE CASCADE
@@ -58,27 +54,24 @@ CREATE TABLE IF NOT EXISTS user_statuses
 
 CREATE TABLE IF NOT EXISTS channels
 (
-    id          UUID,
+    id          UUID PRIMARY KEY,
     created_at  TIMESTAMPTZ NOT NULL,
     updated_at  TIMESTAMPTZ,
     name        VARCHAR(100),
     description VARCHAR(500),
-    type        VARCHAR(10) NOT NULL,
-
-    CONSTRAINT pk_channel_id PRIMARY KEY (id)
+    type        VARCHAR(10) NOT NULL
 );
 
 -- read_statuses
 CREATE TABLE IF NOT EXISTS read_statuses
 (
-    id           UUID,
+    id           UUID PRIMARY KEY,
     created_at   TIMESTAMPTZ NOT NULL,
     updated_at   TIMESTAMPTZ,
     user_id      UUID,
     channel_id   UUID,
     last_read_at TIMESTAMPTZ NOT NULL,
 
-    CONSTRAINT pk_read_status_id PRIMARY KEY (id),
     CONSTRAINT uq_user_channel UNIQUE (user_id, channel_id),
     CONSTRAINT fk_user_id FOREIGN KEY (user_id)
         REFERENCES users (id)
@@ -91,14 +84,13 @@ CREATE TABLE IF NOT EXISTS read_statuses
 -- messages
 CREATE TABLE IF NOT EXISTS messages
 (
-    id         UUID,
+    id         UUID PRIMARY KEY,
     created_at TIMESTAMPTZ NOT NULL,
     updated_at TIMESTAMPTZ,
     content    TEXT,
     channel_id UUID        NOT NULL,
     author_id  UUID,
 
-    CONSTRAINT pk_message_id PRIMARY KEY (id),
     CONSTRAINT fk_channel_id FOREIGN KEY (channel_id)
         REFERENCES channels (id)
         ON DELETE CASCADE,

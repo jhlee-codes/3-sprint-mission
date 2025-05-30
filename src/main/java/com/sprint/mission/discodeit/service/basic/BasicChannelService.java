@@ -35,7 +35,7 @@ public class BasicChannelService implements ChannelService {
     private final ChannelMapper channelMapper;
 
     /**
-     * 주어진 요청 DTO를 기반으로 Public 채널 생성 및 저장
+     * 주어진 요청 DTO를 기반으로 Public 채널 생성
      *
      * @param createRequest 생성 요청 DTO
      * @return 생성된 채널
@@ -82,7 +82,6 @@ public class BasicChannelService implements ChannelService {
                 .toList();
 
         readStatusRepository.saveAll(readStatuses);
-
         return channelMapper.toDto(privateChannel);
     }
 
@@ -108,32 +107,30 @@ public class BasicChannelService implements ChannelService {
      *
      * @param channelId 조회할 채널의 ID
      * @return 조회된 채널
-     * @throws NoSuchElementException 해당 ID의 채널이 존재하지 않는 경우
      */
     @Override
     @Transactional(readOnly = true)
     public ChannelDto find(UUID channelId) {
-        Channel ch = channelRepository.findById(channelId)
-                .orElseThrow(() -> new NoSuchElementException("해당 ID의 채널이 존재하지 않습니다."));
 
-        return channelMapper.toDto(ch);
+        Channel channel = channelRepository.findById(channelId)
+                .orElseThrow(() -> new NoSuchElementException("존재하지 않는 채널입니다."));
+
+        return channelMapper.toDto(channel);
     }
 
     /**
-     * 주어진 채널ID에 해당하는 공개 채널을 수정 요청DTO의 값으로 수정
+     * 주어진 채널ID에 해당하는 공개 채널 수정
      *
-     * @param channelId     수정 대상 채널ID
+     * @param channelId     수정할 채널의 ID
      * @param updateRequest 수정 요청 DTO
      * @return 수정된 채널
-     * @throws NoSuchElementException   해당 ID의 채널이 존재하지 않는 경우
-     * @throws IllegalArgumentException 해당 채널이 PRIVATE 채널인 경우
      */
     @Override
     @Transactional
     public ChannelDto update(UUID channelId, PublicChannelUpdateRequest updateRequest) {
-        // 채널 유효성 검사
+
         Channel channel = channelRepository.findById(channelId)
-                .orElseThrow(() -> new NoSuchElementException("해당 채널이 존재하지 않습니다."));
+                .orElseThrow(() -> new NoSuchElementException("존재하지 않는 채널입니다."));
 
         if (ChannelType.PRIVATE.equals(channel.getType())) {
             throw new IllegalArgumentException("PRIVATE 채널은 수정할 수 없습니다.");
@@ -153,7 +150,7 @@ public class BasicChannelService implements ChannelService {
     @Override
     @Transactional
     public void delete(UUID channelId) {
-        // 채널 유효성 검사
+
         Channel channel = channelRepository.findById(channelId)
                 .orElseThrow(() -> new NoSuchElementException("존재하지 않는 채널입니다."));
 

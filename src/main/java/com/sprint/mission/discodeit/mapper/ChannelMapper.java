@@ -11,7 +11,6 @@ import java.time.Instant;
 import java.util.List;
 import org.springframework.stereotype.Component;
 
-//@Mapper(componentModel = "spring", uses = {UserMapper.class, MessageRepository.class,ReadStatusRepository.class})
 @Component
 public class ChannelMapper {
 

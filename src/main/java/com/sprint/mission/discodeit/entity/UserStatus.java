@@ -25,7 +25,7 @@ public class UserStatus extends BaseUpdatableEntity {
     private User user;
 
     @Column(name = "last_active_at", nullable = false)
-    private Instant lastActiveAt;   // 마지막으로 확인된 접속시간
+    private Instant lastActiveAt;
 
     private static final int TIMEOUT_MINUTES = 5;
 
@@ -35,7 +35,7 @@ public class UserStatus extends BaseUpdatableEntity {
     @Builder
     public UserStatus(User user, Instant lastActiveAt) {
         this.user = user;
-        this.lastActiveAt = lastActiveAt;
+        this.lastActiveAt = lastActiveAt != null ? lastActiveAt : Instant.now();
     }
 
     public void update(Instant lastActiveAt) {

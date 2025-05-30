@@ -21,21 +21,21 @@ import lombok.ToString;
 public class User extends BaseUpdatableEntity {
 
     @Column(name = "username", unique = true, nullable = false)
-    private String username;        // 유저 이름
+    private String username;
 
     @Column(name = "email", unique = true, nullable = false)
-    private String email;           // 이메일
+    private String email;
 
     @Column(name = "password", nullable = false)
-    private String password;        // 비밀번호
+    private String password;
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "profile_id")
-    private BinaryContent profile;  // 프로필
+    private BinaryContent profile;
 
     @Setter
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private UserStatus status;      // 유저상태
+    private UserStatus status;
 
     protected User() {
     }
@@ -65,5 +65,4 @@ public class User extends BaseUpdatableEntity {
             this.profile = newProfile;
         }
     }
-
 }

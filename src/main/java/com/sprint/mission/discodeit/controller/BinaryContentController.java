@@ -59,6 +59,12 @@ public class BinaryContentController implements BinaryContentApi {
                 .body(contents);
     }
 
+    /**
+     * 바이너리 파일 다운로드
+     *
+     * @param binaryContentId 다운로드할 바이너리 파일 ID
+     * @return 파일 다운로드 응답
+     */
     @GetMapping(path = "/{binaryContentId}/download")
     @Override
     public ResponseEntity<?> download(@PathVariable UUID binaryContentId) {
@@ -67,5 +73,4 @@ public class BinaryContentController implements BinaryContentApi {
 
         return binaryContentStorage.download(binaryContentDto);
     }
-
 }

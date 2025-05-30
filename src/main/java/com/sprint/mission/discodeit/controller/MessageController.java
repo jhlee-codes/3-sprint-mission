@@ -9,7 +9,6 @@ import com.sprint.mission.discodeit.dto.response.PageResponse;
 import com.sprint.mission.discodeit.service.ChannelService;
 import com.sprint.mission.discodeit.service.MessageService;
 import com.sprint.mission.discodeit.util.BinaryContentUtil;
-import java.io.IOException;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -37,7 +36,6 @@ import org.springframework.web.multipart.MultipartFile;
 public class MessageController implements MessageApi {
 
     private final MessageService messageService;
-    private final ChannelService channelService;
 
     /**
      * 메시지 전송
@@ -46,14 +44,12 @@ public class MessageController implements MessageApi {
      * @param attachments          첨부파일 목록
      * @return 생성된 Message (HTTP 201 CREATED)
      */
-
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Override
     public ResponseEntity<MessageDto> create(
             @RequestPart("messageCreateRequest") MessageCreateRequest messageCreateRequest,
             @RequestPart(value = "attachments", required = false) List<MultipartFile> attachments
     ) {
-        // 첨부파일 생성 요청 DTO 목록 설정
         List<BinaryContentCreateRequest> attachmentsRequestDTO =
                 Optional.ofNullable(attachments)
                         .orElse(List.of())

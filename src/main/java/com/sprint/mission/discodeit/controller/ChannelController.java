@@ -28,7 +28,6 @@ import org.springframework.web.bind.annotation.RestController;
 public class ChannelController implements ChannelApi {
 
     private final ChannelService channelService;
-    private final UserService userService;
 
     /**
      * 새로운 공개 채널 생성
@@ -115,7 +114,6 @@ public class ChannelController implements ChannelApi {
     public ResponseEntity<List<ChannelDto>> findAll(
             @RequestParam("userId") UUID userId
     ) {
-
         List<ChannelDto> channels = channelService.findAllByUserId(userId);
 
         return ResponseEntity

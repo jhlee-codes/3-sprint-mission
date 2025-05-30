@@ -22,9 +22,9 @@ public class BasicAuthService implements AuthService {
     private final UserMapper userMapper;
 
     /**
-     * 유저명, 패스워드가 일치하는 유저를 리턴
+     * 유저명, 패스워드가 일치하는 유저 인증
      *
-     * @param loginRequest 로그인 정보
+     * @param loginRequest 로그인 요청 DTO
      * @return 인증된 유저
      * @throws NoSuchElementException 유저명/패스워드 불일치하는 경우
      */
@@ -35,7 +35,7 @@ public class BasicAuthService implements AuthService {
         String password = loginRequest.password();
 
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new NoSuchElementException("해당 유저가 존재하지 않습니다."));
+                .orElseThrow(() -> new NoSuchElementException("존재하지 않는 유저입니다."));
 
         if (!user.getPassword().equals(password)) {
             throw new NoSuchElementException("패스워드가 일치하지 않습니다.");

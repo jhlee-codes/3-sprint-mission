@@ -18,5 +18,4 @@ public abstract class BaseUpdatableEntity extends BaseEntity {
     @Column(name = "updated_at")
     @LastModifiedDate
     private Instant updatedAt;
-
 }

@@ -38,7 +38,6 @@ public class BasicUserService implements UserService {
      * @param userCreateRequest    유저 생성 요청 DTO
      * @param profileCreateRequest 프로필사진 생성 요청 DTO
      * @return 생성된 유저
-     * @throws IllegalStateException 유저명/이메일 중복시 예외처리
      */
     @Override
     @Transactional
@@ -50,10 +49,10 @@ public class BasicUserService implements UserService {
 
         // username, email 중복체크
         if (userRepository.existsByUsername(username)) {
-            throw new IllegalStateException("이미 존재하는 유저명입니다. 다른 유저명을 입력해주세요.");
+            throw new IllegalStateException("이미 존재하는 유저명입니다.");
         }
         if (userRepository.existsByEmail(email)) {
-            throw new IllegalStateException("이미 존재하는 이메일입니다. 다른 이메일을 입력해주세요.");
+            throw new IllegalStateException("이미 존재하는 이메일입니다.");
         }
 
         boolean isProfileCreated = profileCreateRequest != null;
@@ -111,14 +110,13 @@ public class BasicUserService implements UserService {
      *
      * @param userId 조회할 유저의 ID
      * @return 조회된 유저 DTO
-     * @throws NoSuchElementException 해당 ID의 유저가 존재하지 않는 경우
      */
     @Override
     @Transactional(readOnly = true)
     public UserDto find(UUID userId) {
 
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NoSuchElementException("해당 ID의 유저가 존재하지 않습니다."));
+                .orElseThrow(() -> new NoSuchElementException("존재하지 않는 유저입니다."));
 
         return userMapper.toDto(user);
     }
@@ -126,28 +124,27 @@ public class BasicUserService implements UserService {
     /**
      * 주어진 ID에 해당하는 유저를 수정 요청 DTO(유저, 프로필사진) 값으로 수정
      *
-     * @param userId               수정 대상 유저 ID
+     * @param userId               수정할 유저 ID
      * @param updateRequest        유저 수정 요청 DTO
      * @param profileCreateRequest 프로필사진 수정 요청 DTO
      * @return 수정된 유저
-     * @throws NoSuchElementException 해당 ID의 유저가 존재하지 않는 경우
      */
     @Override
     @Transactional
     public UserDto update(UUID userId, UserUpdateRequest updateRequest,
             BinaryContentCreateRequest profileCreateRequest) {
-        // 유저 유효성 검사
+
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NoSuchElementException("해당 ID의 유저가 존재하지 않습니다."));
+                .orElseThrow(() -> new NoSuchElementException("존재하지 않는 유저입니다."));
 
         String newUsername = updateRequest.newUsername();
         String newEmail = updateRequest.newEmail();
 
         if (userRepository.existsByUsername(newUsername)) {
-            throw new IllegalStateException("이미 존재하는 유저명입니다. 다른 유저명을 입력해주세요.");
+            throw new IllegalStateException("이미 존재하는 유저명입니다.");
         }
         if (userRepository.existsByEmail(newEmail)) {
-            throw new IllegalStateException("이미 존재하는 이메일입니다. 다른 이메일을 입력해주세요.");
+            throw new IllegalStateException("이미 존재하는 이메일입니다.");
         }
 
         boolean isProfileCreated = profileCreateRequest != null;
@@ -179,13 +176,13 @@ public class BasicUserService implements UserService {
      * 주어진 id에 해당하는 유저 삭제
      *
      * @param userId 삭제할 대상 유저 id
-     * @throws NoSuchElementException 해당 유저ID의 유저나 UserStatus가 존재하지 않는 경우
      */
     @Override
     @Transactional
     public void delete(UUID userId) {
+
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NoSuchElementException("해당 ID의 유저가 존재하지 않습니다."));
+                .orElseThrow(() -> new NoSuchElementException("존재하지 않는 유저입니다."));
 
         if (user.getProfile() != null) {
             binaryContentRepository.deleteById(user.getProfile().getId());

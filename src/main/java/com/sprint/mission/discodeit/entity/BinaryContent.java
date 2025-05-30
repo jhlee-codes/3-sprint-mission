@@ -15,13 +15,13 @@ import lombok.ToString;
 public class BinaryContent extends BaseEntity {
 
     @Column(name = "file_name", nullable = false)
-    private String fileName;    // 파일명
+    private String fileName;
 
     @Column(name = "size", nullable = false)
-    private Long size;          // 파일 크기
+    private Long size;
 
     @Column(name = "content_type", nullable = false)
-    private String contentType; // 데이터 타입
+    private String contentType;
 
     protected BinaryContent() {
     }

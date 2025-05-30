@@ -17,14 +17,4 @@ public interface BinaryContentRepository extends JpaRepository<BinaryContent, UU
     Optional<BinaryContent> findById(UUID id);
 
     void deleteAllByIdIn(Collection<UUID> ids);
-
-//    // 특정 Binary데이터 추가 후 저장
-//    BinaryContent save(BinaryContent binaryContent);
-//    // 데이터 전체 조회
-//    List<BinaryContent> findAll();
-//    // 데이터 존재여부 조회
-//    boolean existsById(UUID id);
-//    // 데이터 삭제 (id)
-//    void deleteById(UUID id);
-
 }

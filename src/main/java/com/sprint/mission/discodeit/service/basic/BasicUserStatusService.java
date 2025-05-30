@@ -33,8 +33,6 @@ public class BasicUserStatusService implements UserStatusService {
      *
      * @param createRequest 생성 요청 DTO
      * @return 생성된 UserStatus
-     * @throws NoSuchElementException 해당 ID의 유저가 존재하지 않는 경우
-     * @throws IllegalStateException  같은 유저ID의 UserStatus가 이미 존재하는 경우
      */
     @Override
     @Transactional
@@ -43,7 +41,7 @@ public class BasicUserStatusService implements UserStatusService {
         UUID userId = createRequest.userId();
 
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NoSuchElementException("해당 ID의 유저가 존재하지 않습니다."));
+                .orElseThrow(() -> new NoSuchElementException("존재하지 않는 유저입니다."));
 
         // 같은 User와 관련된 객체가 이미 존재하면 예외처리
         if (userStatusRepository.findByUser_Id(userId).isPresent()) {
@@ -60,7 +58,7 @@ public class BasicUserStatusService implements UserStatusService {
     }
 
     /**
-     * 레포지토리로부터 읽어온 UserStatus 데이터 전체 조회
+     * UserStatus 전체 조회
      *
      * @return 조회된 UserStatus 데이터
      */
@@ -78,34 +76,32 @@ public class BasicUserStatusService implements UserStatusService {
     /**
      * 주어진 ID에 해당하는 UserStatus 조회
      *
-     * @param id 조회 대상 UserStatus ID
+     * @param id 조회할 UserStatus ID
      * @return 조회된 UserStatus
-     * @throws NoSuchElementException 해당 ID의 UserStatus가 존재하지 않는 경우
      */
     @Override
     @Transactional(readOnly = true)
     public UserStatusDto find(UUID id) {
 
         UserStatus userStatus = userStatusRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("해당 ID의 UserStatus가 존재하지 않습니다."));
+                .orElseThrow(() -> new NoSuchElementException("존재하지 않는 UserStatus입니다."));
 
         return userStatusMapper.toDto(userStatus);
     }
 
     /**
-     * 주어진 ID에 해당하는 UserStatus를 수정 요청 DTO 값으로 수정
+     * 주어진 ID에 해당하는 UserStatus 수정
      *
-     * @param userStatusId  수정 대상 UserStatus ID
+     * @param userStatusId  수정할 UserStatus ID
      * @param updateRequest 수정 요청 DTO
      * @return 수정된 UserStatus
-     * @throws NoSuchElementException 해당 ID의 UserStatus가 존재하지 않는 경우
      */
     @Override
     @Transactional
     public UserStatusDto update(UUID userStatusId, UserStatusUpdateRequest updateRequest) {
 
         UserStatus userStatus = userStatusRepository.findById(userStatusId)
-                .orElseThrow(() -> new NoSuchElementException("해당 ID의 UserStatus가 존재하지 않습니다."));
+                .orElseThrow(() -> new NoSuchElementException("존재하지 않는 UserStatus입니다."));
 
         userStatus.update(updateRequest.newLastActiveAt());
 
@@ -114,19 +110,18 @@ public class BasicUserStatusService implements UserStatusService {
     }
 
     /**
-     * 주어진 유저ID에 해당하는 UserStatus를 수정 요청 DTO 값으로 수정
+     * 주어진 유저ID에 해당하는 UserStatus 수정
      *
-     * @param userId        수정 대상 UserStatus의 유저ID
+     * @param userId        수정할 UserStatus의 유저ID
      * @param updateRequest 수정 요청 DTO
      * @return 수정된 UserStatus
-     * @throws NoSuchElementException 해당 유저ID의 UserStatus가 존재하지 않는 경우
      */
     @Override
     @Transactional
     public UserStatusDto updateByUserId(UUID userId, UserStatusUpdateRequest updateRequest) {
 
         UserStatus userStatus = userStatusRepository.findByUser_Id(userId)
-                .orElseThrow(() -> new NoSuchElementException("해당 유저ID의 UserStatus가 존재하지 않습니다."));
+                .orElseThrow(() -> new NoSuchElementException("존재하지 않는 UserStatus입니다."));
 
         userStatus.update(updateRequest.newLastActiveAt());
 
@@ -137,13 +132,14 @@ public class BasicUserStatusService implements UserStatusService {
     /**
      * 주어진 ID에 해당하는 UserStatus 삭제
      *
-     * @param id 삭제 대상 UserStatus ID
+     * @param id 삭제할 UserStatus ID
      */
     @Override
     @Transactional
     public void delete(UUID id) {
+        
         UserStatus foundUserStatus = userStatusRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("해당 UserStatus가 존재하지 않습니다."));
+                .orElseThrow(() -> new NoSuchElementException("존재하지 않는 UserStatus입니다."));
 
         userStatusRepository.deleteById(foundUserStatus.getId());
     }

@@ -17,14 +17,14 @@ import lombok.ToString;
 public class Channel extends BaseUpdatableEntity {
 
     @Column(name = "name")
-    private String name;            // 채널 이름
+    private String name;
 
     @Column(name = "description")
-    private String description;     // 채널 설명
+    private String description;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "type", nullable = false)
-    private ChannelType type;       // 채널 타입
+    private ChannelType type;
 
     protected Channel() {
     }

@@ -5,7 +5,6 @@ import com.sprint.mission.discodeit.dto.ReadStatus.ReadStatusCreateRequest;
 import com.sprint.mission.discodeit.dto.ReadStatus.ReadStatusDto;
 import com.sprint.mission.discodeit.dto.ReadStatus.ReadStatusUpdateRequest;
 import com.sprint.mission.discodeit.service.ReadStatusService;
-import com.sprint.mission.discodeit.service.UserService;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -26,7 +25,6 @@ import org.springframework.web.bind.annotation.RestController;
 public class ReadStatusController implements ReadStatusApi {
 
     private final ReadStatusService readStatusService;
-    private final UserService userService;
 
     /**
      * 특정 채널의 메시지 수신 정보 생성
