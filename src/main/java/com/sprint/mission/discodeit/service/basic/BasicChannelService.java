@@ -77,7 +77,7 @@ public class BasicChannelService implements ChannelService {
                 .map(user -> ReadStatus.builder()
                         .user(user)
                         .channel(privateChannel)
-                        .lastReadAt(Instant.now())
+                        .lastReadAt(privateChannel.getCreatedAt())
                         .build())
                 .toList();
 
