@@ -6,6 +6,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
@@ -31,7 +32,7 @@ public class Message extends BaseUpdatableEntity {
     @JoinColumn(name = "author_id")
     private User author;
 
-    @OneToMany
+    @ManyToMany
     @JoinTable(
             name = "message_attachments",
             joinColumns = @JoinColumn(name = "message_id"),
