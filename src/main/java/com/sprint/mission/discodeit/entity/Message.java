@@ -32,7 +32,7 @@ public class Message extends BaseUpdatableEntity {
     @JoinColumn(name = "author_id")
     private User author;
 
-    @ManyToMany
+    @OneToMany
     @JoinTable(
             name = "message_attachments",
             joinColumns = @JoinColumn(name = "message_id"),
