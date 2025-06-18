@@ -15,7 +15,6 @@ import lombok.ToString;
 
 
 @Getter
-@ToString
 @Entity
 @Table(name = "users")
 public class User extends BaseUpdatableEntity {

@@ -9,7 +9,6 @@ import lombok.Getter;
 import lombok.ToString;
 
 @Getter
-@ToString
 @Entity
 @Table(name = "binary_contents")
 public class BinaryContent extends BaseEntity {

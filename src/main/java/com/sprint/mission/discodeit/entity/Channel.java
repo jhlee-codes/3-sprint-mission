@@ -11,7 +11,6 @@ import lombok.Getter;
 import lombok.ToString;
 
 @Getter
-@ToString
 @Entity
 @Table(name = "channels")
 public class Channel extends BaseUpdatableEntity {
