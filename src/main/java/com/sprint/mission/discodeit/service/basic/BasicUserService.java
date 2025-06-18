@@ -81,7 +81,6 @@ public class BasicUserService implements UserService {
                 .lastActiveAt(Instant.now())
                 .build();
 
-        // 양방향 연관관계 설정
         user.setStatus(userStatus);
         userStatus.setUser(user);
 
@@ -168,7 +167,6 @@ public class BasicUserService implements UserService {
                 binaryContent
         );
 
-        userRepository.save(user);
         return userMapper.toDto(user);
     }
 
@@ -181,11 +179,8 @@ public class BasicUserService implements UserService {
     @Transactional
     public void delete(UUID userId) {
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NoSuchElementException("존재하지 않는 유저입니다."));
-
-        if (user.getProfile() != null) {
-            binaryContentRepository.deleteById(user.getProfile().getId());
+        if (userRepository.existsById(userId)) {
+            throw new NoSuchElementException("존재하지 않는 유저입니다.");
         }
 
         userRepository.deleteById(userId);

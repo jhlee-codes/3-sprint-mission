@@ -3,9 +3,6 @@ discodeit:
     type: local
     local:
       root-path: .discodeit/storage
-  repository:
-    #    type: file # jcf | file
-    file-directory: .discodeit
 
 server:
   port: 8080
@@ -18,11 +15,10 @@ logging:
 # DB
 spring:
   datasource:
+    driver-class-name: org.postgresql.Driver
     url: jdbc:postgresql://localhost:5432/discodeit
     username: discodeit_user
-    password: ${DB_PASSWORD}
-    # discodeit1234
-    driver-class-name: org.postgresql.Driver
+    password: discodeit1234
     # PostgreSQL createClob() 경고 메시지 제거
     hikari:
       connection-init-sql: SET SESSION hibernate.jdbc.lob.non_contextual_creation=true

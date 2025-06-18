@@ -49,9 +49,6 @@ CREATE TABLE IF NOT EXISTS user_statuses
 );
 
 -- channels
---DROP TYPE IF EXISTS channel_type CASCADE;
---CREATE TYPE channel_type AS ENUM ('PUBLIC', 'PRIVATE');
-
 CREATE TABLE IF NOT EXISTS channels
 (
     id          UUID PRIMARY KEY,
@@ -72,7 +69,8 @@ CREATE TABLE IF NOT EXISTS read_statuses
     channel_id   UUID,
     last_read_at TIMESTAMPTZ NOT NULL,
 
-    CONSTRAINT uq_user_channel UNIQUE (user_id, channel_id),
+    UNIQUE (user_id, channel_id),
+
     CONSTRAINT fk_user_id FOREIGN KEY (user_id)
         REFERENCES users (id)
         ON DELETE CASCADE,
@@ -105,6 +103,8 @@ CREATE TABLE IF NOT EXISTS message_attachments
     message_id    UUID,
     attachment_id UUID,
 
+    PRIMARY KEY (message_id, attachment_id),
+
     CONSTRAINT fk_message_id FOREIGN KEY (message_id)
         REFERENCES messages (id)
         ON DELETE CASCADE,
@@ -112,4 +112,5 @@ CREATE TABLE IF NOT EXISTS message_attachments
         REFERENCES binary_contents (id)
         ON DELETE CASCADE
 );
+
 

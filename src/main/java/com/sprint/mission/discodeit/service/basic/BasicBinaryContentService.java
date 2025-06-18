@@ -22,7 +22,6 @@ public class BasicBinaryContentService implements BinaryContentService {
 
     private final BinaryContentRepository binaryContentRepository;
     private final BinaryContentStorage binaryContentStorage;
-
     private final BinaryContentMapper binaryContentMapper;
 
     /**
@@ -61,9 +60,7 @@ public class BasicBinaryContentService implements BinaryContentService {
             throw new IllegalArgumentException("조회할 ID 목록이 비어 있습니다.");
         }
 
-        List<BinaryContent> binaryContents = binaryContentRepository.findAllByIdIn(ids);
-
-        return binaryContents.stream()
+        return binaryContentRepository.findAllById(ids).stream()
                 .map(binaryContentMapper::toDto)
                 .toList();
     }
@@ -91,9 +88,10 @@ public class BasicBinaryContentService implements BinaryContentService {
     @Override
     @Transactional
     public void delete(UUID id) {
-        BinaryContent binaryContent = binaryContentRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException(("존재하지 않는 컨텐츠입니다.")));
+        if (!binaryContentRepository.existsById(id)) {
+            throw new NoSuchElementException("존재하지 않는 컨텐츠입니다.");
+        }
 
-        binaryContentRepository.delete(binaryContent);
+        binaryContentRepository.deleteById(id);
     }
 }

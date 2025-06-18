@@ -50,7 +50,7 @@ public class BasicReadStatusService implements ReadStatusService {
                 .orElseThrow(() -> new NoSuchElementException("존재하지 않는 채널입니다."));
 
         // 같은 Channel, User와 관련된 객체가 이미 존재하면 예외처리
-        if (readStatusRepository.existsByChannel_IdAndUser_Id(channelId, userId)) {
+        if (readStatusRepository.existsByUserIdAndChannelId(userId, channelId)) {
             throw new IllegalStateException("이미 존재하는 ReadStatus입니다.");
         }
 
@@ -74,7 +74,7 @@ public class BasicReadStatusService implements ReadStatusService {
     @Transactional(readOnly = true)
     public List<ReadStatusDto> findAllByUserId(UUID userId) {
 
-        return readStatusRepository.findAllByUser_Id(userId).stream()
+        return readStatusRepository.findAllByUserId(userId).stream()
                 .map(readStatusMapper::toDto)
                 .toList();
     }
@@ -110,8 +110,6 @@ public class BasicReadStatusService implements ReadStatusService {
                 .orElseThrow(() -> new NoSuchElementException("존재하지 않는 ReadStatus입니다."));
 
         readStatus.update(updateRequest.newLastReadAt());
-
-        readStatusRepository.save(readStatus);
         return readStatusMapper.toDto(readStatus);
     }
 
@@ -124,9 +122,10 @@ public class BasicReadStatusService implements ReadStatusService {
     @Transactional
     public void delete(UUID id) {
 
-        ReadStatus readStatus = readStatusRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("존재하지 않는 ReadStatus입니다."));
+        if (!readStatusRepository.existsById(id)) {
+            throw new NoSuchElementException("존재하지 않는 ReadStatus입니다.");
+        }
 
-        readStatusRepository.deleteById(readStatus.getId());
+        readStatusRepository.deleteById(id);
     }
 }

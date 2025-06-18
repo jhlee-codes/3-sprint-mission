@@ -68,12 +68,11 @@ public class BasicChannelService implements ChannelService {
                 .type(ChannelType.PRIVATE)
                 .build();
 
-        List<User> users = userRepository.findAllByIdIn(createRequest.participantIds());
-
         channelRepository.save(privateChannel);
 
         // private 채널 입장 유저의 ReadStatus 생성
-        List<ReadStatus> readStatuses = users.stream()
+        List<ReadStatus> readStatuses = userRepository.findAllById(createRequest.participantIds())
+                .stream()
                 .map(user -> ReadStatus.builder()
                         .user(user)
                         .channel(privateChannel)
@@ -151,11 +150,12 @@ public class BasicChannelService implements ChannelService {
     @Transactional
     public void delete(UUID channelId) {
 
-        Channel channel = channelRepository.findById(channelId)
-                .orElseThrow(() -> new NoSuchElementException("존재하지 않는 채널입니다."));
+        if (!channelRepository.existsById(channelId)) {
+            throw new NoSuchElementException("존재하지 않는 채널입니다.");
+        }
 
-        messageRepository.deleteByChannel_Id(channelId);
-        readStatusRepository.deleteAllByChannel_Id(channelId);
+        messageRepository.deleteAllByChannelId(channelId);
+        readStatusRepository.deleteAllByChannelId(channelId);
         channelRepository.deleteById(channelId);
     }
 }

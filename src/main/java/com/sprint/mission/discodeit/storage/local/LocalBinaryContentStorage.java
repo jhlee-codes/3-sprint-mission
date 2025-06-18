@@ -1,6 +1,7 @@
-package com.sprint.mission.discodeit.storage;
+package com.sprint.mission.discodeit.storage.local;
 
 import com.sprint.mission.discodeit.dto.BinaryContent.BinaryContentDto;
+import com.sprint.mission.discodeit.storage.BinaryContentStorage;
 import jakarta.annotation.PostConstruct;
 import java.io.IOException;
 import java.io.InputStream;
@@ -36,10 +37,13 @@ public class LocalBinaryContentStorage implements BinaryContentStorage {
      */
     @PostConstruct
     public void init() {
-        try {
-            Files.createDirectories(root);
-        } catch (IOException e) {
-            throw new RuntimeException("파일 저장 경로 초기화 중 오류가 발생하였습니다.");
+        if (!Files.exists(root)) {
+            try {
+                Files.createDirectories(root);
+            } catch (IOException e) {
+                e.printStackTrace();
+                throw new RuntimeException("파일 저장 경로 초기화 중 오류가 발생하였습니다.");
+            }
         }
     }
 
@@ -54,6 +58,10 @@ public class LocalBinaryContentStorage implements BinaryContentStorage {
     public UUID put(UUID id, byte[] bytes) {
 
         Path path = resolvePath(id);
+
+        if (Files.exists(path)) {
+            throw new IllegalArgumentException("이미 존재하는 파일입니다.");
+        }
 
         try (OutputStream os = Files.newOutputStream(path)) {
             os.write(bytes);
@@ -82,6 +90,7 @@ public class LocalBinaryContentStorage implements BinaryContentStorage {
         try {
             return Files.newInputStream(path);
         } catch (IOException e) {
+            e.printStackTrace();
             throw new RuntimeException("파일을 읽는 중 오류가 발생하였습니다.");
         }
     }
@@ -89,26 +98,21 @@ public class LocalBinaryContentStorage implements BinaryContentStorage {
     /**
      * 주어진 BinaryContentDto를 기반으로 파일 다운로드 응답 생성
      *
-     * @param binaryContent 다운로드할 파일 정보
+     * @param metaData 다운로드할 파일 정보
      * @return 파일이 포함된 HTTP 다운로드 응답
      */
     @Override
-    public ResponseEntity<Resource> download(BinaryContentDto binaryContent) {
+    public ResponseEntity<Resource> download(BinaryContentDto metaData) {
 
-        InputStream stream = get(binaryContent.id());
-        Resource resource = (Resource) new InputStreamResource(stream);
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentDisposition(ContentDisposition
-                .builder("attachment")
-                .filename(binaryContent.fileName())
-                .build());
-
-        headers.setContentType(MediaType.parseMediaType(binaryContent.contentType()));
+        InputStream stream = get(metaData.id());
+        Resource resource = new InputStreamResource(stream);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .headers(headers)
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=\"" + metaData.fileName() + "\"")
+                .header(HttpHeaders.CONTENT_TYPE, metaData.contentType())
+                .header(HttpHeaders.CONTENT_LENGTH, String.valueOf(metaData.size()))
                 .body(resource);
     }
 

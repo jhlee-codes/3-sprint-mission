@@ -18,7 +18,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class BasicAuthService implements AuthService {
 
     private final UserRepository userRepository;
-
     private final UserMapper userMapper;
 
     /**
@@ -29,7 +28,7 @@ public class BasicAuthService implements AuthService {
      * @throws NoSuchElementException 유저명/패스워드 불일치하는 경우
      */
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public UserDto login(LoginRequest loginRequest) {
         String username = loginRequest.username();
         String password = loginRequest.password();

@@ -22,6 +22,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -102,20 +103,21 @@ public class BasicMessageService implements MessageService {
      */
     @Override
     @Transactional(readOnly = true)
-    public PageResponse<MessageDto> findAllByChannelId(UUID channelId, Instant cursor,
+    public PageResponse<MessageDto> findAllByChannelId(UUID channelId, Instant createAt,
             Pageable pageable) {
 
-        int pageSize = (pageable != null && pageable.isPaged()) ? pageable.getPageSize() : 50;
+        Slice<MessageDto> slice = messageRepository.findAllByChannelIdWithAuthor(channelId,
+                        Optional.ofNullable(createAt).orElse(Instant.now()),
+                        pageable)
+                .map(messageMapper::toDto);
 
-        PageRequest pageRequest = PageRequest.of(0, pageSize + 1,
-                Sort.by(Sort.Direction.DESC, "createdAt"));
+        Instant nextCursor = null;
+        if (!slice.getContent().isEmpty()) {
+            nextCursor = slice.getContent().get(slice.getContent().size() - 1)
+                    .createdAt();
+        }
 
-        Slice<Message> messageSlice = (cursor != null)
-                ? messageRepository.findAllByChannel_IdAndCreatedAtBefore(channelId, cursor,
-                pageRequest)
-                : messageRepository.findAllByChannel_Id(channelId, pageRequest);
-
-        return pageResponseMapper.fromSlice(messageSlice.map(messageMapper::toDto));
+        return pageResponseMapper.fromSlice(slice, nextCursor);
     }
 
     /**
@@ -148,8 +150,6 @@ public class BasicMessageService implements MessageService {
                 .orElseThrow(() -> new NoSuchElementException("존재하지 않는 메시지입니다."));
 
         message.update(updateRequest.newContent());
-
-        messageRepository.save(message);
         return messageMapper.toDto(message);
     }
 
@@ -161,14 +161,10 @@ public class BasicMessageService implements MessageService {
     @Override
     @Transactional
     public void delete(UUID messageId) {
-        Message message = messageRepository.findById(messageId)
-                .orElseThrow(() -> new NoSuchElementException("존재하지 않는 메시지입니다."));
+        if (!messageRepository.existsById(messageId)) {
+            throw new NoSuchElementException("존재하지 않는 메시지입니다.");
+        }
 
-        List<UUID> binaryContentIds = message.getAttachments().stream()
-                .map(BinaryContent::getId)
-                .toList();
-
-        binaryContentRepository.deleteAllByIdIn(binaryContentIds);
         messageRepository.deleteById(messageId);
     }
 }
