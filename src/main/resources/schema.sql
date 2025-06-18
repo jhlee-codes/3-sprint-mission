@@ -12,21 +12,21 @@ DROP TABLE IF EXISTS message_attachments CASCADE;
 CREATE TABLE IF NOT EXISTS binary_contents
 (
     id           UUID PRIMARY KEY,
-    created_at   TIMESTAMPTZ  NOT NULL,
-    file_name    VARCHAR(255) NOT NULL,
-    size         BIGINT       NOT NULL,
-    content_type VARCHAR(100) NOT NULL
+    created_at   timestamp with time zone NOT NULL,
+    file_name    VARCHAR(255)             NOT NULL,
+    size         BIGINT                   NOT NULL,
+    content_type VARCHAR(100)             NOT NULL
 );
 
 -- users
 CREATE TABLE IF NOT EXISTS users
 (
     id         UUID PRIMARY KEY,
-    created_at TIMESTAMPTZ         NOT NULL,
-    updated_at TIMESTAMPTZ,
-    username   VARCHAR(50) UNIQUE  NOT NULL,
-    email      VARCHAR(100) UNIQUE NOT NULL,
-    password   VARCHAR(60)         NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone,
+    username   VARCHAR(50) UNIQUE       NOT NULL,
+    email      VARCHAR(100) UNIQUE      NOT NULL,
+    password   VARCHAR(60)              NOT NULL,
     profile_id UUID,
 
     CONSTRAINT fk_profile_id FOREIGN KEY (profile_id)
@@ -38,10 +38,10 @@ CREATE TABLE IF NOT EXISTS users
 CREATE TABLE IF NOT EXISTS user_statuses
 (
     id             UUID PRIMARY KEY,
-    created_at     TIMESTAMPTZ NOT NULL,
-    updated_at     TIMESTAMPTZ,
-    user_id        UUID UNIQUE NOT NULL,
-    last_active_at TIMESTAMPTZ NOT NULL,
+    created_at     timestamp with time zone NOT NULL,
+    updated_at     timestamp with time zone,
+    user_id        UUID UNIQUE              NOT NULL,
+    last_active_at TIMESTAMPTZ              NOT NULL,
 
     CONSTRAINT fk_user_id FOREIGN KEY (user_id)
         REFERENCES users (id)
@@ -52,22 +52,22 @@ CREATE TABLE IF NOT EXISTS user_statuses
 CREATE TABLE IF NOT EXISTS channels
 (
     id          UUID PRIMARY KEY,
-    created_at  TIMESTAMPTZ NOT NULL,
-    updated_at  TIMESTAMPTZ,
+    created_at  timestamp with time zone NOT NULL,
+    updated_at  timestamp with time zone,
     name        VARCHAR(100),
     description VARCHAR(500),
-    type        VARCHAR(10) NOT NULL
+    type        VARCHAR(10)              NOT NULL
 );
 
 -- read_statuses
 CREATE TABLE IF NOT EXISTS read_statuses
 (
     id           UUID PRIMARY KEY,
-    created_at   TIMESTAMPTZ NOT NULL,
-    updated_at   TIMESTAMPTZ,
+    created_at   timestamp with time zone NOT NULL,
+    updated_at   timestamp with time zone,
     user_id      UUID,
     channel_id   UUID,
-    last_read_at TIMESTAMPTZ NOT NULL,
+    last_read_at timestamp with time zone NOT NULL,
 
     UNIQUE (user_id, channel_id),
 
@@ -83,10 +83,10 @@ CREATE TABLE IF NOT EXISTS read_statuses
 CREATE TABLE IF NOT EXISTS messages
 (
     id         UUID PRIMARY KEY,
-    created_at TIMESTAMPTZ NOT NULL,
-    updated_at TIMESTAMPTZ,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone,
     content    TEXT,
-    channel_id UUID        NOT NULL,
+    channel_id UUID                     NOT NULL,
     author_id  UUID,
 
     CONSTRAINT fk_channel_id FOREIGN KEY (channel_id)

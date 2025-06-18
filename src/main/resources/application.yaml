@@ -1,39 +1,19 @@
+# 기본 활성 프로파일
+spring:
+  profiles:
+    active: dev
+
 discodeit:
   storage:
     type: local
     local:
       root-path: .discodeit/storage
 
-server:
-  port: 8080
+# 로깅 레벨
 logging:
   level:
-    root: INFO
-    org.hibernate.sql: debug
-    org.hibernate.jdbc.bind: trace
-
-# DB
-spring:
-  datasource:
-    driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:5432/discodeit
-    username: discodeit_user
-    password: discodeit1234
-    # PostgreSQL createClob() 경고 메시지 제거
-    hikari:
-      connection-init-sql: SET SESSION hibernate.jdbc.lob.non_contextual_creation=true
-  jpa:
-    generate-ddl: false
-    database: postgresql
-    database-platform: org.hibernate.dialect.PostgreSQLDialect
-    properties:
-      hibernate:
-        format_sql: true
-        highlight_sql: true
-        use_sql_comments: false
-        dialect: org.hibernate.dialect.PostgreSQLDialect
-        show_sql: true
-    # OSIV 비활성화
-    open-in-view: false
-
+    root: INFO # 기본 레벨
+    # SQL 로그 출력
+    org.hibernate.sql: DEBUG
+    org.hibernate.jdbc.bind: TRACE
 
