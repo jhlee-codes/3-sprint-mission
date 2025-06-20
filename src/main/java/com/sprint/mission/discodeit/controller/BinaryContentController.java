@@ -68,7 +68,8 @@ public class BinaryContentController implements BinaryContentApi {
      */
     @GetMapping(path = "/{binaryContentId}/download")
     @Override
-    public ResponseEntity<Resource> download(@PathVariable UUID binaryContentId) {
+    public ResponseEntity<Resource> download(
+            @PathVariable UUID binaryContentId) {
 
         BinaryContentDto binaryContentDto = binaryContentService.find(binaryContentId);
 
