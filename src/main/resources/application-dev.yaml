@@ -23,7 +23,8 @@ spring:
       enabled: true         # H2 웹 콘솔 사용 설정
       path: /h2-console     # 접속 경로 (기본값: /h2-console)
   jpa:
-    generate-ddl: false
+    hibernate:
+      ddl-auto: update
     show-sql: true
     database: h2
     database-platform: org.hibernate.dialect.H2Dialect
@@ -34,4 +35,7 @@ spring:
         use_sql_comments: false
     # OSIV 비활성화
     open-in-view: false
-
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 20MB

@@ -22,7 +22,8 @@ spring:
     hikari:
       connection-init-sql: SET SESSION hibernate.jdbc.lob.non_contextual_creation=true
   jpa:
-    generate-ddl: false
+    hibernate:
+      ddl-auto: validate
     show_sql: true
     database: postgresql
     database-platform: org.hibernate.dialect.PostgreSQLDialect
@@ -33,3 +34,7 @@ spring:
         use_sql_comments: false
     # OSIV 비활성화
     open-in-view: false
+  servlet:
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 50MB
