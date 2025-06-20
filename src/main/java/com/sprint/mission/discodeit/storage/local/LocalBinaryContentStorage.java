@@ -6,10 +6,12 @@ import jakarta.annotation.PostConstruct;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.UUID;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.io.InputStreamResource;
@@ -21,6 +23,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
+@Slf4j
 @ConditionalOnProperty(name = "discodeit.storage.type", havingValue = "local")
 @Component
 public class LocalBinaryContentStorage implements BinaryContentStorage {
@@ -56,6 +59,7 @@ public class LocalBinaryContentStorage implements BinaryContentStorage {
      */
     @Override
     public UUID put(UUID id, byte[] bytes) {
+        log.info("파일 저장 요청: ID = {}", id);
 
         Path path = resolvePath(id);
 
@@ -103,16 +107,24 @@ public class LocalBinaryContentStorage implements BinaryContentStorage {
      */
     @Override
     public ResponseEntity<Resource> download(BinaryContentDto metaData) {
+        log.info("파일 다운로드 요청: ID = {}, 파일명 = {}, 형식 = {}", metaData.id(), metaData.fileName(),
+                metaData.contentType());
 
         InputStream stream = get(metaData.id());
         Resource resource = new InputStreamResource(stream);
 
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentDisposition(ContentDisposition
+                .builder("attachment")
+                .filename(metaData.fileName(), StandardCharsets.UTF_8)  // Spring 5+ 지원
+                .build()
+        );
+        headers.setContentType(MediaType.parseMediaType(metaData.contentType()));
+        headers.setContentLength(metaData.size());
+
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .header(HttpHeaders.CONTENT_DISPOSITION,
-                        "attachment; filename=\"" + metaData.fileName() + "\"")
-                .header(HttpHeaders.CONTENT_TYPE, metaData.contentType())
-                .header(HttpHeaders.CONTENT_LENGTH, String.valueOf(metaData.size()))
+                .headers(headers)
                 .body(resource);
     }
 

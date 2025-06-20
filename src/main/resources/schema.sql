@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS users
     password   VARCHAR(60)              NOT NULL,
     profile_id UUID,
 
-    CONSTRAINT fk_profile_id FOREIGN KEY (profile_id)
+    CONSTRAINT fk_profile_id_users FOREIGN KEY (profile_id)
         REFERENCES binary_contents (id)
         ON DELETE SET NULL
 );
@@ -41,9 +41,9 @@ CREATE TABLE IF NOT EXISTS user_statuses
     created_at     timestamp with time zone NOT NULL,
     updated_at     timestamp with time zone,
     user_id        UUID UNIQUE              NOT NULL,
-    last_active_at TIMESTAMPTZ              NOT NULL,
+    last_active_at timestamp with time zone NOT NULL,
 
-    CONSTRAINT fk_user_id FOREIGN KEY (user_id)
+    CONSTRAINT fk_user_id_user_statuses FOREIGN KEY (user_id)
         REFERENCES users (id)
         ON DELETE CASCADE
 );
@@ -71,10 +71,10 @@ CREATE TABLE IF NOT EXISTS read_statuses
 
     UNIQUE (user_id, channel_id),
 
-    CONSTRAINT fk_user_id FOREIGN KEY (user_id)
+    CONSTRAINT fk_user_id_read_statuses FOREIGN KEY (user_id)
         REFERENCES users (id)
         ON DELETE CASCADE,
-    CONSTRAINT fk_channel_id FOREIGN KEY (channel_id)
+    CONSTRAINT fk_channel_id_read_statuses FOREIGN KEY (channel_id)
         REFERENCES channels (id)
         ON DELETE CASCADE
 );
@@ -89,10 +89,10 @@ CREATE TABLE IF NOT EXISTS messages
     channel_id UUID                     NOT NULL,
     author_id  UUID,
 
-    CONSTRAINT fk_channel_id FOREIGN KEY (channel_id)
+    CONSTRAINT fk_channel_id_messages FOREIGN KEY (channel_id)
         REFERENCES channels (id)
         ON DELETE CASCADE,
-    CONSTRAINT fk_author_id FOREIGN KEY (author_id)
+    CONSTRAINT fk_author_id_messages FOREIGN KEY (author_id)
         REFERENCES users (id)
         ON DELETE SET NULL
 );
@@ -105,10 +105,10 @@ CREATE TABLE IF NOT EXISTS message_attachments
 
     PRIMARY KEY (message_id, attachment_id),
 
-    CONSTRAINT fk_message_id FOREIGN KEY (message_id)
+    CONSTRAINT fk_message_id_message_attachments FOREIGN KEY (message_id)
         REFERENCES messages (id)
         ON DELETE CASCADE,
-    CONSTRAINT fk_attachment_id FOREIGN KEY (attachment_id)
+    CONSTRAINT fk_attachment_id_message_attachments FOREIGN KEY (attachment_id)
         REFERENCES binary_contents (id)
         ON DELETE CASCADE
 );

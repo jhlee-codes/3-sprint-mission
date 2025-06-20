@@ -6,13 +6,14 @@ import com.sprint.mission.discodeit.dto.UserStatus.UserStatusDto;
 import com.sprint.mission.discodeit.dto.UserStatus.UserStatusUpdateRequest;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.entity.UserStatus;
+import com.sprint.mission.discodeit.exception.User.UserNotFoundException;
+import com.sprint.mission.discodeit.exception.UserStatus.UserStatusAlreadyExistsException;
+import com.sprint.mission.discodeit.exception.UserStatus.UserStatusNotFoundException;
 import com.sprint.mission.discodeit.mapper.UserStatusMapper;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.repository.UserStatusRepository;
 import com.sprint.mission.discodeit.service.UserStatusService;
-import java.time.Instant;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -33,6 +34,8 @@ public class BasicUserStatusService implements UserStatusService {
      *
      * @param createRequest 생성 요청 DTO
      * @return 생성된 UserStatus
+     * @throws UserNotFoundException            유저가 존재하지 않는 경우
+     * @throws UserStatusAlreadyExistsException 같은 User와 관련된 UserStatus가 이미 존재하는 경우
      */
     @Override
     @Transactional
@@ -41,12 +44,11 @@ public class BasicUserStatusService implements UserStatusService {
         UUID userId = createRequest.userId();
 
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NoSuchElementException("존재하지 않는 유저입니다."));
+                .orElseThrow(() -> UserNotFoundException.byId(userId));
 
-        // 같은 User와 관련된 객체가 이미 존재하면 예외처리
         Optional.ofNullable(user.getStatus())
                 .ifPresent(status -> {
-                    throw new IllegalArgumentException("이미 존재하는 UserStatus입니다.");
+                    throw new UserStatusAlreadyExistsException(status.getId());
                 });
 
         UserStatus userStatus = UserStatus.builder()
@@ -77,13 +79,14 @@ public class BasicUserStatusService implements UserStatusService {
      *
      * @param id 조회할 UserStatus ID
      * @return 조회된 UserStatus
+     * @throws UserStatusNotFoundException UserStatus가 존재하지 않는 경우
      */
     @Override
     @Transactional(readOnly = true)
     public UserStatusDto find(UUID id) {
 
         UserStatus userStatus = userStatusRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("존재하지 않는 UserStatus입니다."));
+                .orElseThrow(() -> UserStatusNotFoundException.byId(id));
 
         return userStatusMapper.toDto(userStatus);
     }
@@ -94,13 +97,14 @@ public class BasicUserStatusService implements UserStatusService {
      * @param userStatusId  수정할 UserStatus ID
      * @param updateRequest 수정 요청 DTO
      * @return 수정된 UserStatus
+     * @throws UserStatusNotFoundException UserStatus가 존재하지 않는 경우
      */
     @Override
     @Transactional
     public UserStatusDto update(UUID userStatusId, UserStatusUpdateRequest updateRequest) {
 
         UserStatus userStatus = userStatusRepository.findById(userStatusId)
-                .orElseThrow(() -> new NoSuchElementException("존재하지 않는 UserStatus입니다."));
+                .orElseThrow(() -> UserStatusNotFoundException.byId(userStatusId));
 
         userStatus.update(updateRequest.newLastActiveAt());
         return userStatusMapper.toDto(userStatus);
@@ -112,13 +116,14 @@ public class BasicUserStatusService implements UserStatusService {
      * @param userId        수정할 UserStatus의 유저ID
      * @param updateRequest 수정 요청 DTO
      * @return 수정된 UserStatus
+     * @throws UserStatusNotFoundException 유저ID와 일치하는 UserStatus가 없는 경우
      */
     @Override
     @Transactional
     public UserStatusDto updateByUserId(UUID userId, UserStatusUpdateRequest updateRequest) {
 
         UserStatus userStatus = userStatusRepository.findByUserId(userId)
-                .orElseThrow(() -> new NoSuchElementException("존재하지 않는 UserStatus입니다."));
+                .orElseThrow(() -> UserStatusNotFoundException.byUserId(userId));
 
         userStatus.update(updateRequest.newLastActiveAt());
         return userStatusMapper.toDto(userStatus);
@@ -128,13 +133,14 @@ public class BasicUserStatusService implements UserStatusService {
      * 주어진 ID에 해당하는 UserStatus 삭제
      *
      * @param id 삭제할 UserStatus ID
+     * @throws UserStatusNotFoundException UserStatus가 존재하지 않는 경우
      */
     @Override
     @Transactional
     public void delete(UUID id) {
 
         if (!userStatusRepository.existsById(id)) {
-            throw new NoSuchElementException("존재하지 않는 UserStatus입니다.");
+            throw UserStatusNotFoundException.byId(id);
         }
 
         userStatusRepository.deleteById(id);
