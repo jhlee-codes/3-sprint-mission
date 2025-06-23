@@ -69,6 +69,8 @@ public class BasicMessageService implements MessageService {
         log.info("메시지 생성 요청: 작성자 = {}, 채널 = {}, 내용 = {}", authorId,
                 channelId, content);
 
+        log.info("첨부파일 요청: {}", binaryContentCreateRequests);
+
         User user = userRepository.findById(authorId)
                 .orElseThrow(() -> UserNotFoundException.byId(authorId));
 
@@ -117,6 +119,10 @@ public class BasicMessageService implements MessageService {
     public PageResponse<MessageDto> findAllByChannelId(UUID channelId, Instant createAt,
             Pageable pageable) {
 
+        if (!channelRepository.existsById(channelId)) {
+            throw new ChannelNotFoundException(channelId);
+        }
+
         Slice<MessageDto> slice = messageRepository.findAllByChannelIdWithAuthor(channelId,
                         Optional.ofNullable(createAt).orElse(Instant.now()),
                         pageable)
@@ -149,7 +155,7 @@ public class BasicMessageService implements MessageService {
     }
 
     /**
-     * 주어진 ID에 해당하는 메시지를 수정 요청 DTO의 값으로 수정
+     * 주어진 ID에 해당하는 메시지를 수정 요청 DTO의 값으로 수정 l
      *
      * @param messageId     수정 대상 메시지ID
      * @param updateRequest 수정 요청 DTO
