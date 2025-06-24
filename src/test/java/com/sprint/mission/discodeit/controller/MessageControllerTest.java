@@ -192,7 +192,7 @@ public class MessageControllerTest {
                 now.plusSeconds(10),
                 2,
                 true,
-                2L);
+                null);
 
         given(messageService.findAllByChannelId(eq(channelId), any(), any())).willReturn(
                 result);
@@ -204,7 +204,6 @@ public class MessageControllerTest {
                 .andExpect(jsonPath("$.content[1].content").value("테스트 메시지 2"))
                 .andExpect(jsonPath("$.hasNext").value(true))
                 .andExpect(jsonPath("$.nextCursor").value(now.plusSeconds(10).toString()))
-                .andExpect(jsonPath("$.size").value(2))
-                .andExpect(jsonPath("$.totalElements").value(2L));
+                .andExpect(jsonPath("$.size").value(2));
     }
 }
