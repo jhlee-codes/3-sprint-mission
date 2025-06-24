@@ -35,5 +35,4 @@ public interface MessageRepository extends JpaRepository<Message, UUID> {
     Slice<Message> findAllByChannelIdWithAuthor(@Param("channelId") UUID channelId,
             @Param("createdAt") Instant createdAt,
             Pageable pageable);
-
 }
