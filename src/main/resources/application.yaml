@@ -1,7 +1,14 @@
 # 기본 활성 프로파일
 spring:
   profiles:
-    active: dev
+    active: prod
+  application:
+    name: discodeit
+  boot:
+    admin:
+      client:
+        instance:
+          name: discodeit
 
 discodeit:
   storage:
@@ -22,7 +29,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: health, info, metrics, loggers  # 엔드포인트 노출
+        include: "*"  # 엔드포인트 노출
       base-path: /actuator  # Actuator 엔드포인트 기본 경로
   endpoint:
     health:

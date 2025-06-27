@@ -1,7 +1,6 @@
 # server config
 server:
   port: 8080
-
 # logging config
 logging:
   level:
@@ -9,9 +8,6 @@ logging:
 
 # Spring config
 spring:
-  config:
-    activate:
-      on-profile: dev
   # db config
   datasource:
     driver-class-name: org.h2.Driver
@@ -39,3 +35,9 @@ spring:
     multipart:
       max-file-size: 10MB
       max-request-size: 20MB
+  application:
+    name: discodeit
+  boot:
+    admin:
+      client:
+        url: http://localhost:9090

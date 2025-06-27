@@ -55,12 +55,14 @@ dependencies {
 
     // actuator
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
+
+    // Spring Boot Admin Client
+    implementation 'de.codecentric:spring-boot-admin-starter-client:3.4.5'
 }
 
 tasks.withType(JavaCompile) {
     options.annotationProcessorPath = configurations.annotationProcessor
 }
-
 
 tasks.named('test') {
     useJUnitPlatform()
