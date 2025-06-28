@@ -46,7 +46,7 @@ public class ChannelControllerTest {
 
     @Test
     @DisplayName("공개 채널 생성 API가 정상적으로 동작한다.")
-    void 공개채널생성_성공() throws Exception {
+    void shouldCreatePublicChannel_whenValidRequest() throws Exception {
 
         // given
         String name = "공개 채널 생성 테스트";
@@ -72,7 +72,7 @@ public class ChannelControllerTest {
 
     @Test
     @DisplayName("유효하지 않은 입력으로 공개 채널 생성 시 400 에러가 발생한다.")
-    void 공개채널생성_유효하지않은입력_에러발생() throws Exception {
+    void shouldReturnBadRequest_whenInvalidPublicChannelCreateRequest() throws Exception {
 
         // given
         String name = "";   // 이름을 빈 값으로 설정
@@ -91,7 +91,7 @@ public class ChannelControllerTest {
 
     @Test
     @DisplayName("개인 채널 생성 API가 정상적으로 동작한다.")
-    void 개인채널생성_성공() throws Exception {
+    void shouldCreatePrivateChannel_whenValidRequest() throws Exception {
 
         // given
         ChannelType channelType = ChannelType.PRIVATE;
@@ -118,7 +118,7 @@ public class ChannelControllerTest {
 
     @Test
     @DisplayName("유효하지 않은 입력으로 개인 채널 생성 시 400 에러가 발생한다.")
-    void 개인채널생성_유효하지않은입력_예외발생() throws Exception {
+    void shouldReturnBadRequest_whenInvalidPrivateChannelCreateRequest() throws Exception {
 
         // given
         ChannelType channelType = ChannelType.PRIVATE;
@@ -135,7 +135,7 @@ public class ChannelControllerTest {
 
     @Test
     @DisplayName("공개 채널 수정 API가 정상적으로 동작한다.")
-    void 공개채널수정_성공() throws Exception {
+    void shouldUpdatePublicChannel_whenValidRequest() throws Exception {
 
         // given
         String newName = "공개 채널 수정 테스트";
@@ -163,7 +163,7 @@ public class ChannelControllerTest {
 
     @Test
     @DisplayName("유효하지 않은 입력으로 공개 채널 수정 시 400 에러가 발생한다.")
-    void 공개채널수정_유효하지않은입력_예외발생() throws Exception {
+    void shouldReturnBadRequest_whenInvalidPublicChannelUpdateRequest() throws Exception {
 
         // given
         String newName = "";
@@ -187,7 +187,7 @@ public class ChannelControllerTest {
 
     @Test
     @DisplayName("채널 삭제 API가 정상적으로 동작한다.")
-    void 채널삭제_성공() throws Exception {
+    void shouldDeleteChannel_whenValidChannelId() throws Exception {
 
         // given
         UUID channelId = UUID.randomUUID();
@@ -201,7 +201,7 @@ public class ChannelControllerTest {
 
     @Test
     @DisplayName("특정 사용자가 조회 가능한 전체 채널 목록 조회 API가 정상적으로 동작한다.")
-    void 특정사용자_전체채널목록조회_성공() throws Exception {
+    void shouldReturnAllChannelsForUser_whenValidUserId() throws Exception {
 
         // given
         UUID userId = UUID.randomUUID();

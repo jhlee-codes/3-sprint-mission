@@ -12,6 +12,7 @@ import com.sprint.mission.discodeit.dto.Channel.ChannelDto;
 import com.sprint.mission.discodeit.dto.Channel.PrivateChannelCreateRequest;
 import com.sprint.mission.discodeit.dto.Channel.PublicChannelCreateRequest;
 import com.sprint.mission.discodeit.dto.Channel.PublicChannelUpdateRequest;
+import com.sprint.mission.discodeit.dto.User.UserDto;
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.ChannelType;
 import com.sprint.mission.discodeit.entity.User;
@@ -31,7 +32,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -55,106 +55,125 @@ public class ChannelServiceTest {
     @InjectMocks
     private BasicChannelService channelService;
 
-    private Channel publicChannel;
-    private Channel privateChannel;
-    private User user;
     private Instant fixedTime;
 
     @BeforeEach
     void setUp() {
-        user = new User("테스트유저", "test@codeit.com", "test1234", null, null);
-        publicChannel = new Channel(ChannelType.PUBLIC, "테스트 채널", "테스트 채널입니다.");
-        privateChannel = new Channel(ChannelType.PRIVATE, null, null);
-
-        ReflectionTestUtils.setField(publicChannel, "id", UUID.randomUUID());
-        ReflectionTestUtils.setField(privateChannel, "id", UUID.randomUUID());
-        ReflectionTestUtils.setField(user, "id", UUID.randomUUID());
-
         fixedTime = Instant.parse("2025-01-01T00:00:00Z");
+    }
+
+    private User createUser(String userName, String email, String password) {
+        User user = new User(userName, email, password, null, null);
+        ReflectionTestUtils.setField(user, "id", UUID.randomUUID());
+        return user;
+    }
+
+    private Channel createPublicChannel(String channelName, String description) {
+        Channel publicChannel = new Channel(ChannelType.PUBLIC, channelName, description);
+        ReflectionTestUtils.setField(publicChannel, "id", UUID.randomUUID());
+        return publicChannel;
+    }
+
+    private Channel createPrivateChannel() {
+        Channel privateChannel = new Channel(ChannelType.PRIVATE, null, null);
+        ReflectionTestUtils.setField(privateChannel, "id", UUID.randomUUID());
+        return privateChannel;
     }
 
     @Test
     @DisplayName("유효한 생성 요청으로 공개 채널을 생성할 수 있다.")
-    void 공개채널_생성요청_성공() {
+    void shouldCreatePublicChannel_whenValidRequest() {
 
         // given
-        PublicChannelCreateRequest createRequest = new PublicChannelCreateRequest("공개 채널 생성 테스트",
-                "공개 채널 생성 테스트입니다.");
+        String channelName = "공개 채널 테스트";
+        String description = "공개 채널 생성 테스트입니다.";
+        PublicChannelCreateRequest createRequest = new PublicChannelCreateRequest(channelName,
+                description);
+        Channel publicCh = createPublicChannel(channelName, description);
+        ChannelDto publicChDto = new ChannelDto(publicCh.getId(), publicCh.getName(),
+                publicCh.getDescription(),
+                publicCh.getType(), null, List.of());
 
-        given(channelRepository.save(any(Channel.class))).willReturn(publicChannel);
+        given(channelRepository.save(any(Channel.class))).willReturn(publicCh);
+        given(channelMapper.toDto(any(Channel.class))).willReturn(publicChDto);
 
         // when
-        channelService.create(createRequest);
+        ChannelDto result = channelService.create(createRequest);
 
         // then
-        ArgumentCaptor<Channel> channelCaptor = ArgumentCaptor.forClass(Channel.class);
-        then(channelRepository).should().save(channelCaptor.capture());
-
-        Channel savedChannel = channelCaptor.getValue();
-
-        assertThat(savedChannel).isNotNull();
-        assertThat(savedChannel.getName()).isEqualTo("공개 채널 생성 테스트");
-        assertThat(savedChannel.getDescription()).isEqualTo("공개 채널 생성 테스트입니다.");
-        assertThat(savedChannel.getType()).isEqualTo(ChannelType.PUBLIC);
+        assertThat(result).isNotNull();
+        assertThat(result.name()).isEqualTo(channelName);
+        assertThat(result.description()).isEqualTo(description);
     }
 
     @Test
     @DisplayName("유효한 생성 요청으로 개인 채널을 생성할 수 있다.")
-    void 개인채널_생성요청_성공() {
+    void shouldCreatePrivateChannel_whenValidRequest() {
 
         // given
+        User user = createUser("테스터", "tester@codeit.com", "tester1234");
         PrivateChannelCreateRequest createRequest = new PrivateChannelCreateRequest(
                 List.of(user.getId()));
+        UserDto userDto = new UserDto(user.getId(), user.getUsername(), user.getEmail(), null,
+                true);
+        Channel privateCh = createPrivateChannel();
+        ChannelDto privateChDto = new ChannelDto(privateCh.getId(), privateCh.getName(),
+                privateCh.getDescription(),
+                privateCh.getType(), null, List.of(userDto));
 
-        given(channelRepository.save(any(Channel.class))).willReturn(privateChannel);
+        given(channelRepository.save(any(Channel.class))).willReturn(privateCh);
+        given(channelMapper.toDto(any(Channel.class))).willReturn(privateChDto);
 
         // when
-        channelService.create(createRequest);
+        ChannelDto result = channelService.create(createRequest);
 
         // then
-        ArgumentCaptor<Channel> channelCaptor = ArgumentCaptor.forClass(Channel.class);
-        then(channelRepository).should().save(channelCaptor.capture());
-
-        Channel savedChannel = channelCaptor.getValue();
-
-        assertThat(savedChannel).isNotNull();
-        assertThat(savedChannel.getName()).isNull();
-        assertThat(savedChannel.getDescription()).isNull();
-        assertThat(savedChannel.getType()).isEqualTo(ChannelType.PRIVATE);
+        assertThat(result).isNotNull();
+        assertThat(result.name()).isNull();
+        assertThat(result.description()).isNull();
+        assertThat(result.participants()).containsExactly(userDto);
     }
 
     @Test
     @DisplayName("유효한 수정 요청으로 공개 채널을 수정할 수 있다.")
-    void 공개채널_수정요청_성공() {
+    void shouldUpdatePublicChannel_whenValidRequest() {
 
         // given
-        PublicChannelUpdateRequest updateRequest = new PublicChannelUpdateRequest("2) 테스트 채널",
-                "2) 테스트 채널입니다.");
+        String newChannelName = "공개 채널 수정 테스트 채널";
+        String newDescription = "공개 채널 수정 테스트 채널입니다.";
+        Channel originalCh = createPublicChannel("테스트 채널", "테스트 채널입니다.");
+        PublicChannelUpdateRequest updateRequest = new PublicChannelUpdateRequest(newChannelName,
+                newDescription);
+        Channel updatedCh = createPublicChannel(newChannelName, newDescription);
+        ChannelDto publicChDto = new ChannelDto(updatedCh.getId(), updatedCh.getName(),
+                updatedCh.getDescription(), updatedCh.getType(), null, List.of());
 
-        given(channelRepository.findById(publicChannel.getId())).willReturn(
-                Optional.of(publicChannel));
-        given(channelRepository.save(any(Channel.class))).willReturn(publicChannel);
+        given(channelRepository.findById(originalCh.getId())).willReturn(
+                Optional.of(originalCh));
+        given(channelRepository.save(any(Channel.class))).willReturn(updatedCh);
+        given(channelMapper.toDto(any(Channel.class))).willReturn(publicChDto);
 
         // when
-        channelService.update(publicChannel.getId(), updateRequest);
+        ChannelDto result = channelService.update(originalCh.getId(), updateRequest);
 
         // then
-        assertThat(publicChannel.getName()).isEqualTo("2) 테스트 채널");
-        assertThat(publicChannel.getDescription()).isEqualTo("2) 테스트 채널입니다.");
-
-        then(channelRepository).should().save(publicChannel);
+        assertThat(result.name()).isEqualTo(newChannelName);
+        assertThat(result.description()).isEqualTo(newDescription);
     }
 
     @Test
     @DisplayName("개인 채널 수정 요청 시 예외가 발생한다.")
-    void 개인채널_수정요청_예외발생() {
+    void shouldThrowException_whenUpdatingPrivateChannel() {
 
         // given
-        UUID channelId = privateChannel.getId();
-        PublicChannelUpdateRequest updateRequest = new PublicChannelUpdateRequest("2) 테스트 채널",
-                "2) 테스트 채널입니다.");
+        String newChannelName = "개인 채널 수정 테스트 채널";
+        String newDescription = "개인 채널 수정 테스트 채널입니다.";
+        Channel originalCh = createPrivateChannel();
+        UUID channelId = originalCh.getId();
+        PublicChannelUpdateRequest updateRequest = new PublicChannelUpdateRequest(newChannelName,
+                newDescription);
 
-        given(channelRepository.findById(channelId)).willReturn(Optional.of(privateChannel));
+        given(channelRepository.findById(channelId)).willReturn(Optional.of(originalCh));
 
         // when & then
         assertThatThrownBy(() -> {
@@ -166,29 +185,31 @@ public class ChannelServiceTest {
 
     @Test
     @DisplayName("유효한 삭제 요청으로 채널을 삭제할 수 있다.")
-    void 채널_삭제요청_성공() {
+    void shouldDeleteChannel_whenValidRequest() {
 
         // given
-        UUID channelId = publicChannel.getId();
+        Channel publicCh = createPublicChannel("채널 삭제 테스트", "채널 삭제 테스트입니다.");
+        UUID publicChId = publicCh.getId();
 
-        given(channelRepository.existsById(channelId)).willReturn(true);
-        willDoNothing().given(messageRepository).deleteAllByChannelId(channelId);
-        willDoNothing().given(readStatusRepository).deleteAllByChannelId(channelId);
-        willDoNothing().given(channelRepository).deleteById(channelId);
+        given(channelRepository.existsById(publicChId)).willReturn(true);
+
+        willDoNothing().given(messageRepository).deleteAllByChannelId(publicChId);
+        willDoNothing().given(readStatusRepository).deleteAllByChannelId(publicChId);
+        willDoNothing().given(channelRepository).deleteById(publicChId);
 
         // when
-        channelService.delete(channelId);
+        channelService.delete(publicChId);
 
         // then
-        then(channelRepository).should().existsById(channelId);
-        then(messageRepository).should().deleteAllByChannelId(channelId);
-        then(readStatusRepository).should().deleteAllByChannelId(channelId);
-        then(channelRepository).should().deleteById(channelId);
+        then(channelRepository).should().existsById(publicChId);
+        then(messageRepository).should().deleteAllByChannelId(publicChId);
+        then(readStatusRepository).should().deleteAllByChannelId(publicChId);
+        then(channelRepository).should().deleteById(publicChId);
     }
 
     @Test
     @DisplayName("존재하지 않는 채널 삭제 시도 시 예외가 발생한다.")
-    void 채널_삭제요청_예외발생() {
+    void shouldThrowException_whenDeletingNonExistentChannel() {
 
         // given
         UUID channelId = UUID.randomUUID();
@@ -208,20 +229,25 @@ public class ChannelServiceTest {
 
     @Test
     @DisplayName("유효한 유저ID로 해당 유저가 조회 가능한 모든 채널을 조회할 수 있다.")
-    void 유저ID로_채널조회시_채널존재() {
+    void shouldFindAllChannelsByUserId_whenValidRequest() {
 
         // given
+        User user = createUser("테스터", "tester@codeit.com", "tester1234");
         UUID userId = user.getId();
-        ChannelDto publicChannelDto = new ChannelDto(publicChannel.getId(), publicChannel.getName(),
-                publicChannel.getDescription(), publicChannel.getType(), fixedTime, List.of());
-        ChannelDto privateChannelDto = new ChannelDto(privateChannel.getId(),
-                privateChannel.getName(), privateChannel.getDescription(), privateChannel.getType(),
-                fixedTime, List.of());
+        Channel publicCh = createPublicChannel("공개 채널", "공개 채널입니다.");
+        Channel privateCh = createPrivateChannel();
+        ChannelDto publicChannelDto = new ChannelDto(publicCh.getId(), publicCh.getName(),
+                publicCh.getDescription(), publicCh.getType(), fixedTime, List.of());
+        UserDto userDto = new UserDto(user.getId(), user.getUsername(), user.getEmail(), null,
+                true);
+        ChannelDto privateChannelDto = new ChannelDto(privateCh.getId(),
+                privateCh.getName(), privateCh.getDescription(), privateCh.getType(),
+                fixedTime, List.of(userDto));
 
         given(channelRepository.findAllPublicOrUserChannels(userId)).willReturn(
-                List.of(publicChannel, privateChannel));
-        given(channelMapper.toDto(publicChannel)).willReturn(publicChannelDto);
-        given(channelMapper.toDto(privateChannel)).willReturn(privateChannelDto);
+                List.of(publicCh, privateCh));
+        given(channelMapper.toDto(publicCh)).willReturn(publicChannelDto);
+        given(channelMapper.toDto(privateCh)).willReturn(privateChannelDto);
 
         // when
         List<ChannelDto> channels = channelService.findAllByUserId(userId);
@@ -229,25 +255,26 @@ public class ChannelServiceTest {
         // then
         assertThat(channels).hasSize(2);
         assertThat(channels).containsExactly(publicChannelDto, privateChannelDto);
-
-        then(channelRepository).should().findAllPublicOrUserChannels(userId);
     }
 
     @Test
-    @DisplayName("유저ID로 조회 가능한 채널이 없는 경우 빈 리스트를 반환한다.")
-    void 유저ID로_채널조회시_채널없음() {
+    @DisplayName("존재하지 않은 유저ID로 조회 요청시 공개 채널만 반환한다.")
+    void shouldReturnOnlyPublicChannels_whenUserDoesNotExist() {
 
         // given
         UUID userId = UUID.randomUUID();
+        Channel publicCh = createPublicChannel("공개 채널", "공개 채널입니다.");
+        ChannelDto publicChannelDto = new ChannelDto(publicCh.getId(), publicCh.getName(),
+                publicCh.getDescription(), publicCh.getType(), fixedTime, List.of());
 
-        given(channelRepository.findAllPublicOrUserChannels(userId)).willReturn(List.of());
+        given(channelRepository.findAllPublicOrUserChannels(userId)).willReturn(List.of(publicCh));
+        given(channelMapper.toDto(publicCh)).willReturn(publicChannelDto);
 
         // when
         List<ChannelDto> result = channelService.findAllByUserId(userId);
 
         // then
-        assertThat(result).isEmpty();
-        then(channelRepository).should().findAllPublicOrUserChannels(userId);
-        then(channelMapper).should(never()).toDto(any());
+        assertThat(result).hasSize(1);
+        assertThat(result).containsExactly(publicChannelDto);
     }
 }

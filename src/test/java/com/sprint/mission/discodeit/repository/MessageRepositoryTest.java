@@ -56,9 +56,15 @@ public class MessageRepositoryTest {
         messageRepository.save(message);
     }
 
+    private Message createMessage(String content, Channel channel, User author, Instant createdAt) {
+        Message msg = new Message(content, channel, author, new ArrayList<>());
+        ReflectionTestUtils.setField(msg, "createdAt", createdAt);
+        return msg;
+    }
+
     @Test
     @DisplayName("채널의 가장 최근에 생성된 메시지를 조회한다.")
-    void 채널ID로_마지막생성된메시지조회() {
+    void shouldReturnLatestMessage_whenGivenChannelId() {
 
         // given
         Message expected = createMessage("가장 최근 메시지 테스트", channel, user,
@@ -72,11 +78,12 @@ public class MessageRepositoryTest {
         // then
         assertThat(lastMessage.isPresent()).isTrue();
         assertThat(lastMessage.get().getId()).isEqualTo(expected.getId());
+        assertThat(lastMessage.get().getCreatedAt()).isAfter(message.getCreatedAt());
     }
 
     @Test
     @DisplayName("채널의 모든 메시지를 삭제한다.")
-    void 채널ID로_삭제요청_성공() {
+    void shouldDeleteAllMessages_whenGivenChannelId() {
 
         // given
         Channel nontargetChannel = new Channel(ChannelType.PRIVATE, null, null);
@@ -97,46 +104,44 @@ public class MessageRepositoryTest {
         assertThat(remainingMessages.get(0)).isEqualTo(message3);
     }
 
-//    @Test
-//    @DisplayName("채널의 기준 시간 이전 메시지들을 조회한다.")
-//    void 채널ID로_기준시간이전메시지_조회결과있음() {
-//
-//        // given
-//        Instant cursorTime = Instant.parse("2025-01-01T01:00:00Z");
-//        Instant beforeCursorTime = cursorTime.minusSeconds(60);
-//        Instant afterCursorTime = cursorTime.plusSeconds(60);
-//
-//        UserStatus userStatus = new UserStatus(user, cursorTime);
-//        ReflectionTestUtils.setField(userStatus, "createdAt", cursorTime);
-//        userStatusRepository.save(userStatus);
-//        user.setStatus(userStatus);
-//        userRepository.save(user);
-//
-//        Message oldMessage = createMessage("이전 메시지", channel, user, beforeCursorTime);
-//        Message recentMessage = createMessage("최근 메시지", channel, user, afterCursorTime);
-//
-//        messageRepository.saveAll(List.of(oldMessage, recentMessage));
-//
-//        // when
-//        Slice<Message> result = messageRepository.findAllByChannelIdWithAuthor(channel.getId(),
-//                cursorTime, PageRequest.of(0, 10));
-//
-//        System.out.println("조회결과:" + result);
-//
-//        // then
-//        assertThat(result.getContent()).hasSize(1);
-//        assertThat(result.getContent().get(0).getContent()).isEqualTo("이전 메시지");
-//
-//        // 유저 확인
-//        User author = result.getContent().get(0).getAuthor();
-//        assertThat(author.getUsername()).isEqualTo("테스트유저");
-//        assertThat(author.getEmail()).isEqualTo("test@codeit.com");
-//        assertThat(author.getStatus()).isEqualTo(userStatus);
-//    }
+    @Test
+    @DisplayName("채널의 기준 시간 이전 메시지들을 조회한다.")
+    void shouldReturnMessagesBeforeCursorTime_whenGivenChannelId() {
+
+        // given
+        Instant cursorTime = Instant.parse("2025-01-01T01:00:00Z");
+        Instant beforeCursorTime = cursorTime.minusSeconds(60);
+        Instant afterCursorTime = cursorTime.plusSeconds(60);
+
+        UserStatus userStatus = new UserStatus(user, cursorTime);
+        ReflectionTestUtils.setField(userStatus, "createdAt", cursorTime);
+        userStatusRepository.save(userStatus);
+        user.setStatus(userStatus);
+        userRepository.save(user);
+
+        Message oldMessage = createMessage("이전 메시지", channel, user, beforeCursorTime);
+        Message recentMessage = createMessage("최근 메시지", channel, user, afterCursorTime);
+
+        messageRepository.saveAll(List.of(oldMessage, recentMessage));
+
+        // when
+        Slice<Message> result = messageRepository.findAllByChannelIdWithAuthor(channel.getId(),
+                cursorTime, PageRequest.of(0, 10));
+
+        // then
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getContent().get(0).getContent()).isEqualTo("이전 메시지");
+
+        // 유저 확인
+        User author = result.getContent().get(0).getAuthor();
+        assertThat(author.getUsername()).isEqualTo("테스트유저");
+        assertThat(author.getEmail()).isEqualTo("test@codeit.com");
+        assertThat(author.getStatus()).isEqualTo(userStatus);
+    }
 
     @Test
     @DisplayName("기준 시간보다 이전에 작성된 메시지가 없는 경우 빈 Slice를 반환한다.")
-    void 채널ID로_기준시간이전메시지_조회결과없음() {
+    void shouldReturnEmptySlice_whenNoMessagesBeforeCursorTime() {
 
         // given
         Instant cursorTime = Instant.parse("2025-01-01T01:00:00Z");
@@ -151,12 +156,5 @@ public class MessageRepositoryTest {
 
         // then
         assertThat(result).isEmpty();
-    }
-
-    // 헬퍼 메서드
-    private Message createMessage(String content, Channel channel, User author, Instant createdAt) {
-        Message msg = new Message(content, channel, author, new ArrayList<>());
-        ReflectionTestUtils.setField(msg, "createdAt", createdAt);
-        return msg;
     }
 }

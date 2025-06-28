@@ -54,7 +54,7 @@ public class UserControllerTest {
 
     @Test
     @DisplayName("유저 생성 API가 정상적으로 동작한다.")
-    void 유저생성_성공() throws Exception {
+    void shouldCreateUser_whenValidRequest() throws Exception {
 
         // given
         UUID userId = UUID.randomUUID();
@@ -84,7 +84,7 @@ public class UserControllerTest {
 
     @Test
     @DisplayName("유효하지 않은 입력으로 유저 생성 시 400 에러가 발생한다.")
-    void 유저생성_유효하지않은입력_예외발생() throws Exception {
+    void shouldReturnBadRequest_whenUserCreateRequestIsInvalid() throws Exception {
 
         // given
         UserCreateRequest createRequest = new UserCreateRequest("", "test@codeit.com",
@@ -106,7 +106,7 @@ public class UserControllerTest {
 
     @Test
     @DisplayName("유저 수정 API가 정상적으로 동작한다.")
-    void 유저수정_성공() throws Exception {
+    void shouldUpdateUser_whenValidRequest() throws Exception {
 
         // given
         UUID userId = UUID.randomUUID();
@@ -135,7 +135,7 @@ public class UserControllerTest {
 
     @Test
     @DisplayName("유효하지 않은 입력으로 유저 수정 시 400 에러가 발생한다.")
-    void 유저수정_유효하지않은입력_예외발생() throws Exception {
+    void shouldReturnBadRequest_whenUserUpdateRequestIsInvalid() throws Exception {
 
         // given
         UUID userId = UUID.randomUUID();
@@ -158,7 +158,7 @@ public class UserControllerTest {
 
     @Test
     @DisplayName("유저 삭제 API가 정상적으로 동작한다.")
-    void 유저삭제_성공() throws Exception {
+    void shouldDeleteUser_whenValidUserId() throws Exception {
 
         // given
         UUID userId = UUID.randomUUID();
@@ -172,7 +172,7 @@ public class UserControllerTest {
 
     @Test
     @DisplayName("유저 전체조회 API가 정상적으로 동작한다.")
-    void 유저전체조회_성공() throws Exception {
+    void shouldReturnAllUsers_whenRequested() throws Exception {
 
         // given
         List<UserDto> users = List.of(
@@ -193,7 +193,7 @@ public class UserControllerTest {
 
     @Test
     @DisplayName("유저 온라인 상태 업데이트 API가 정상적으로 동작한다.")
-    void 유저온라인상태업데이트_성공() throws Exception {
+    void shouldUpdateUserStatus_whenValidRequest() throws Exception {
 
         // given
         UUID userId = UUID.randomUUID();

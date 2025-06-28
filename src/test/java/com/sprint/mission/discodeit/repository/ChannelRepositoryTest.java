@@ -51,7 +51,7 @@ public class ChannelRepositoryTest {
 
     @Test
     @DisplayName("유저ID로 해당 유저가 조회할 수 있는 모든 채널을 조회할 수 있다.")
-    void 유저ID로_채널조회_채널존재() {
+    void shouldReturnAllAccessibleChannels_whenGivenValidUserId() {
 
         // when
         List<Channel> channels = channelRepository.findAllPublicOrUserChannels(user.getId());
@@ -65,7 +65,7 @@ public class ChannelRepositoryTest {
 
     @Test
     @DisplayName("존재하지 않는 유저ID로 조회시 공개 채널만 반환된다.")
-    void 존재하지않는유저ID로_채널조회_공개채널만반환() {
+    void shouldReturnOnlyPublicChannels_whenUserIdIsInvalid() {
 
         // when
         List<Channel> channels = channelRepository.findAllPublicOrUserChannels(UUID.randomUUID());

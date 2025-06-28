@@ -10,7 +10,9 @@ import static org.mockito.BDDMockito.willDoNothing;
 import static org.mockito.Mockito.never;
 
 import com.sprint.mission.discodeit.dto.BinaryContent.BinaryContentCreateRequest;
+import com.sprint.mission.discodeit.dto.BinaryContent.BinaryContentDto;
 import com.sprint.mission.discodeit.dto.User.UserCreateRequest;
+import com.sprint.mission.discodeit.dto.User.UserDto;
 import com.sprint.mission.discodeit.dto.User.UserUpdateRequest;
 import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.entity.User;
@@ -24,11 +26,9 @@ import com.sprint.mission.discodeit.storage.BinaryContentStorage;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 import java.util.UUID;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -50,21 +50,31 @@ public class UserServiceTest {
     @InjectMocks
     private BasicUserService userService;
 
-    private User withProfileUser;
-    private BinaryContent profile;
+    private User createUser(String userName, String email, String password) {
+        User user = new User(userName, email, password, null, null);
+        ReflectionTestUtils.setField(user, "id", UUID.randomUUID());
+        return user;
+    }
 
-    @BeforeEach
-    void setUp() {
-        profile = new BinaryContent("profile.png", 1024L, "image/png");
-        withProfileUser = new User("이코드", "lee@codeit.com", "lee1234", profile, null);
-
-        ReflectionTestUtils.setField(withProfileUser, "id", UUID.randomUUID());
+    private BinaryContent createProfile(String fileName, Long size, String contentType) {
+        BinaryContent profile = new BinaryContent(fileName, size, contentType);
         ReflectionTestUtils.setField(profile, "id", UUID.randomUUID());
+        return profile;
+    }
+
+    private UserDto createUserDto(User user, BinaryContent profile) {
+        BinaryContentDto profileDto = new BinaryContentDto(profile.getId(), profile.getFileName(),
+                profile.getSize(), profile.getContentType());
+        return new UserDto(user.getId(), user.getUsername(), user.getEmail(), profileDto, true);
+    }
+
+    private UserDto createUserDto(User user) {
+        return new UserDto(user.getId(), user.getUsername(), user.getEmail(), null, true);
     }
 
     @Test
     @DisplayName("유효한 생성 요청으로 프로필이 포함된 유저를 생성할 수 있다.")
-    void 유저_생성요청_프로필포함_성공() {
+    void shouldCreateUserWithProfile_whenValidRequest() {
 
         // given
         String name = "테스트유저";
@@ -73,68 +83,54 @@ public class UserServiceTest {
         byte[] testBytes = "테스트 이미지".getBytes(StandardCharsets.UTF_8);
 
         UserCreateRequest userCreateRequest = new UserCreateRequest(name, email, password);
+        BinaryContent profile = createProfile("테스트 프로필", 1024L, "image/png");
         BinaryContentCreateRequest profileCreateRequest = new BinaryContentCreateRequest(
-                "profile.png", "image/png", testBytes);
-
-        UUID profileId = UUID.randomUUID();
+                profile.getFileName(), profile.getContentType(), testBytes);
+        User user = createUser(name, email, password);
+        UserDto expectedDto = createUserDto(user, profile);
+        UUID profileId = profile.getId();
 
         given(userRepository.existsByUsername(name)).willReturn(false);
         given(userRepository.existsByEmail(email)).willReturn(false);
-        given(binaryContentRepository.save(any(BinaryContent.class))).willAnswer(invocation -> {
-            BinaryContent saved = invocation.getArgument(0);
-            ReflectionTestUtils.setField(saved, "id", profileId);
-            return saved;
-        });
-        given(binaryContentStorage.put(eq(profileId), eq(testBytes))).willReturn(profileId);
+        given(binaryContentRepository.save(any(BinaryContent.class))).willReturn(profile);
+        given(binaryContentStorage.put(any(), any())).willReturn(profileId);
+        given(userMapper.toDto(any(User.class))).willReturn(expectedDto);
 
         // when
-        userService.create(userCreateRequest, profileCreateRequest);
+        UserDto result = userService.create(userCreateRequest, profileCreateRequest);
 
         // then
-        ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
-        then(userRepository).should().save(userCaptor.capture());
+        assertThat(result.username()).isEqualTo(name);
+        assertThat(result.email()).isEqualTo(email);
+        assertThat(result.profile().id()).isEqualTo(profileId);
+
         then(binaryContentRepository).should().save(any(BinaryContent.class));
-        then(binaryContentStorage).should().put(eq(profileId), eq(testBytes));
-
-        User savedUser = userCaptor.getValue();
-
-        assertThat(savedUser).isNotNull();
-        assertThat(savedUser.getUsername()).isEqualTo(name);
-        assertThat(savedUser.getEmail()).isEqualTo(email);
-        assertThat(savedUser.getPassword()).isEqualTo(password);
-        assertThat(savedUser.getProfile()).isNotNull();
-        assertThat(savedUser.getProfile().getId()).isEqualTo(profileId);
-        assertThat(savedUser.getStatus()).isNotNull();
+        then(binaryContentStorage).should().put(any(), eq(testBytes));
     }
 
     @Test
     @DisplayName("유효한 생성 요청으로 프로필이 없는 유저를 생성할 수 있다.")
-    void 유저_생성요청_프로필없음_성공() {
+    void shouldCreateUserWithoutProfile_whenValidRequest() {
 
         // given
         String name = "테스트유저";
         String email = "test@codeit.com";
         String password = "test1234";
         UserCreateRequest userCreateRequest = new UserCreateRequest(name, email, password);
+        User user = createUser(name, email, password);
+        UserDto userDto = createUserDto(user);
 
         given(userRepository.existsByUsername(name)).willReturn(false);
         given(userRepository.existsByEmail(email)).willReturn(false);
+        given(userMapper.toDto(any(User.class))).willReturn(userDto);
 
         // when
-        userService.create(userCreateRequest, null);
+        UserDto result = userService.create(userCreateRequest, null);
 
         // then
-        ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
-        then(userRepository).should().save(userCaptor.capture());
-
-        User savedUser = userCaptor.getValue();
-
-        assertThat(savedUser).isNotNull();
-        assertThat(savedUser.getUsername()).isEqualTo(name);
-        assertThat(savedUser.getEmail()).isEqualTo(email);
-        assertThat(savedUser.getPassword()).isEqualTo(password);
-        assertThat(savedUser.getProfile()).isNull();
-        assertThat(savedUser.getStatus()).isNotNull();
+        assertThat(result.username()).isEqualTo(name);
+        assertThat(result.email()).isEqualTo(email);
+        assertThat(result.profile()).isNull();
 
         then(binaryContentRepository).shouldHaveNoInteractions();
         then(binaryContentStorage).shouldHaveNoInteractions();
@@ -142,7 +138,7 @@ public class UserServiceTest {
 
     @Test
     @DisplayName("이미 존재하는 유저명으로 유저 생성 요청시 예외가 발생한다.")
-    void 유저_생성요청_중복유저명예외발생() {
+    void shouldThrowException_whenCreatingExistentUserName() {
 
         // given
         String name = "테스트유저";
@@ -165,7 +161,7 @@ public class UserServiceTest {
 
     @Test
     @DisplayName("이미 존재하는 이메일로 유저 생성 요청시 예외가 발생한다.")
-    void 유저_생성요청_중복이메일예외발생() {
+    void shouldThrowException_whenCreatingExistentEmail() {
 
         // given
         String name = "테스트유저";
@@ -188,60 +184,58 @@ public class UserServiceTest {
 
     @Test
     @DisplayName("유효한 수정 요청으로 유저 정보를 수정할 수 있다.")
-    void 유저_수정요청_성공() {
+    void shouldUpdateUser_whenValidRequest() {
 
         // given
-        UUID userId = withProfileUser.getId();
+        User user = createUser("테스터", "tester@codeit.com", "tester1234");
+        BinaryContent profile = createProfile("테스트 프로필", 1024L, "image/png");
+        UUID userId = user.getId();
         String newName = "(*수정)김코드";
         String newEmail = "kimkim@codeit.com";
         String newPassword = "kimkim1234";
         byte[] newProfileImage = "테스트 이미지".getBytes();
-        UUID profileId = UUID.randomUUID();
-
         UserUpdateRequest updateRequest = new UserUpdateRequest(newName, newEmail, newPassword);
         BinaryContentCreateRequest profileCreateRequest = new BinaryContentCreateRequest(
                 profile.getFileName(), profile.getContentType(), newProfileImage);
+        User newUser = createUser(newName, newEmail, newPassword);
+        UserDto expectedDto = createUserDto(newUser, profile);
 
-        given(userRepository.findById(userId)).willReturn(Optional.of(withProfileUser));
+        given(userRepository.findById(userId)).willReturn(Optional.of(user));
         given(userRepository.existsByUsername(newName)).willReturn(false);
         given(userRepository.existsByEmail(newEmail)).willReturn(false);
-        given(binaryContentRepository.save(any(BinaryContent.class))).willAnswer(invocation -> {
-            BinaryContent saved = invocation.getArgument(0);
-            ReflectionTestUtils.setField(saved, "id", profileId);
-            return saved;
-        });
-        given(binaryContentStorage.put(eq(profileId), eq(newProfileImage))).willReturn(
-                profileId);
+        given(binaryContentRepository.save(any(BinaryContent.class))).willReturn(profile);
+        given(binaryContentStorage.put(any(), eq(newProfileImage))).willReturn(
+                profile.getId());
+        given(userMapper.toDto(any(User.class))).willReturn(expectedDto);
 
         // when
-        userService.update(userId, updateRequest, profileCreateRequest);
+        UserDto result = userService.update(userId, updateRequest, profileCreateRequest);
 
         // then
+        assertThat(result.username()).isEqualTo(newName);
+        assertThat(result.email()).isEqualTo(newEmail);
+        assertThat(result.profile()).isNotNull();
+
         then(userRepository).should().findById(userId);
         then(userRepository).should().existsByUsername(newName);
         then(userRepository).should().existsByEmail(newEmail);
         then(binaryContentRepository).should().save(any(BinaryContent.class));
-        then(binaryContentStorage).should().put(eq(profileId), eq(newProfileImage));
-
-        assertThat(withProfileUser).isNotNull();
-        assertThat(withProfileUser.getUsername()).isEqualTo(newName);
-        assertThat(withProfileUser.getEmail()).isEqualTo(newEmail);
-        assertThat(withProfileUser.getPassword()).isEqualTo(newPassword);
-        assertThat(withProfileUser.getProfile()).isNotNull();
+        then(binaryContentStorage).should().put(any(), eq(newProfileImage));
     }
 
     @Test
     @DisplayName("이미 존재하는 유저명으로 유저 수정 요청시 예외가 발생한다.")
-    void 유저_수정요청_중복유저명예외발생() {
+    void shouldThrowException_whenUpdatingExistentUserName() {
 
         // given
-        UUID userId = withProfileUser.getId();
+        User originalUser = createUser("테스터", "tester@codeit.com", "tester1234");
+        UUID userId = originalUser.getId();
         String newName = "(*수정)김코드";
         String newEmail = "kimkim@codeit.com";
         String newPassword = "kimkim1234";
         UserUpdateRequest updateRequest = new UserUpdateRequest(newName, newEmail, newPassword);
 
-        given(userRepository.findById(userId)).willReturn(Optional.of(withProfileUser));
+        given(userRepository.findById(userId)).willReturn(Optional.of(originalUser));
         given(userRepository.existsByUsername(newName)).willReturn(true);
 
         // when & then
@@ -258,16 +252,17 @@ public class UserServiceTest {
 
     @Test
     @DisplayName("이미 존재하는 이메일로 유저 수정 요청시 예외가 발생한다.")
-    void 유저_수정요청_중복이메일예외발생() {
+    void shouldThrowException_whenUpdatingExistentEmail() {
 
         // given
-        UUID userId = withProfileUser.getId();
+        User originalUser = createUser("테스터", "tester@codeit.com", "tester1234");
+        UUID userId = originalUser.getId();
         String newName = "(*수정)김코드";
         String newEmail = "kimkim@codeit.com";
         String newPassword = "kimkim1234";
         UserUpdateRequest updateRequest = new UserUpdateRequest(newName, newEmail, newPassword);
 
-        given(userRepository.findById(userId)).willReturn(Optional.of(withProfileUser));
+        given(userRepository.findById(userId)).willReturn(Optional.of(originalUser));
         given(userRepository.existsByUsername(newName)).willReturn(false);
         given(userRepository.existsByEmail(newEmail)).willReturn(true);
 
@@ -284,10 +279,11 @@ public class UserServiceTest {
 
     @Test
     @DisplayName("유효한 삭제 요청으로 유저를 삭제할 수 있다.")
-    void 유저_삭제요청_성공() {
+    void shouldDeleteUser_whenValidRequest() {
 
         // given
-        UUID userId = withProfileUser.getId();
+        User user = createUser("테스터", "tester@codeit.com", "tester1234");
+        UUID userId = user.getId();
 
         given(userRepository.existsById(userId)).willReturn(true);
         willDoNothing().given(userRepository).deleteById(userId);
@@ -302,7 +298,7 @@ public class UserServiceTest {
 
     @Test
     @DisplayName("존재하지 않는 유저 삭제 요청시 예외가 발생한다.")
-    void 유저_삭제요청_존재하지않는유저예외발생() {
+    void shouldThrowException_whenNonExistentUser() {
 
         // given
         UUID userId = UUID.randomUUID();

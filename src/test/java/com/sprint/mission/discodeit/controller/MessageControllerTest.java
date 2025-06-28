@@ -50,7 +50,7 @@ public class MessageControllerTest {
 
     @Test
     @DisplayName("메시지 생성 API가 정상적으로 동작한다.")
-    void 메시지생성_성공() throws Exception {
+    void shouldCreateMessage_whenValidRequest() throws Exception {
 
         // given
         String content = "메시지 생성 테스트입니다.";
@@ -86,7 +86,7 @@ public class MessageControllerTest {
 
     @Test
     @DisplayName("유효하지 않은 입력으로 메시지 생성 시 400 에러가 발생한다.")
-    void 메시지생성_유효하지않은입력_예외발생() throws Exception {
+    void shouldReturnBadRequest_whenInvalidMessageCreateRequest() throws Exception {
 
         // given
         String content = "";
@@ -118,7 +118,7 @@ public class MessageControllerTest {
 
     @Test
     @DisplayName("메시지 수정 API가 정상적으로 동작한다.")
-    void 메시지수정_성공() throws Exception {
+    void shouldUpdateMessage_whenValidRequest() throws Exception {
 
         // given
         String newContent = "메시지 수정 테스트입니다.";
@@ -145,7 +145,7 @@ public class MessageControllerTest {
 
     @Test
     @DisplayName("유효하지 않은 입력으로 메시지 수정 시 400 에러가 발생한다.")
-    void 메시지수정_유효하지않은입력_예외발생() throws Exception {
+    void shouldReturnBadRequest_whenInvalidMessageUpdateRequest() throws Exception {
 
         // given
         String newContent = "";
@@ -161,7 +161,7 @@ public class MessageControllerTest {
 
     @Test
     @DisplayName("메시지 삭제 API가 정상적으로 동작한다.")
-    void 메시지삭제_성공() throws Exception {
+    void shouldDeleteMessage_whenValidMessageId() throws Exception {
 
         // given
         UUID messageId = UUID.randomUUID();
@@ -174,7 +174,7 @@ public class MessageControllerTest {
 
     @Test
     @DisplayName("특정 채널의 메시지 전체 조회 API가 정상적으로 동작한다.")
-    void 특정채널의_메시지전체조회_성공() throws Exception {
+    void shouldReturnAllMessages_whenChannelIdIsValid() throws Exception {
 
         // given
         UUID channelId = UUID.randomUUID();

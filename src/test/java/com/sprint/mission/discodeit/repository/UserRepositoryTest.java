@@ -32,7 +32,7 @@ public class UserRepositoryTest {
 
     @Test
     @DisplayName("존재하는 사용자 이름으로 조회 시 사용자 정보를 반환한다.")
-    void 이름으로_유저조회요청_사용자정보반환() {
+    void shouldReturnUser_whenUsernameExists() {
 
         // given
         String userName = "테스트유저";
@@ -47,7 +47,7 @@ public class UserRepositoryTest {
 
     @Test
     @DisplayName("존재하지 않는 사용자 이름으로 조회 시 빈 값을 반환한다.")
-    void 이름으로_유저조회요청_빈값반환() {
+    void shouldReturnEmpty_whenUsernameDoesNotExist() {
         // given
         String userName = "없는 유저";
 
@@ -60,7 +60,7 @@ public class UserRepositoryTest {
 
     @Test
     @DisplayName("사용자 이름의 존재 여부를 확인한다.")
-    void 이름으로_사용자존재여부확인_성공() {
+    void shouldVerifyExistenceOfUsernameCorrectly() {
 
         // given
         String existingUsername = "테스트유저";
@@ -73,7 +73,7 @@ public class UserRepositoryTest {
 
     @Test
     @DisplayName("이메일로 사용자 존재여부를 확인한다.")
-    void 이메일로_사용자존재여부확인_성공() {
+    void shouldVerifyExistenceOfEmailCorrectly() {
 
         // given
         String existingUseremail = "test@codeit.com";
