@@ -5,7 +5,6 @@ plugins {
     id 'jacoco'
 }
 
-
 test {
     finalizedBy jacocoTestReport
 }
@@ -17,7 +16,6 @@ jacocoTestReport {
         html.required = true
     }
 }
-
 
 group = 'com.sprint.mission'
 version = '0.0.1-SNAPSHOT'

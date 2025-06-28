@@ -1,7 +1,7 @@
 # 기본 활성 프로파일
 spring:
   profiles:
-    active: prod
+    active: dev
   application:
     name: discodeit
   boot:
@@ -16,20 +16,12 @@ discodeit:
     local:
       root-path: .discodeit/storage
 
-# 로깅 레벨
-logging:
-  level:
-    root: INFO # 기본 레벨
-    # SQL 로그 출력
-    org.hibernate.sql: DEBUG
-    org.hibernate.jdbc.bind: TRACE
-
 # Spring Boot Actuator 설정
 management:
   endpoints:
     web:
       exposure:
-        include: "*"  # 엔드포인트 노출
+        include: health,info,metrics,loggers  # 엔드포인트 노출
       base-path: /actuator  # Actuator 엔드포인트 기본 경로
   endpoint:
     health:

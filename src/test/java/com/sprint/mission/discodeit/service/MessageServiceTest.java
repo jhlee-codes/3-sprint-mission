@@ -75,7 +75,7 @@ public class MessageServiceTest {
     @InjectMocks
     private BasicMessageService messageService;
 
-    private Instant now = Instant.now();
+    private Instant fixedNow = Instant.parse("2025-01-01T01:00:00Z");
 
     private User createUser(String userName, String email, String password) {
         User user = new User(userName, email, password, null, null);
@@ -117,7 +117,7 @@ public class MessageServiceTest {
     private MessageDto createMessageDtoWithAttachments(Message message, Channel ch, User user,
             List<BinaryContentDto> attachments) {
         UserDto userDto = createUserDto(user);
-        return new MessageDto(message.getId(), now, now,
+        return new MessageDto(message.getId(), fixedNow, fixedNow,
                 message.getContent(), ch.getId(), userDto, attachments);
     }
 
@@ -228,7 +228,7 @@ public class MessageServiceTest {
         String newContent = "메시지 수정 테스트입니다.";
         MessageUpdateRequest updateRequest = new MessageUpdateRequest(newContent);
         Message updatedMsg = createMessage(newContent, channel, user);
-        MessageDto messageDto = createMessageDto(updatedMsg, channel, user, now);
+        MessageDto messageDto = createMessageDto(updatedMsg, channel, user, fixedNow);
 
         given(messageRepository.findById(messageId)).willReturn(Optional.of(originalMsg));
         given(messageMapper.toDto(any(Message.class))).willReturn(messageDto);
@@ -309,9 +309,9 @@ public class MessageServiceTest {
         Pageable pageable = PageRequest.of(0, 10);
         Message msg1 = createMessage("메시지1", channel, user);
         Message msg2 = createMessage("메시지2", channel, user);
-        Instant msg1Time = now.minusSeconds(30);
-        Instant msg2Time = now.minusSeconds(10);
-        Instant targetTime = now.minusSeconds(20);
+        Instant msg1Time = fixedNow.minusSeconds(30);
+        Instant msg2Time = fixedNow.minusSeconds(10);
+        Instant targetTime = fixedNow.minusSeconds(20);
         List<Message> messages = List.of(msg1);
         List<MessageDto> messageDtos = List.of(
                 createMessageDto(msg1, channel, user, msg1Time)
@@ -359,8 +359,8 @@ public class MessageServiceTest {
         Pageable pageable = PageRequest.of(0, 10);
         Message msg1 = createMessage("메시지1", channel, user);
         Message msg2 = createMessage("메시지2", channel, user);
-        Instant msg1Time = now.minusSeconds(30);
-        Instant msg2Time = now.minusSeconds(10);
+        Instant msg1Time = fixedNow.minusSeconds(30);
+        Instant msg2Time = fixedNow.minusSeconds(10);
         List<Message> messages = List.of(msg1, msg2);
         List<MessageDto> messageDtos = List.of(
                 createMessageDto(msg1, channel, user, msg1Time),

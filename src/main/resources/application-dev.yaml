@@ -1,10 +1,15 @@
 # server config
 server:
   port: 8080
+
+
 # logging config
 logging:
   level:
-    root: DEBUG
+    root: INFO # 기본 레벨
+    # SQL 로그 출력
+    org.hibernate.sql: DEBUG
+    org.hibernate.jdbc.bind: TRACE
 
 # Spring config
 spring:
@@ -35,8 +40,6 @@ spring:
     multipart:
       max-file-size: 10MB
       max-request-size: 20MB
-  application:
-    name: discodeit
   boot:
     admin:
       client:
