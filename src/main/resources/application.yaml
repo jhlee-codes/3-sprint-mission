@@ -1,17 +1,23 @@
 server:
   port: 80
-  
+
 # 기본 활성 프로파일
 spring:
-  profiles:
-    active: dev
   application:
     name: discodeit
-  boot:
-    admin:
-      client:
-        instance:
-          name: discodeit
+  servlet:
+    multipart:
+      maxFileSize: 10MB # 파일 하나의 최대 크기
+      maxRequestSize: 30MB  # 한 번에 최대 업로드 가능 용량
+  datasource:
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+  profiles:
+    active:
+      - dev
 
 discodeit:
   storage:
@@ -19,12 +25,17 @@ discodeit:
     local:
       root-path: .discodeit/storage
 
+
+logging:
+  level:
+    root: info
+
 # Spring Boot Actuator 설정
 management:
   endpoints:
     web:
       exposure:
-        include: "*"  # 엔드포인트 노출
+        include: health,info,metrics,loggers  # 엔드포인트 노출
       base-path: /actuator  # Actuator 엔드포인트 기본 경로
   endpoint:
     health:
