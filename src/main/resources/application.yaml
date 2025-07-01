@@ -21,7 +21,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics,loggers  # 엔드포인트 노출
+        include: "*"  # 엔드포인트 노출
       base-path: /actuator  # Actuator 엔드포인트 기본 경로
   endpoint:
     health:
