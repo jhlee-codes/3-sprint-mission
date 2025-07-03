@@ -15,8 +15,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
-import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
-import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -26,8 +24,6 @@ import software.amazon.awssdk.services.s3.model.S3Exception;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
-import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
-import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
 
 @Slf4j
 @ConditionalOnProperty(name = "discodeit.storage.type", havingValue = "s3")
@@ -142,13 +138,7 @@ public class S3BinaryContentStorage implements BinaryContentStorage {
      */
     public S3Client getS3Client() {
 
-        AwsBasicCredentials credentials = AwsBasicCredentials.create(
-                accessKey,
-                secretKey
-        );
-
         return S3Client.builder()
-                .credentialsProvider(StaticCredentialsProvider.create(credentials))
                 .region(Region.of(region))
                 .build();
     }
