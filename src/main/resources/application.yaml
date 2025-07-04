@@ -1,0 +1,82 @@
+server:
+  port: 80
+
+# 기본 활성 프로파일
+spring:
+  application:
+    name: discodeit
+  servlet:
+    multipart:
+      maxFileSize: 10MB # 파일 하나의 최대 크기
+      maxRequestSize: 30MB  # 한 번에 최대 업로드 가능 용량
+  datasource:
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+  profiles:
+    active:
+      - dev
+
+discodeit:
+  storage:
+    type: ${STORAGE_TYPE:local}  # local | s3 (기본값: local)
+    local:
+      root-path: ${STORAGE_LOCAL_ROOT_PATH:.discodeit/storage}
+    s3:
+      access-key: ${AWS_S3_ACCESS_KEY}
+      secret-key: ${AWS_S3_SECRET_KEY}
+      region: ${AWS_S3_REGION}
+      bucket: ${AWS_S3_BUCKET}
+      presigned-url-expiration: ${AWS_S3_PRESIGNED_URL_EXPIRATION:600} # (기본값: 10분)
+
+logging:
+  level:
+    root: info
+
+# Spring Boot Actuator 설정
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,loggers  # 엔드포인트 노출
+      base-path: /actuator  # Actuator 엔드포인트 기본 경로
+  endpoint:
+    health:
+      show-details: always      # 건강 상태 상세 정보 표시
+      show-components: always   # 컴포넌트별 상태 정보 표시
+    info:
+      enabled: true             # info 엔드포인트 명시적 활성화
+    loggers:
+      access: unrestricted
+  # info 추가설정
+  info:
+    os:
+      enabled: true
+    java:
+      enabled: true
+    env:
+      enabled: true
+
+# 애플리케이션 정보 (Actuator info 엔드포인트용)
+info:
+  app:
+    name: Discodeit
+    version: 1.7.0
+    encoding: UTF-8
+    java:
+      version: 17
+    spring:
+      version: 3.4.0
+  datasource:
+    url: ${spring.datasource.url}
+    driver-class-name: ${spring.datasource.driver-class-name}
+  jpa:
+    ddl-auto: ${spring.jpa.hibernate.ddl-auto}
+  storage:
+    type: ${discodeit.storage.type}
+    path: ${discodeit.storage.local.root-path}
+  multipart:
+    max-file-size: ${spring.servlet.multipart.max-file-size}
+    max-request-size: ${spring.servlet.multipart.max-request-size}
