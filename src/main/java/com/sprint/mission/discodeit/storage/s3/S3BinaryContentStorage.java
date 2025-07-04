@@ -152,9 +152,13 @@ public class S3BinaryContentStorage implements BinaryContentStorage {
      */
     public String generatePresignedUrl(String key, String contentType) {
 
+        String filename = key.substring(key.lastIndexOf("/") + 1);
+
         GetObjectRequest objectRequest = GetObjectRequest.builder()
                 .bucket(bucket)
                 .key(key)
+                .responseContentType(contentType != null ? contentType : "application/octet-stream")
+                .responseContentDisposition("attachment; filename=\"" + filename + "\"")
                 .build();
 
         GetObjectPresignRequest presignRequest = GetObjectPresignRequest.builder()
