@@ -72,7 +72,7 @@ jobs:
           # 1. latest 태그가 없는 이미지들을 오래된 순으로 정렬
           IMAGES_TO_CONSIDER=$(aws ecr-public describe-images \
             --repository-name $ECR_REPOSITORY \
-            --query "sort_by(imageDetails[?contains(imageTags, 'latest') == \`false\`], &imagePushedAt)")
+            --query "sort_by(imageDetails[?imageTags && !contains(imageTags, 'latest')], &imagePushedAt)"
 
           IMAGE_COUNT=$(echo "$IMAGES_TO_CONSIDER" | jq 'length // 0')
 
