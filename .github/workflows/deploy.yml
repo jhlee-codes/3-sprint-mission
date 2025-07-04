@@ -14,6 +14,7 @@ env:
   ECS_CLUSTER: ${{ vars.ECS_CLUSTER }}
   ECS_SERVICE: ${{ vars.ECS_SERVICE }}
   ECS_TASK_DEFINITION: ${{ vars.ECS_TASK_DEFINITION }}
+  ECR_PUBLIC_ALIAS: ${{ vars.ECR_PUBLIC_ALIAS }}
   CONTAINER_NAME: discodeit-app
 
 
@@ -45,7 +46,7 @@ jobs:
       - name: Build, tag, and push docker image to Amazon ECR Public
         id: build-image
         env:
-          ECR_REGISTRY: ${{ steps.login-ecr-public.outputs.registry }}
+          ECR_REGISTRY: ${{ steps.login-ecr-public.outputs.registry }}/${{ env.ECR_PUBLIC_ALIAS }}
           IMAGE_TAG: ${{ github.sha }}
         run: |
           chmod +x ./gradlew
