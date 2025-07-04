@@ -8,6 +8,7 @@ import java.io.InputStream;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.Optional;
 import java.util.Properties;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,6 +25,8 @@ import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
+import io.github.cdimascio.dotenv.Dotenv;
+
 
 public class AWSS3Test {
 
@@ -34,19 +37,29 @@ public class AWSS3Test {
     @BeforeEach
     void setUp() throws IOException {
 
-        Properties properties = new Properties();
+        Dotenv dotenv = Dotenv.configure()
+                .ignoreIfMissing()
+                .load();
 
-        try (InputStream input = new FileInputStream(".env")) {
-            properties.load(input);
+        String accessKey = Optional.ofNullable(System.getenv("AWS_ACCESS_KEY"))
+                .orElse(dotenv.get("AWS_S3_ACCESS_KEY"));
+
+        String secretKey = Optional.ofNullable(System.getenv("AWS_SECRET_KEY"))
+                .orElse(dotenv.get("AWS_S3_SECRET_KEY"));
+
+        String regionName = Optional.ofNullable(System.getenv("AWS_REGION"))
+                .orElse(dotenv.get("AWS_S3_REGION"));
+
+        bucketName = Optional.ofNullable(System.getenv("AWS_BUCKET"))
+                .orElse(dotenv.get("AWS_S3_BUCKET"));
+
+        if (accessKey == null || secretKey == null || regionName == null || bucketName == null) {
+            throw new IllegalStateException("AWS 환경변수가 설정되지 않았습니다.");
         }
 
-        AwsBasicCredentials credentials = AwsBasicCredentials.create(
-                properties.getProperty("AWS_S3_ACCESS_KEY"),
-                properties.getProperty("AWS_S3_SECRET_KEY")
-        );
+        AwsBasicCredentials credentials = AwsBasicCredentials.create(accessKey, secretKey);
 
-        Region region = Region.of(properties.getProperty("AWS_S3_REGION"));
-        bucketName = properties.getProperty("AWS_S3_BUCKET");
+        Region region = Region.of(regionName);
 
         s3Client = S3Client.builder()
                 .credentialsProvider(StaticCredentialsProvider.create(credentials))
