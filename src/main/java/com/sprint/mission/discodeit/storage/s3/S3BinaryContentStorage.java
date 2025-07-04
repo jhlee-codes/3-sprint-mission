@@ -5,14 +5,17 @@ import com.sprint.mission.discodeit.storage.BinaryContentStorage;
 import jakarta.annotation.PostConstruct;
 import java.io.InputStream;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.io.Resource;
+import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import software.amazon.awssdk.core.sync.RequestBody;
@@ -152,12 +155,15 @@ public class S3BinaryContentStorage implements BinaryContentStorage {
      */
     public String generatePresignedUrl(String key, String contentType) {
 
-        String filename = key.substring(key.lastIndexOf("/") + 1);
+        String defaultContentType = "application/octet-stream";
+        String resolvedContentType = contentType != null ? contentType : defaultContentType;
+
+        String filename = extractFileNameWithExtension(key, resolvedContentType);
 
         GetObjectRequest objectRequest = GetObjectRequest.builder()
                 .bucket(bucket)
                 .key(key)
-                .responseContentType(contentType != null ? contentType : "application/octet-stream")
+                .responseContentType(resolvedContentType)
                 .responseContentDisposition("attachment; filename=\"" + filename + "\"")
                 .build();
 
@@ -170,5 +176,21 @@ public class S3BinaryContentStorage implements BinaryContentStorage {
         PresignedGetObjectRequest presignedRequest = s3Presigner.presignGetObject(presignRequest);
 
         return presignedRequest.url().toExternalForm();
+    }
+
+    private String extractFileNameWithExtension(String key, String contentType) {
+        String baseName = key.substring(key.lastIndexOf("/") + 1);
+        if (baseName.contains(".")) {
+            return baseName;
+        }
+
+        String ext = switch (contentType) {
+            case "image/jpeg" -> "jpg";
+            case "image/png" -> "png";
+            case "image/gif" -> "gif";
+
+            default -> "jpg";
+        };
+        return baseName + "." + ext;
     }
 }
