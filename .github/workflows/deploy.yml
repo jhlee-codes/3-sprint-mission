@@ -65,6 +65,38 @@ jobs:
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
           echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
+      - name: Delete old images from public ECR
+        run: |
+          set -euo pipefail
+
+          # 1. latest 태그가 없는 이미지들을 오래된 순으로 정렬
+          IMAGES_TO_CONSIDER=$(aws ecr-public describe-images \
+            --repository-name $ECR_REPOSITORY \
+            --query "sort_by(imageDetails[?imageTags && !contains(imageTags, 'latest')], &imagePushedAt)")
+
+          IMAGE_COUNT=$(echo "$IMAGES_TO_CONSIDER" | jq 'length // 0')
+
+          if [ "$IMAGE_COUNT" -gt 5 ]; then
+            DELETE_COUNT=$((IMAGE_COUNT - 5))
+            echo "Found $IMAGE_COUNT images. Deleting $DELETE_COUNT oldest images..."
+
+            IMAGE_IDS_STRING=$(echo "$IMAGES_TO_CONSIDER" | \
+              jq -r --argjson count "$DELETE_COUNT" '.[0:$count] | .[].imageDigest' | \
+              sed 's/^/imageDigest=/' | tr '\n' ' ')
+
+            aws ecr-public batch-delete-image \
+              --repository-name $ECR_REPOSITORY \
+              --image-ids $IMAGE_IDS_STRING
+
+            echo "Successfully deleted $DELETE_COUNT images."
+          else
+            echo "No old images to delete. ($IMAGE_COUNT images found)"
+          fi
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_KEY }}
+          AWS_REGION: ${{ env.AWS_REGION_ECR }}
+
   # 2. Deploy to ECS
   deploy:
     name: Deploy to ECS
@@ -119,11 +151,6 @@ jobs:
           service: ${{ env.ECS_SERVICE }}
           cluster: ${{ env.ECS_CLUSTER }}
           wait-for-service-stability: true
-
-      - name: Print ECS variables
-        run: |
-          echo "ECS_CLUSTER=${{ env.ECS_CLUSTER }}"
-          echo "ECS_SERVICE=${{ env.ECS_SERVICE }}"
 
       - name: Start ECS service
         run: |
