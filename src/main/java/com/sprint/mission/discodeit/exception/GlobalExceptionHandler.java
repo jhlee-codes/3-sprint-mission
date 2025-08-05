@@ -28,7 +28,7 @@ public class GlobalExceptionHandler {
     private ResponseEntity<ErrorResponse> toErrorResponse(HttpStatus httpStatus, Throwable error) {
         if (error instanceof DiscodeitException discodeitException) {
             return ResponseEntity.status(httpStatus)
-                    .body(ErrorResponse.of(httpStatus, discodeitException));
+                .body(ErrorResponse.of(httpStatus, discodeitException));
         }
 
         String message = error.getMessage() != null ? error.getMessage() : "Unknown Error";
@@ -39,14 +39,14 @@ public class GlobalExceptionHandler {
         }
 
         return ResponseEntity.status(httpStatus)
-                .body(new ErrorResponse(
-                        Instant.now(),
-                        httpStatus.getReasonPhrase(),
-                        message,
-                        Map.of(),
-                        error.getClass().getSimpleName(),
-                        httpStatus.value())
-                );
+            .body(new ErrorResponse(
+                Instant.now(),
+                httpStatus.getReasonPhrase(),
+                message,
+                Map.of(),
+                error.getClass().getSimpleName(),
+                httpStatus.value())
+            );
     }
 
     // User
@@ -58,14 +58,14 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(UserAlreadyExistsException.class)
     public ResponseEntity<ErrorResponse> handleUserAlreadyExistsException(
-            UserAlreadyExistsException e) {
+        UserAlreadyExistsException e) {
         log.warn("User already exists: {}", e.getMessage());
         return toErrorResponse(HttpStatus.CONFLICT, e);
     }
 
     @ExceptionHandler(UserPasswordMismatchException.class)
     public ResponseEntity<ErrorResponse> handleUserPasswordMismatchException(
-            UserPasswordMismatchException e) {
+        UserPasswordMismatchException e) {
         log.warn("User password mismatch: {}", e.getMessage());
         return toErrorResponse(HttpStatus.UNAUTHORIZED, e);
     }
@@ -73,14 +73,14 @@ public class GlobalExceptionHandler {
     // Channel
     @ExceptionHandler(ChannelNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleChannelNotFoundException(
-            ChannelNotFoundException e) {
+        ChannelNotFoundException e) {
         log.warn("Channel not found: {}", e.getMessage());
         return toErrorResponse(HttpStatus.NOT_FOUND, e);
     }
 
     @ExceptionHandler(PrivateChannelUpdateException.class)
     public ResponseEntity<ErrorResponse> handlePrivateChannelUpdateException(
-            PrivateChannelUpdateException e) {
+        PrivateChannelUpdateException e) {
         log.warn("Private channel update failed: {}", e.getMessage());
         return toErrorResponse(HttpStatus.CONFLICT, e);
     }
@@ -88,7 +88,7 @@ public class GlobalExceptionHandler {
     // Message
     @ExceptionHandler(MessageNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleMessageNotFoundException(
-            MessageNotFoundException e) {
+        MessageNotFoundException e) {
         log.warn("Message not found: {}", e.getMessage());
         return toErrorResponse(HttpStatus.NOT_FOUND, e);
     }
@@ -96,7 +96,7 @@ public class GlobalExceptionHandler {
     // BinaryContent
     @ExceptionHandler(BinaryContentNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleBinaryContentNotFoundException(
-            BinaryContentNotFoundException e) {
+        BinaryContentNotFoundException e) {
         log.warn("Binary content not found: {}", e.getMessage());
         return toErrorResponse(HttpStatus.NOT_FOUND, e);
     }
@@ -104,14 +104,14 @@ public class GlobalExceptionHandler {
     // ReadStatus
     @ExceptionHandler(ReadStatusNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleReadStatusNotFoundException(
-            ReadStatusNotFoundException e) {
+        ReadStatusNotFoundException e) {
         log.warn("Read status not found: {}", e.getMessage());
         return toErrorResponse(HttpStatus.NOT_FOUND, e);
     }
 
     @ExceptionHandler(ReadStatusAlreadyExistsException.class)
     public ResponseEntity<ErrorResponse> handleReadStatusAlreadyExistsException(
-            ReadStatusAlreadyExistsException e) {
+        ReadStatusAlreadyExistsException e) {
         log.warn("Read status already exists: {}", e.getMessage());
         return toErrorResponse(HttpStatus.CONFLICT, e);
     }
@@ -119,22 +119,22 @@ public class GlobalExceptionHandler {
     // UserStatus
     @ExceptionHandler(UserStatusNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleUserStatusNotFoundException(
-            UserStatusNotFoundException e) {
+        UserStatusNotFoundException e) {
         log.warn("User status not found: {}", e.getMessage());
         return toErrorResponse(HttpStatus.NOT_FOUND, e);
     }
 
     @ExceptionHandler(UserStatusAlreadyExistsException.class)
     public ResponseEntity<ErrorResponse> handleUserStatusAlreadyExistsException(
-            UserStatusAlreadyExistsException e) {
+        UserStatusAlreadyExistsException e) {
         log.warn("User status already exists: {}", e.getMessage());
         return toErrorResponse(HttpStatus.CONFLICT, e);
     }
 
     // 입력값 유효성 검증 실패
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorResponse> handleMethodArgumentNotValidException(
-            MethodArgumentNotValidException e) {
+    public ResponseEntity<ErrorResponse> handleValidationExceptions(
+        MethodArgumentNotValidException e) {
         log.warn("MethodArgumentNotValidException: {}", e.getMessage());
         return toErrorResponse(HttpStatus.BAD_REQUEST, e);
     }

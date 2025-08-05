@@ -222,7 +222,7 @@ public class BasicUserService implements UserService {
         User updateUser = userRepository.save(user);
 
         log.info("유저 권한 변경 완료: ID = {}, Role = {}", userId, newRole);
-
-        return userMapper.toDto(user);
+        
+        return userMapper.toDto(updateUser);
     }
 }
