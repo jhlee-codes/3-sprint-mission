@@ -28,6 +28,7 @@ CREATE TABLE IF NOT EXISTS users
     email      VARCHAR(100) UNIQUE      NOT NULL,
     password   VARCHAR(60)              NOT NULL,
     profile_id UUID,
+    role       varchar(20)              NOT NULL,
 
     CONSTRAINT fk_profile_id_users FOREIGN KEY (profile_id)
         REFERENCES binary_contents (id)
@@ -112,5 +113,3 @@ CREATE TABLE IF NOT EXISTS message_attachments
         REFERENCES binary_contents (id)
         ON DELETE CASCADE
 );
-
-

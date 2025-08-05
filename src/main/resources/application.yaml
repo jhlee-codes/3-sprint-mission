@@ -65,3 +65,8 @@ info:
   multipart:
     max-file-size: ${spring.servlet.multipart.max-file-size}
     max-request-size: ${spring.servlet.multipart.max-request-size}
+
+admin:
+  email: admin@codeit.com
+  username: admin
+  password: admin1234!
