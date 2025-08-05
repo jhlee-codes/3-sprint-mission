@@ -59,8 +59,8 @@ public class UserController implements UserApi {
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Override
     public ResponseEntity<UserDto> create(
-            @Valid @RequestPart("userCreateRequest") UserCreateRequest userCreateRequest,
-            @RequestPart(value = "profile", required = false) MultipartFile profile
+        @Valid @RequestPart("userCreateRequest") UserCreateRequest userCreateRequest,
+        @RequestPart(value = "profile", required = false) MultipartFile profile
     ) {
         BinaryContentCreateRequest profileRequestDTO = null;
 
@@ -71,8 +71,8 @@ public class UserController implements UserApi {
         UserDto createdUser = userService.create(userCreateRequest, profileRequestDTO);
 
         return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(createdUser);
+            .status(HttpStatus.OK)
+            .body(createdUser);
     }
 
     /**
@@ -84,14 +84,14 @@ public class UserController implements UserApi {
      * @return 수정된 User (HTTP 200 OK)
      */
     @PatchMapping(
-            path = "/{userId}",
-            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+        path = "/{userId}",
+        consumes = MediaType.MULTIPART_FORM_DATA_VALUE
     )
     @Override
     public ResponseEntity<UserDto> update(
-            @PathVariable UUID userId,
-            @Valid @RequestPart("userUpdateRequest") UserUpdateRequest userUpdateRequest,
-            @RequestPart(value = "profile", required = false) MultipartFile profile
+        @PathVariable UUID userId,
+        @Valid @RequestPart("userUpdateRequest") UserUpdateRequest userUpdateRequest,
+        @RequestPart(value = "profile", required = false) MultipartFile profile
     ) {
         BinaryContentCreateRequest profileRequestDTO = null;
 
@@ -102,8 +102,8 @@ public class UserController implements UserApi {
         UserDto updatedUser = userService.update(userId, userUpdateRequest, profileRequestDTO);
 
         return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(updatedUser);
+            .status(HttpStatus.OK)
+            .body(updatedUser);
     }
 
     /**
@@ -115,13 +115,13 @@ public class UserController implements UserApi {
     @DeleteMapping(path = "/{userId}")
     @Override
     public ResponseEntity<Void> delete(
-            @PathVariable UUID userId
+        @PathVariable UUID userId
     ) {
         userService.delete(userId);
 
         return ResponseEntity
-                .status(HttpStatus.NO_CONTENT)
-                .build();
+            .status(HttpStatus.NO_CONTENT)
+            .build();
     }
 
     /**
@@ -136,8 +136,8 @@ public class UserController implements UserApi {
         List<UserDto> userDtoList = userService.findAll();
 
         return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(userDtoList);
+            .status(HttpStatus.OK)
+            .body(userDtoList);
     }
 
     /**
@@ -150,14 +150,14 @@ public class UserController implements UserApi {
     @PatchMapping(path = "/{userId}/userStatus")
     @Override
     public ResponseEntity<UserStatusDto> updateUserStatusByUserId(
-            @PathVariable UUID userId,
-            @Valid @RequestBody UserStatusUpdateRequest userStatusUpdateRequest
+        @PathVariable UUID userId,
+        @Valid @RequestBody UserStatusUpdateRequest userStatusUpdateRequest
     ) {
         UserStatusDto updatedUserStatus = userStatusService.updateByUserId(userId,
-                userStatusUpdateRequest);
+            userStatusUpdateRequest);
 
         return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(updatedUserStatus);
+            .status(HttpStatus.OK)
+            .body(updatedUserStatus);
     }
 }

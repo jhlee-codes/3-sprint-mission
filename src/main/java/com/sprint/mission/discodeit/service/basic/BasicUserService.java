@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,8 +33,8 @@ public class BasicUserService implements UserService {
     private final UserRepository userRepository;
     private final BinaryContentRepository binaryContentRepository;
     private final BinaryContentStorage binaryContentStorage;
-
     private final UserMapper userMapper;
+    private final PasswordEncoder passwordEncoder;
 
     /**
      * 주어진 생성 요청 DTO(유저, 프로필사진)를 기반으로 유저 생성
@@ -46,9 +47,9 @@ public class BasicUserService implements UserService {
     @Override
     @Transactional
     public UserDto create(UserCreateRequest userCreateRequest,
-            BinaryContentCreateRequest profileCreateRequest) {
+        BinaryContentCreateRequest profileCreateRequest) {
         log.info("유저 생성 요청: 유저명 = {}, 이메일 = {}", userCreateRequest.username(),
-                userCreateRequest.email());
+            userCreateRequest.email());
 
         String username = userCreateRequest.username();
         String email = userCreateRequest.email();
@@ -67,26 +68,28 @@ public class BasicUserService implements UserService {
 
         if (isProfileCreated) {
             binaryContent = BinaryContent.builder()
-                    .fileName(profileCreateRequest.fileName())
-                    .contentType(profileCreateRequest.contentType())
-                    .size(((long) profileCreateRequest.bytes().length))
-                    .build();
+                .fileName(profileCreateRequest.fileName())
+                .contentType(profileCreateRequest.contentType())
+                .size(((long) profileCreateRequest.bytes().length))
+                .build();
 
             binaryContentRepository.save(binaryContent);
             binaryContentStorage.put(binaryContent.getId(), profileCreateRequest.bytes());
         }
 
+        String encodedPassword = passwordEncoder.encode(userCreateRequest.password());
+
         User user = User.builder()
-                .username(username)
-                .email(email)
-                .password(userCreateRequest.password())
-                .profile(binaryContent)
-                .build();
+            .username(username)
+            .email(email)
+            .password(encodedPassword)
+            .profile(binaryContent)
+            .build();
 
         UserStatus userStatus = UserStatus.builder()
-                .user(user)
-                .lastActiveAt(Instant.now())
-                .build();
+            .user(user)
+            .lastActiveAt(Instant.now())
+            .build();
 
         user.setStatus(userStatus);
         userStatus.setUser(user);
@@ -107,8 +110,8 @@ public class BasicUserService implements UserService {
         List<User> users = userRepository.findAll();
 
         return users.stream()
-                .map(userMapper::toDto)
-                .toList();
+            .map(userMapper::toDto)
+            .toList();
     }
 
     /**
@@ -123,7 +126,7 @@ public class BasicUserService implements UserService {
     public UserDto find(UUID userId) {
 
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> UserNotFoundException.byId(userId));
+            .orElseThrow(() -> UserNotFoundException.byId(userId));
 
         return userMapper.toDto(user);
     }
@@ -141,12 +144,12 @@ public class BasicUserService implements UserService {
     @Override
     @Transactional
     public UserDto update(UUID userId, UserUpdateRequest updateRequest,
-            BinaryContentCreateRequest profileCreateRequest) {
+        BinaryContentCreateRequest profileCreateRequest) {
         log.info("유저 수정 요청: 유저명 = {}, 이메일 = {}", updateRequest.newUsername(),
-                updateRequest.newEmail());
+            updateRequest.newEmail());
 
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> UserNotFoundException.byId(userId));
+            .orElseThrow(() -> UserNotFoundException.byId(userId));
 
         String newUsername = updateRequest.newUsername();
         String newEmail = updateRequest.newEmail();
@@ -165,20 +168,20 @@ public class BasicUserService implements UserService {
 
         if (isProfileCreated) {
             binaryContent = BinaryContent.builder()
-                    .fileName(profileCreateRequest.fileName())
-                    .contentType(profileCreateRequest.contentType())
-                    .size(((long) profileCreateRequest.bytes().length))
-                    .build();
+                .fileName(profileCreateRequest.fileName())
+                .contentType(profileCreateRequest.contentType())
+                .size(((long) profileCreateRequest.bytes().length))
+                .build();
 
             binaryContentRepository.save(binaryContent);
             binaryContentStorage.put(binaryContent.getId(), profileCreateRequest.bytes());
         }
 
         user.update(
-                newUsername,
-                newEmail,
-                updateRequest.newPassword(),
-                binaryContent
+            newUsername,
+            newEmail,
+            updateRequest.newPassword(),
+            binaryContent
         );
 
         return userMapper.toDto(user);
