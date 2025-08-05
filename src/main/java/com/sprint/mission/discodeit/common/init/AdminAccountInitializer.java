@@ -55,5 +55,7 @@ public class AdminAccountInitializer implements CommandLineRunner {
         userStatus.setUser(user);
 
         userRepository.save(user);
+
+        log.info("기본 Admin 계정 생성 완료");
     }
 }
