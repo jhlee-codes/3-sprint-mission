@@ -35,29 +35,14 @@ logging:
   level:
     root: info
 
-# Spring Boot Actuator 설정
 management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics,loggers  # 엔드포인트 노출
-      base-path: /actuator  # Actuator 엔드포인트 기본 경로
+        include: health,info,metrics,loggers,prometheus
   endpoint:
     health:
-      show-details: always      # 건강 상태 상세 정보 표시
-      show-components: always   # 컴포넌트별 상태 정보 표시
-    info:
-      enabled: true             # info 엔드포인트 명시적 활성화
-    loggers:
-      access: unrestricted
-  # info 추가설정
-  info:
-    os:
-      enabled: true
-    java:
-      enabled: true
-    env:
-      enabled: true
+      show-details: always
 
 # 애플리케이션 정보 (Actuator info 엔드포인트용)
 info:
