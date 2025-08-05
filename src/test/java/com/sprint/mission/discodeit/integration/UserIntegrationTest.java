@@ -14,10 +14,8 @@ import com.sprint.mission.discodeit.dto.User.UserUpdateRequest;
 import com.sprint.mission.discodeit.dto.UserStatus.UserStatusUpdateRequest;
 import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.entity.User;
-import com.sprint.mission.discodeit.entity.UserStatus;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
-import com.sprint.mission.discodeit.repository.UserStatusRepository;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.UUID;
@@ -51,7 +49,7 @@ public class UserIntegrationTest {
     private UserStatusRepository userStatusRepository;
     @Autowired
     private BinaryContentRepository binaryContentRepository;
-    
+
     private User savedUser;
     private UserStatus savedUserStatus;
     private BinaryContent savedProfile;
@@ -65,7 +63,7 @@ public class UserIntegrationTest {
         userRepository.save(savedUser);
 
         savedUserStatus = new UserStatus(savedUser,
-                Instant.now().minus(Duration.ofMinutes(6)));  //offline 상태
+            Instant.now().minus(Duration.ofMinutes(6)));  //offline 상태
         userStatusRepository.save(savedUserStatus);
     }
 
@@ -81,19 +79,19 @@ public class UserIntegrationTest {
         UserCreateRequest createRequest = new UserCreateRequest(userName, email, password);
 
         MockMultipartFile jsonPart = new MockMultipartFile(
-                "userCreateRequest",
-                "",
-                "application/json",
-                objectMapper.writeValueAsBytes(createRequest)
+            "userCreateRequest",
+            "",
+            "application/json",
+            objectMapper.writeValueAsBytes(createRequest)
         );
 
         // when & then
         mockMvc.perform(multipart("/api/users")
-                        .file(jsonPart)
-                        .contentType(MediaType.MULTIPART_FORM_DATA_VALUE))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.username").value(userName))
-                .andExpect(jsonPath("$.email").value(email));
+                .file(jsonPart)
+                .contentType(MediaType.MULTIPART_FORM_DATA_VALUE))
+            .andExpect(status().isCreated())
+            .andExpect(jsonPath("$.username").value(userName))
+            .andExpect(jsonPath("$.email").value(email));
     }
 
     @Test
@@ -109,28 +107,28 @@ public class UserIntegrationTest {
         UserUpdateRequest updateRequest = new UserUpdateRequest(newUserName, newEmail, newPassword);
 
         MockMultipartFile jsonPart = new MockMultipartFile(
-                "userUpdateRequest",
-                "",
-                "application/json",
-                objectMapper.writeValueAsBytes(updateRequest)
+            "userUpdateRequest",
+            "",
+            "application/json",
+            objectMapper.writeValueAsBytes(updateRequest)
         );
 
         MockMultipartFile profilePart = new MockMultipartFile(
-                "profile",
-                "profile2.jpg",
-                "image/jpeg",
-                "테스트이미지바이트".getBytes()
+            "profile",
+            "profile2.jpg",
+            "image/jpeg",
+            "테스트이미지바이트".getBytes()
         );
 
         // when & then
         mockMvc.perform(multipart(HttpMethod.PATCH, "/api/users/" + userId)
-                        .file(jsonPart)
-                        .file(profilePart)
-                        .contentType(MediaType.MULTIPART_FORM_DATA_VALUE))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(userId.toString()))
-                .andExpect(jsonPath("$.username").value(newUserName))
-                .andExpect(jsonPath("$.email").value(newEmail));
+                .file(jsonPart)
+                .file(profilePart)
+                .contentType(MediaType.MULTIPART_FORM_DATA_VALUE))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.id").value(userId.toString()))
+            .andExpect(jsonPath("$.username").value(newUserName))
+            .andExpect(jsonPath("$.email").value(newEmail));
 
         User updatedUser = userRepository.findById(userId).orElse(null);
         assertThat(updatedUser.getPassword()).isEqualTo(newPassword);
@@ -148,7 +146,7 @@ public class UserIntegrationTest {
 
         // when & then
         mockMvc.perform(delete("/api/users/" + userId.toString()))
-                .andExpect(status().isNoContent());
+            .andExpect(status().isNoContent());
         assertThat(userRepository.findById(userId).isPresent()).isFalse();
     }
 
@@ -160,16 +158,16 @@ public class UserIntegrationTest {
 
         // when & then
         mockMvc.perform(get("/api/users"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(savedUser.getId().toString()))
-                .andExpect(jsonPath("$[0].username").value(savedUser.getUsername()))
-                .andExpect(jsonPath("$[0].email").value(savedUser.getEmail()))
-                .andExpect(jsonPath("$[0].profile.id").value(
-                        savedUser.getProfile().getId().toString()))
-                .andExpect(jsonPath("$[0].profile.fileName").value(
-                        savedUser.getProfile().getFileName()))
-                .andExpect(jsonPath("$[0].profile.contentType").value(
-                        savedUser.getProfile().getContentType()));
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$[0].id").value(savedUser.getId().toString()))
+            .andExpect(jsonPath("$[0].username").value(savedUser.getUsername()))
+            .andExpect(jsonPath("$[0].email").value(savedUser.getEmail()))
+            .andExpect(jsonPath("$[0].profile.id").value(
+                savedUser.getProfile().getId().toString()))
+            .andExpect(jsonPath("$[0].profile.fileName").value(
+                savedUser.getProfile().getFileName()))
+            .andExpect(jsonPath("$[0].profile.contentType").value(
+                savedUser.getProfile().getContentType()));
     }
 
     @Test
@@ -184,11 +182,11 @@ public class UserIntegrationTest {
 
         // when & then
         mockMvc.perform(patch("/api/users/" + userId.toString() + "/userStatus")
-                        .contentType(MediaType.APPLICATION_JSON_VALUE)
-                        .content(objectMapper.writeValueAsBytes(updateRequest)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(userStatusId.toString()))
-                .andExpect(jsonPath("$.lastActiveAt").value(now.toString()));
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(objectMapper.writeValueAsBytes(updateRequest)))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.id").value(userStatusId.toString()))
+            .andExpect(jsonPath("$.lastActiveAt").value(now.toString()));
         assertThat(savedUserStatus.isOnline()).isTrue();
     }
 }

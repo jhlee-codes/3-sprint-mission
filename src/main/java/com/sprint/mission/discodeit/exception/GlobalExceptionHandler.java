@@ -9,8 +9,6 @@ import com.sprint.mission.discodeit.exception.ReadStatus.ReadStatusNotFoundExcep
 import com.sprint.mission.discodeit.exception.User.UserAlreadyExistsException;
 import com.sprint.mission.discodeit.exception.User.UserNotFoundException;
 import com.sprint.mission.discodeit.exception.User.UserPasswordMismatchException;
-import com.sprint.mission.discodeit.exception.UserStatus.UserStatusAlreadyExistsException;
-import com.sprint.mission.discodeit.exception.UserStatus.UserStatusNotFoundException;
 import java.time.Instant;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
@@ -116,21 +114,6 @@ public class GlobalExceptionHandler {
         return toErrorResponse(HttpStatus.CONFLICT, e);
     }
 
-    // UserStatus
-    @ExceptionHandler(UserStatusNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleUserStatusNotFoundException(
-        UserStatusNotFoundException e) {
-        log.warn("User status not found: {}", e.getMessage());
-        return toErrorResponse(HttpStatus.NOT_FOUND, e);
-    }
-
-    @ExceptionHandler(UserStatusAlreadyExistsException.class)
-    public ResponseEntity<ErrorResponse> handleUserStatusAlreadyExistsException(
-        UserStatusAlreadyExistsException e) {
-        log.warn("User status already exists: {}", e.getMessage());
-        return toErrorResponse(HttpStatus.CONFLICT, e);
-    }
-
     // 입력값 유효성 검증 실패
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidationExceptions(
@@ -145,6 +128,4 @@ public class GlobalExceptionHandler {
         log.error("Exception 발생: {}", e.getMessage());
         return toErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, e);
     }
-
-
 }

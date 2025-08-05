@@ -19,6 +19,8 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
+import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -27,6 +29,7 @@ import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.logout.HttpStatusReturningLogoutSuccessHandler;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
+import org.springframework.security.web.session.HttpSessionEventPublisher;
 
 @Slf4j
 @Configuration
@@ -73,9 +76,12 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http,
+    public SecurityFilterChain filterChain(
+        HttpSecurity http,
         LoginSuccessHandler loginSuccessHandler,
-        LoginFailureHandler loginFailureHandler) throws Exception {
+        LoginFailureHandler loginFailureHandler,
+        SessionRegistry sessionRegistry
+    ) throws Exception {
 
         log.debug("[SecurityConfig] FilterChain 구성 시작");
 
@@ -113,6 +119,14 @@ public class SecurityConfig {
                 .anyRequest().authenticated()
             )
 
+            // 세션 관리 설정
+            .sessionManagement(management -> management
+                .sessionConcurrency(concurrency -> concurrency
+                    .maximumSessions(1)
+                    .sessionRegistry(sessionRegistry)
+                )
+            )
+
             // 폼 기반 로그인 설정
             .formLogin(login -> login
                 .loginProcessingUrl("/api/auth/login")
@@ -136,5 +150,15 @@ public class SecurityConfig {
 
         log.debug("[SecurityConfig] FilterChain 구성 완료");
         return http.build();
+    }
+
+    @Bean
+    public SessionRegistry sessionRegistry() {
+        return new SessionRegistryImpl();
+    }
+
+    @Bean
+    public HttpSessionEventPublisher httpSessionEventPublisher() {
+        return new HttpSessionEventPublisher();
     }
 }

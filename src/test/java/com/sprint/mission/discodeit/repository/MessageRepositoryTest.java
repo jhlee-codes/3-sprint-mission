@@ -7,11 +7,7 @@ import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.ChannelType;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.User;
-import com.sprint.mission.discodeit.entity.UserStatus;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.TimeZone;
@@ -77,12 +73,12 @@ public class MessageRepositoryTest {
 
         // given
         Message expected = createMessage("가장 최근 메시지 테스트", channel, user,
-                Instant.now().plusSeconds(10));
+            Instant.now().plusSeconds(10));
         messageRepository.save(expected);
 
         // when
         Optional<Message> lastMessage = messageRepository.findTopByChannel_IdOrderByCreatedAtDesc(
-                channel.getId());
+            channel.getId());
 
         // then
         assertThat(lastMessage.isPresent()).isTrue();
@@ -143,7 +139,7 @@ public class MessageRepositoryTest {
 
         // when
         Slice<Message> result = messageRepository.findAllByChannelIdWithAuthor(channel.getId(),
-                cursorTime, PageRequest.of(0, 10));
+            cursorTime, PageRequest.of(0, 10));
 
         // then
         assertThat(result.getContent()).hasSize(1);
@@ -172,7 +168,7 @@ public class MessageRepositoryTest {
 
         // when
         Slice<Message> result = messageRepository.findAllByChannelIdWithAuthor(channel.getId(),
-                cursorTime, PageRequest.of(0, 10));
+            cursorTime, PageRequest.of(0, 10));
 
         // then
         assertThat(result).isEmpty();

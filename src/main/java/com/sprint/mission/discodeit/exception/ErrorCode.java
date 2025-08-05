@@ -22,11 +22,7 @@ public enum ErrorCode {
 
     // ReadStatus
     READ_STATUS_NOT_FOUND("존재하지 않는 ReadStatus입니다."),
-    DUPLICATE_READ_STATUS("이미 존재하는 ReadStatus입니다."),
-
-    // UserStatus
-    USER_STATUS_NOT_FOUND("존재하지 않는 UserStatus입니다."),
-    DUPLICATE_USER_STATUS("이미 존재하는 UserStatus입니다.");
+    DUPLICATE_READ_STATUS("이미 존재하는 ReadStatus입니다.");
 
     private final String message;
 

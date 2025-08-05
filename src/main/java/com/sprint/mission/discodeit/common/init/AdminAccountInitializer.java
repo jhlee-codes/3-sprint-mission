@@ -2,9 +2,7 @@ package com.sprint.mission.discodeit.common.init;
 
 import com.sprint.mission.discodeit.entity.Role;
 import com.sprint.mission.discodeit.entity.User;
-import com.sprint.mission.discodeit.entity.UserStatus;
 import com.sprint.mission.discodeit.repository.UserRepository;
-import com.sprint.mission.discodeit.repository.UserStatusRepository;
 import java.time.Instant;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,7 +18,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class AdminAccountInitializer implements CommandLineRunner {
 
     private final UserRepository userRepository;
-    private final UserStatusRepository userStatusRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Value("${admin.email}")
@@ -45,15 +42,6 @@ public class AdminAccountInitializer implements CommandLineRunner {
             .build();
 
         user.updateRole(Role.ADMIN);
-
-        UserStatus userStatus = UserStatus.builder()
-            .user(user)
-            .lastActiveAt(Instant.now())
-            .build();
-
-        user.setStatus(userStatus);
-        userStatus.setUser(user);
-
         userRepository.save(user);
 
         log.info("기본 Admin 계정 생성 완료");

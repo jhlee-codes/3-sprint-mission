@@ -7,8 +7,10 @@ import com.sprint.mission.discodeit.mapper.UserMapper;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.AuthService;
 import com.sprint.mission.discodeit.service.DiscodeitUserDetails;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
@@ -19,6 +21,7 @@ public class BasicAuthService implements AuthService {
 
     private final UserRepository userRepository;
     private final UserMapper userMapper;
+    private final SessionRegistry sessionRegistry;
 
     @Override
     public UserDto getCurrentUserInfo(DiscodeitUserDetails userDetails) {
@@ -33,5 +36,13 @@ public class BasicAuthService implements AuthService {
         log.debug("[AuthService] 조회된 사용자 정보: {}", user);
 
         return userMapper.toDto(user);
+    }
+
+    @Override
+    public boolean isUserOnline(String username) {
+        return sessionRegistry.getAllPrincipals().stream()
+            .filter(DiscodeitUserDetails.class::isInstance)
+            .map(DiscodeitUserDetails.class::cast)
+            .anyMatch(details -> details.getUsername().equals(username));
     }
 }

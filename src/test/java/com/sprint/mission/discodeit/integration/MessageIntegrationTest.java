@@ -16,12 +16,10 @@ import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.ChannelType;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.User;
-import com.sprint.mission.discodeit.entity.UserStatus;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.MessageRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
-import com.sprint.mission.discodeit.repository.UserStatusRepository;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
@@ -72,7 +70,7 @@ public class MessageIntegrationTest {
         userRepository.save(savedUser);
 
         savedUserStatus = new UserStatus(savedUser,
-                Instant.now().minus(Duration.ofMinutes(6)));  //offline 상태
+            Instant.now().minus(Duration.ofMinutes(6)));  //offline 상태
         userStatusRepository.save(savedUserStatus);
 
         savedChannel = new Channel(ChannelType.PUBLIC, "공개채널테스트", "공개 채널 테스트입니다.");
@@ -82,7 +80,7 @@ public class MessageIntegrationTest {
         binaryContentRepository.save(savedAttachment);
 
         savedMessage = new Message("테스트 메시지입니다.", savedChannel, savedUser,
-                List.of(savedAttachment));
+            List.of(savedAttachment));
         messageRepository.save(savedMessage);
     }
 
@@ -98,20 +96,20 @@ public class MessageIntegrationTest {
         MessageCreateRequest createRequest = new MessageCreateRequest(content, userId, channelId);
 
         MockMultipartFile jsonPart = new MockMultipartFile(
-                "messageCreateRequest",
-                "",
-                "application/json",
-                objectMapper.writeValueAsBytes(createRequest)
+            "messageCreateRequest",
+            "",
+            "application/json",
+            objectMapper.writeValueAsBytes(createRequest)
         );
 
         // when & then
         mockMvc.perform(multipart("/api/messages")
-                        .file(jsonPart)
-                        .contentType(MediaType.MULTIPART_FORM_DATA_VALUE))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.content").value(content))
-                .andExpect(jsonPath("$.channelId").value(channelId.toString()))
-                .andExpect(jsonPath("$.author.id").value(userId.toString()));
+                .file(jsonPart)
+                .contentType(MediaType.MULTIPART_FORM_DATA_VALUE))
+            .andExpect(status().isCreated())
+            .andExpect(jsonPath("$.content").value(content))
+            .andExpect(jsonPath("$.channelId").value(channelId.toString()))
+            .andExpect(jsonPath("$.author.id").value(userId.toString()));
     }
 
     @Test
@@ -126,11 +124,11 @@ public class MessageIntegrationTest {
 
         // when & then
         mockMvc.perform(patch("/api/messages/" + messageId.toString())
-                        .content(objectMapper.writeValueAsBytes(updateRequest))
-                        .contentType(MediaType.APPLICATION_JSON_VALUE))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(messageId.toString()))
-                .andExpect(jsonPath("$.content").value(newContent));
+                .content(objectMapper.writeValueAsBytes(updateRequest))
+                .contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.id").value(messageId.toString()))
+            .andExpect(jsonPath("$.content").value(newContent));
     }
 
     @Test
@@ -142,7 +140,7 @@ public class MessageIntegrationTest {
 
         // when & then
         mockMvc.perform(delete(("/api/messages/" + messageId.toString())))
-                .andExpect(status().isNoContent());
+            .andExpect(status().isNoContent());
         assertThat(messageRepository.findById(messageId).isPresent()).isFalse();
     }
 

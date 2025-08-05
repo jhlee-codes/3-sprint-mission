@@ -8,19 +8,21 @@ import com.sprint.mission.discodeit.dto.User.UserUpdateRequest;
 import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.entity.Role;
 import com.sprint.mission.discodeit.entity.User;
-import com.sprint.mission.discodeit.entity.UserStatus;
 import com.sprint.mission.discodeit.exception.User.UserAlreadyExistsException;
 import com.sprint.mission.discodeit.exception.User.UserNotFoundException;
 import com.sprint.mission.discodeit.mapper.UserMapper;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
+import com.sprint.mission.discodeit.service.AuthService;
 import com.sprint.mission.discodeit.service.UserService;
 import com.sprint.mission.discodeit.storage.BinaryContentStorage;
-import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.session.SessionInformation;
+import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,11 +33,13 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class BasicUserService implements UserService {
 
+    private final AuthService authService;
     private final UserRepository userRepository;
     private final BinaryContentRepository binaryContentRepository;
     private final BinaryContentStorage binaryContentStorage;
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
+    private final SessionRegistry sessionRegistry;
 
     /**
      * 주어진 생성 요청 DTO(유저, 프로필사진)를 기반으로 유저 생성
@@ -87,16 +91,10 @@ public class BasicUserService implements UserService {
             .profile(binaryContent)
             .build();
 
-        UserStatus userStatus = UserStatus.builder()
-            .user(user)
-            .lastActiveAt(Instant.now())
-            .build();
-
-        user.setStatus(userStatus);
-        userStatus.setUser(user);
-
         userRepository.save(user);
-        return userMapper.toDto(user);
+
+        UserDto userDto = userMapper.toDto(user);
+        return setUserDtoWithOnline(userDto);
     }
 
     /**
@@ -112,6 +110,7 @@ public class BasicUserService implements UserService {
 
         return users.stream()
             .map(userMapper::toDto)
+            .map(this::setUserDtoWithOnline)
             .toList();
     }
 
@@ -129,7 +128,8 @@ public class BasicUserService implements UserService {
         User user = userRepository.findById(userId)
             .orElseThrow(() -> UserNotFoundException.byId(userId));
 
-        return userMapper.toDto(user);
+        UserDto userDto = userMapper.toDto(user);
+        return setUserDtoWithOnline(userDto);
     }
 
     /**
@@ -185,7 +185,8 @@ public class BasicUserService implements UserService {
             binaryContent
         );
 
-        return userMapper.toDto(user);
+        UserDto userDto = userMapper.toDto(user);
+        return setUserDtoWithOnline(userDto);
     }
 
     /**
@@ -221,8 +222,51 @@ public class BasicUserService implements UserService {
 
         User updateUser = userRepository.save(user);
 
+        // 사용자의 모든 활성 세션 무효화
+        invalidateUserSession(updateUser.getUsername());
+
         log.info("유저 권한 변경 완료: ID = {}, Role = {}", userId, newRole);
-        
-        return userMapper.toDto(updateUser);
+
+        UserDto userDto = userMapper.toDto(updateUser);
+        return setUserDtoWithOnline(userDto);
+    }
+
+    private void invalidateUserSession(String username) {
+        try {
+            log.debug("세션 무효화 요청: {}", username);
+
+            List<Object> allPrincipals = sessionRegistry.getAllPrincipals();
+
+            for (Object principal : allPrincipals) {
+
+                UserDetails user = (UserDetails) principal;
+                String principalName = user.getUsername();
+
+                if (username.equals(principalName)) {
+
+                    List<SessionInformation> sessions = sessionRegistry.getAllSessions(principal,
+                        false);
+                    log.debug("대상 사용자의 활성 세션 수: {}", sessions.size());
+
+                    for (SessionInformation session : sessions) {
+                        log.debug("세션 무효화 시작 - 세션 ID: {}", session.getSessionId());
+                        session.expireNow();
+                        log.debug("세션 무효화 완료 - 만료됨: {}", session.isExpired());
+                    }
+
+                    log.debug("대상 사용자 '{}'의 모든 세션 무효화 완료", username);
+                    break;
+                }
+            }
+            log.debug("세션 무효화 완료");
+        } catch (Exception e) {
+            log.debug("세션 무효화 중 오류 발생: {}", e.getMessage());
+        }
+    }
+
+    private UserDto setUserDtoWithOnline(UserDto userDto) {
+        return userDto.toBuilder()
+            .online(authService.isUserOnline(userDto.username()))
+            .build();
     }
 }
