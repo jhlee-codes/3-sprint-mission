@@ -1,11 +1,11 @@
 package com.sprint.mission.discodeit.service.basic;
 
+import com.sprint.mission.discodeit.auth.DiscodeitUserDetails;
 import com.sprint.mission.discodeit.dto.User.UserDto;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.mapper.UserMapper;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.AuthService;
-import com.sprint.mission.discodeit.auth.DiscodeitUserDetails;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -47,6 +47,7 @@ public class BasicAuthService implements AuthService {
         return sessionRegistry.getAllPrincipals().stream()
             .filter(DiscodeitUserDetails.class::isInstance)
             .map(DiscodeitUserDetails.class::cast)
-            .anyMatch(details -> details.getUsername().equals(username));
+            .filter(user -> user.getUsername().equals(username))
+            .anyMatch(user -> !sessionRegistry.getAllSessions(user, false).isEmpty());
     }
 }
