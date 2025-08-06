@@ -28,6 +28,7 @@ public class AuthController implements AuthApi {
     private final UserService userService;
 
     @GetMapping("/csrf-token")
+    @Override
     public ResponseEntity<Void> getCsrfToken(CsrfToken csrfToken) {
         String tokenValue = csrfToken.getToken();
         log.debug("CSRF 토큰 요청: {}", tokenValue);
@@ -38,6 +39,7 @@ public class AuthController implements AuthApi {
     }
 
     @GetMapping("/me")
+    @Override
     public ResponseEntity<UserDto> getCurrentUser(
         @AuthenticationPrincipal DiscodeitUserDetails userDetails) {
 
@@ -60,6 +62,7 @@ public class AuthController implements AuthApi {
     }
 
     @PutMapping("/role")
+    @Override
     public ResponseEntity<UserDto> updateUserRole(
         @RequestBody UserRoleUpdateRequest roleUpdateRequest
     ) {
