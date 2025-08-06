@@ -3,9 +3,12 @@ package com.sprint.mission.discodeit.config;
 import com.sprint.mission.discodeit.entity.Role;
 import com.sprint.mission.discodeit.handler.LoginFailureHandler;
 import com.sprint.mission.discodeit.handler.LoginSuccessHandler;
+import com.sprint.mission.discodeit.service.DiscodeitUserDetailsService;
 import java.util.List;
 import java.util.stream.IntStream;
+import javax.sql.DataSource;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,7 +21,6 @@ import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -27,6 +29,9 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandlerImpl;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.logout.HttpStatusReturningLogoutSuccessHandler;
+import org.springframework.security.web.authentication.rememberme.JdbcTokenRepositoryImpl;
+import org.springframework.security.web.authentication.rememberme.PersistentTokenBasedRememberMeServices;
+import org.springframework.security.web.authentication.rememberme.TokenBasedRememberMeServices;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
@@ -36,6 +41,9 @@ import org.springframework.security.web.session.HttpSessionEventPublisher;
 @EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfig {
+
+    @Value("${remember-me.key}")
+    private String rememberMeKey;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -75,12 +83,43 @@ public class SecurityConfig {
         return handler;
     }
 
+//    @Bean
+//    JdbcTokenRepositoryImpl tokenRepository(DataSource dataSource) {
+//
+//        JdbcTokenRepositoryImpl tokenRepository = new JdbcTokenRepositoryImpl();
+//        tokenRepository.setDataSource(dataSource);
+//
+//        log.debug("[SecurityConfig] JdbcTokenRepository 생성 완료");
+//        return tokenRepository;
+//    }
+
+    @Bean
+    public TokenBasedRememberMeServices rememberMeServices(
+        DiscodeitUserDetailsService userDetailsService) {
+
+        TokenBasedRememberMeServices rememberMeServices =
+            new TokenBasedRememberMeServices(
+                rememberMeKey,
+                userDetailsService
+            );
+
+        // 유지 기간: 7일
+        rememberMeServices.setTokenValiditySeconds(7 * 24 * 60 * 60);
+        rememberMeServices.setCookieName("remember-me");
+        rememberMeServices.setParameter("remember-me");
+
+        log.debug("[SecurityConfig] Remember-Me 설정 완료");
+
+        return rememberMeServices;
+    }
+
     @Bean
     public SecurityFilterChain filterChain(
         HttpSecurity http,
         LoginSuccessHandler loginSuccessHandler,
         LoginFailureHandler loginFailureHandler,
-        SessionRegistry sessionRegistry
+        SessionRegistry sessionRegistry,
+        TokenBasedRememberMeServices rememberMeService
     ) throws Exception {
 
         log.debug("[SecurityConfig] FilterChain 구성 시작");
@@ -139,6 +178,12 @@ public class SecurityConfig {
                 .logoutUrl("/api/auth/logout")
                 .logoutSuccessHandler(
                     new HttpStatusReturningLogoutSuccessHandler(HttpStatus.NO_CONTENT))
+            )
+
+            // Remember-Me 설정
+            .rememberMe(remember -> remember
+                .rememberMeServices(rememberMeService)
+                .key(rememberMeKey)
             )
 
             // 예외 처리 설정
