@@ -1,10 +1,10 @@
 package com.sprint.mission.discodeit.config;
 
-import com.sprint.mission.discodeit.entity.Role;
+import com.sprint.mission.discodeit.auth.DiscodeitUserDetailsService;
 import com.sprint.mission.discodeit.auth.handler.CustomAccessDeniedHandler;
 import com.sprint.mission.discodeit.auth.handler.LoginFailureHandler;
 import com.sprint.mission.discodeit.auth.handler.LoginSuccessHandler;
-import com.sprint.mission.discodeit.auth.DiscodeitUserDetailsService;
+import com.sprint.mission.discodeit.entity.Role;
 import java.util.List;
 import java.util.stream.IntStream;
 import lombok.extern.slf4j.Slf4j;
@@ -171,15 +171,13 @@ public class SecurityConfig {
             // Remember-Me 설정
             .rememberMe(remember -> remember
                 .rememberMeServices(rememberMeService)
-                .key(rememberMeKey)
             )
 
             // 예외 처리 설정
             .exceptionHandling(ex -> ex
                 .authenticationEntryPoint(new Http403ForbiddenEntryPoint())
                 .accessDeniedHandler(accessDeniedHandler)
-            )
-        ;
+            );
 
         log.debug("[SecurityConfig] FilterChain 구성 완료");
         return http.build();
@@ -187,7 +185,25 @@ public class SecurityConfig {
 
     @Bean
     public SessionRegistry sessionRegistry() {
-        return new SessionRegistryImpl();
+
+        SessionRegistryImpl sessionRegistry = new SessionRegistryImpl() {
+
+            // 새 세션 등록 시 로깅
+            @Override
+            public void registerNewSession(String sessionId, Object principal) {
+                log.debug("[SessionRegistry] 새 세션 등록 - 사용자: {}, 세션ID: {} ", principal, sessionId);
+                super.registerNewSession(sessionId, principal);
+            }
+
+            // 세션 제거 시 로깅
+            @Override
+            public void removeSessionInformation(String sessionId) {
+                log.debug("[SessionRegistry] 세션 제거 - 세션ID: {}", sessionId);
+                super.removeSessionInformation(sessionId);
+            }
+        };
+
+        return sessionRegistry;
     }
 
     @Bean

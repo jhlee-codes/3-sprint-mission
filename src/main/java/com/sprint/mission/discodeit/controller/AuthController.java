@@ -45,13 +45,6 @@ public class AuthController implements AuthApi {
 
         log.debug("[AuthController] 세션 기반 사용자 정보 조회 요청(me)");
 
-        if (userDetails == null) {
-            log.debug("[AuthController] 인증되지 않은 사용자");
-            return ResponseEntity
-                .status(HttpStatus.UNAUTHORIZED)
-                .build();
-        }
-
         UserDto userDto = authService.getCurrentUserInfo(userDetails);
 
         log.debug("[AuthController] 사용자 정보 조회 완료: " + userDto);
