@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Slf4j
@@ -23,6 +24,7 @@ public class BasicAuthService implements AuthService {
     private final SessionRegistry sessionRegistry;
 
     @Override
+    @Transactional(readOnly = true)
     public UserDto getCurrentUserInfo(DiscodeitUserDetails userDetails) {
 
         log.debug("[AuthService] 사용자 정보 조회 요청");
