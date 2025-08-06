@@ -1,12 +1,12 @@
 package com.sprint.mission.discodeit.config;
 
 import com.sprint.mission.discodeit.entity.Role;
+import com.sprint.mission.discodeit.handler.CustomAccessDeniedHandler;
 import com.sprint.mission.discodeit.handler.LoginFailureHandler;
 import com.sprint.mission.discodeit.handler.LoginSuccessHandler;
 import com.sprint.mission.discodeit.service.DiscodeitUserDetailsService;
 import java.util.List;
 import java.util.stream.IntStream;
-import javax.sql.DataSource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
@@ -26,11 +26,8 @@ import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.access.AccessDeniedHandlerImpl;
-import org.springframework.security.web.authentication.HttpStatusEntryPoint;
+import org.springframework.security.web.authentication.Http403ForbiddenEntryPoint;
 import org.springframework.security.web.authentication.logout.HttpStatusReturningLogoutSuccessHandler;
-import org.springframework.security.web.authentication.rememberme.JdbcTokenRepositoryImpl;
-import org.springframework.security.web.authentication.rememberme.PersistentTokenBasedRememberMeServices;
 import org.springframework.security.web.authentication.rememberme.TokenBasedRememberMeServices;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
@@ -83,16 +80,6 @@ public class SecurityConfig {
         return handler;
     }
 
-//    @Bean
-//    JdbcTokenRepositoryImpl tokenRepository(DataSource dataSource) {
-//
-//        JdbcTokenRepositoryImpl tokenRepository = new JdbcTokenRepositoryImpl();
-//        tokenRepository.setDataSource(dataSource);
-//
-//        log.debug("[SecurityConfig] JdbcTokenRepository 생성 완료");
-//        return tokenRepository;
-//    }
-
     @Bean
     public TokenBasedRememberMeServices rememberMeServices(
         DiscodeitUserDetailsService userDetailsService) {
@@ -118,6 +105,7 @@ public class SecurityConfig {
         HttpSecurity http,
         LoginSuccessHandler loginSuccessHandler,
         LoginFailureHandler loginFailureHandler,
+        CustomAccessDeniedHandler accessDeniedHandler,
         SessionRegistry sessionRegistry,
         TokenBasedRememberMeServices rememberMeService
     ) throws Exception {
@@ -188,8 +176,8 @@ public class SecurityConfig {
 
             // 예외 처리 설정
             .exceptionHandling(ex -> ex
-                .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
-                .accessDeniedHandler(new AccessDeniedHandlerImpl())
+                .authenticationEntryPoint(new Http403ForbiddenEntryPoint())
+                .accessDeniedHandler(accessDeniedHandler)
             )
         ;
 

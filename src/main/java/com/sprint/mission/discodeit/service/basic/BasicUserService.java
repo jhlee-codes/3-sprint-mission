@@ -26,6 +26,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 @Service
 @Slf4j
@@ -178,10 +179,15 @@ public class BasicUserService implements UserService {
             binaryContentStorage.put(binaryContent.getId(), profileCreateRequest.bytes());
         }
 
+        String newPassword = updateRequest.newPassword();
+        String encodedPassword =
+            StringUtils.hasText(newPassword) ? passwordEncoder.encode(newPassword)
+                : null;
+
         user.update(
             newUsername,
             newEmail,
-            updateRequest.newPassword(),
+            encodedPassword,
             binaryContent
         );
 

@@ -18,6 +18,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -47,23 +48,23 @@ public class MessageController implements MessageApi {
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Override
     public ResponseEntity<MessageDto> create(
-            @Valid @RequestPart("messageCreateRequest") MessageCreateRequest messageCreateRequest,
-            @RequestPart(value = "attachments", required = false) List<MultipartFile> attachments
+        @Valid @RequestPart("messageCreateRequest") MessageCreateRequest messageCreateRequest,
+        @RequestPart(value = "attachments", required = false) List<MultipartFile> attachments
     ) {
         List<BinaryContentCreateRequest> attachmentsRequestDTO =
-                Optional.ofNullable(attachments)
-                        .orElse(List.of())
-                        .stream()
-                        .map(BinaryContentUtil::resolveFile)
-                        .flatMap(Optional::stream)
-                        .toList();
+            Optional.ofNullable(attachments)
+                .orElse(List.of())
+                .stream()
+                .map(BinaryContentUtil::resolveFile)
+                .flatMap(Optional::stream)
+                .toList();
 
         MessageDto createdMessage = messageService.create(messageCreateRequest,
-                attachmentsRequestDTO);
+            attachmentsRequestDTO);
 
         return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(createdMessage);
+            .status(HttpStatus.CREATED)
+            .body(createdMessage);
     }
 
     /**
@@ -73,17 +74,18 @@ public class MessageController implements MessageApi {
      * @param messageUpdateRequest 메시지 수정 요청 DTO
      * @return 수정된 Message (HTTP 200 OK)
      */
+    @PreAuthorize("@basicMessageService.isOwner(#messageId, principal.id)")
     @PatchMapping(path = "/{messageId}")
     @Override
     public ResponseEntity<MessageDto> update(
-            @PathVariable UUID messageId,
-            @Valid @RequestBody MessageUpdateRequest messageUpdateRequest
+        @PathVariable UUID messageId,
+        @Valid @RequestBody MessageUpdateRequest messageUpdateRequest
     ) {
         MessageDto updatedMessage = messageService.update(messageId, messageUpdateRequest);
 
         return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(updatedMessage);
+            .status(HttpStatus.OK)
+            .body(updatedMessage);
     }
 
     /**
@@ -92,16 +94,17 @@ public class MessageController implements MessageApi {
      * @param messageId 삭제할 메시지 ID
      * @return 삭제 완료 메시지 (HTTP 200 OK)
      */
+    @PreAuthorize("@basicMessageService.isOwner(#messageId, principal.id)")
     @DeleteMapping(path = "/{messageId}")
     @Override
     public ResponseEntity<Void> delete(
-            @PathVariable UUID messageId
+        @PathVariable UUID messageId
     ) {
         messageService.delete(messageId);
 
         return ResponseEntity
-                .status(HttpStatus.NO_CONTENT)
-                .build();
+            .status(HttpStatus.NO_CONTENT)
+            .build();
     }
 
     /**
@@ -113,15 +116,15 @@ public class MessageController implements MessageApi {
     @GetMapping
     @Override
     public ResponseEntity<PageResponse<MessageDto>> findAllByChannelId(
-            @RequestParam("channelId") UUID channelId,
-            @RequestParam(required = false) Instant cursor,
-            Pageable pageable
+        @RequestParam("channelId") UUID channelId,
+        @RequestParam(required = false) Instant cursor,
+        Pageable pageable
     ) {
         PageResponse<MessageDto> messages = messageService.findAllByChannelId(channelId,
-                cursor, pageable);
+            cursor, pageable);
 
         return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(messages);
+            .status(HttpStatus.OK)
+            .body(messages);
     }
 }

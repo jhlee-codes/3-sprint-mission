@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -78,6 +79,7 @@ public class UserController implements UserApi {
      * @param profile           수정할 프로필 이미지
      * @return 수정된 User (HTTP 200 OK)
      */
+    @PreAuthorize("#userId == principal.id")
     @PatchMapping(
         path = "/{userId}",
         consumes = MediaType.MULTIPART_FORM_DATA_VALUE
@@ -107,6 +109,7 @@ public class UserController implements UserApi {
      * @param userId 삭제할 유저 ID
      * @return 삭제 완료 메시지 (HTTP 200 OK)
      */
+    @PreAuthorize("#userId == principal.id")
     @DeleteMapping(path = "/{userId}")
     @Override
     public ResponseEntity<Void> delete(
