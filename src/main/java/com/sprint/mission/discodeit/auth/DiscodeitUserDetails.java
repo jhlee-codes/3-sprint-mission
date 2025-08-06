@@ -1,4 +1,4 @@
-package com.sprint.mission.discodeit.service;
+package com.sprint.mission.discodeit.auth;
 
 import com.sprint.mission.discodeit.dto.User.UserDto;
 import java.util.Collection;

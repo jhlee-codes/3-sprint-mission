@@ -1,4 +1,4 @@
-package com.sprint.mission.discodeit.handler;
+package com.sprint.mission.discodeit.auth.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sprint.mission.discodeit.dto.Common.ApiErrorResponse;

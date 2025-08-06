@@ -7,7 +7,7 @@ import com.sprint.mission.discodeit.dto.Message.MessageDto;
 import com.sprint.mission.discodeit.dto.Message.MessageUpdateRequest;
 import com.sprint.mission.discodeit.dto.response.PageResponse;
 import com.sprint.mission.discodeit.service.MessageService;
-import com.sprint.mission.discodeit.util.BinaryContentUtil;
+import com.sprint.mission.discodeit.common.util.BinaryContentUtil;
 import jakarta.validation.Valid;
 import java.time.Instant;
 import java.util.List;

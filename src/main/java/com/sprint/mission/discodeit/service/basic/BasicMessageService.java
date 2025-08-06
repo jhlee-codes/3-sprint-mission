@@ -202,6 +202,7 @@ public class BasicMessageService implements MessageService {
      * @param userId    요청자 ID
      * @return 요청자가 해당 메시지의 작성자인지 여부
      */
+    @Transactional(readOnly = true)
     public boolean isOwner(UUID messageId, UUID userId) {
         return messageRepository.findById(messageId)
             .map(msg -> msg.getAuthor().getId().equals(userId))

@@ -1,10 +1,10 @@
 package com.sprint.mission.discodeit.config;
 
 import com.sprint.mission.discodeit.entity.Role;
-import com.sprint.mission.discodeit.handler.CustomAccessDeniedHandler;
-import com.sprint.mission.discodeit.handler.LoginFailureHandler;
-import com.sprint.mission.discodeit.handler.LoginSuccessHandler;
-import com.sprint.mission.discodeit.service.DiscodeitUserDetailsService;
+import com.sprint.mission.discodeit.auth.handler.CustomAccessDeniedHandler;
+import com.sprint.mission.discodeit.auth.handler.LoginFailureHandler;
+import com.sprint.mission.discodeit.auth.handler.LoginSuccessHandler;
+import com.sprint.mission.discodeit.auth.DiscodeitUserDetailsService;
 import java.util.List;
 import java.util.stream.IntStream;
 import lombok.extern.slf4j.Slf4j;

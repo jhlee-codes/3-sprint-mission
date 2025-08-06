@@ -6,7 +6,7 @@ import com.sprint.mission.discodeit.dto.User.UserCreateRequest;
 import com.sprint.mission.discodeit.dto.User.UserDto;
 import com.sprint.mission.discodeit.dto.User.UserUpdateRequest;
 import com.sprint.mission.discodeit.service.UserService;
-import com.sprint.mission.discodeit.util.BinaryContentUtil;
+import com.sprint.mission.discodeit.common.util.BinaryContentUtil;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
