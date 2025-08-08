@@ -36,18 +36,6 @@ public class BasicAuthService implements AuthService {
 
         log.debug("[AuthService] 조회된 사용자 정보: {}", user);
 
-        return userMapper.toDto(user)
-            .toBuilder()
-            .online(isUserOnline(user.getUsername()))
-            .build();
-    }
-
-    @Override
-    public boolean isUserOnline(String username) {
-        return sessionRegistry.getAllPrincipals().stream()
-            .filter(DiscodeitUserDetails.class::isInstance)
-            .map(DiscodeitUserDetails.class::cast)
-            .filter(user -> user.getUsername().equals(username))
-            .anyMatch(user -> !sessionRegistry.getAllSessions(user, false).isEmpty());
+        return userMapper.toDto(user);
     }
 }

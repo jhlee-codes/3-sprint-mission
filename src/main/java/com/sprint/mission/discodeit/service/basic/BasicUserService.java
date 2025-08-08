@@ -93,9 +93,7 @@ public class BasicUserService implements UserService {
             .build();
 
         userRepository.save(user);
-
-        UserDto userDto = userMapper.toDto(user);
-        return setUserDtoWithOnline(userDto);
+        return userMapper.toDto(user);
     }
 
     /**
@@ -111,7 +109,6 @@ public class BasicUserService implements UserService {
 
         return users.stream()
             .map(userMapper::toDto)
-            .map(this::setUserDtoWithOnline)
             .toList();
     }
 
@@ -129,8 +126,7 @@ public class BasicUserService implements UserService {
         User user = userRepository.findById(userId)
             .orElseThrow(() -> UserNotFoundException.byId(userId));
 
-        UserDto userDto = userMapper.toDto(user);
-        return setUserDtoWithOnline(userDto);
+        return userMapper.toDto(user);
     }
 
     /**
@@ -191,8 +187,7 @@ public class BasicUserService implements UserService {
             binaryContent
         );
 
-        UserDto userDto = userMapper.toDto(user);
-        return setUserDtoWithOnline(userDto);
+        return userMapper.toDto(user);
     }
 
     /**
@@ -233,8 +228,7 @@ public class BasicUserService implements UserService {
 
         log.info("유저 권한 변경 완료: ID = {}, Role = {}", userId, newRole);
 
-        UserDto userDto = userMapper.toDto(updateUser);
-        return setUserDtoWithOnline(userDto);
+        return userMapper.toDto(updateUser);
     }
 
     private void invalidateUserSession(String username) {
@@ -268,11 +262,5 @@ public class BasicUserService implements UserService {
         } catch (Exception e) {
             log.debug("세션 무효화 중 오류 발생: {}", e.getMessage());
         }
-    }
-
-    private UserDto setUserDtoWithOnline(UserDto userDto) {
-        return userDto.toBuilder()
-            .online(authService.isUserOnline(userDto.username()))
-            .build();
     }
 }
