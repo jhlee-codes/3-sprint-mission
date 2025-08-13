@@ -71,6 +71,16 @@ admin:
   username: admin
   password: admin1234!
 
-
 remember-me:
   key: ${REMEMBER_ME_KEY:default-remember-me-key}
+
+# JWT 설정
+jwt:
+  access-token:
+    secret: 0yKHwuC6-0QFZL5O2rw4NB7AntTXaklroUICxZJsWvo
+    exp: 900000
+  refresh-token:
+    secret: 92r4ZxHZjLBuor4g57HfjHUGT-kf9ANDrXOHW0ScnVw
+    exp: 3600000
+  cookie:
+    secure: false

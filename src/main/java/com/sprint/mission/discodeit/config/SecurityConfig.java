@@ -2,6 +2,7 @@ package com.sprint.mission.discodeit.config;
 
 import com.sprint.mission.discodeit.auth.DiscodeitUserDetailsService;
 import com.sprint.mission.discodeit.auth.handler.CustomAccessDeniedHandler;
+import com.sprint.mission.discodeit.auth.handler.JwtLoginSuccessHandler;
 import com.sprint.mission.discodeit.auth.handler.LoginFailureHandler;
 import com.sprint.mission.discodeit.auth.handler.LoginSuccessHandler;
 import com.sprint.mission.discodeit.entity.Role;
@@ -104,12 +105,11 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(
         HttpSecurity http,
-        LoginSuccessHandler loginSuccessHandler,
         LoginFailureHandler loginFailureHandler,
         CustomAccessDeniedHandler accessDeniedHandler,
         SessionRegistry sessionRegistry,
-        TokenBasedRememberMeServices rememberMeService
-    ) throws Exception {
+        TokenBasedRememberMeServices rememberMeService,
+        JwtLoginSuccessHandler jwtLoginSuccessHandler) throws Exception {
 
         log.debug("[SecurityConfig] FilterChain 구성 시작");
 
@@ -155,7 +155,7 @@ public class SecurityConfig {
             // 폼 기반 로그인 설정
             .formLogin(login -> login
                 .loginProcessingUrl("/api/auth/login")
-                .successHandler(loginSuccessHandler)
+                .successHandler(jwtLoginSuccessHandler)
                 .failureHandler(loginFailureHandler)
             )
 
