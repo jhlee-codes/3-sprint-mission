@@ -80,6 +80,9 @@ dependencies {
 
     // Spring Security 의존성 추가
     implementation 'org.springframework.boot:spring-boot-starter-security'
+
+    // JWT 의존성 추가
+    implementation 'com.nimbusds:nimbus-jose-jwt:10.3'
 }
 
 tasks.withType(JavaCompile) {
