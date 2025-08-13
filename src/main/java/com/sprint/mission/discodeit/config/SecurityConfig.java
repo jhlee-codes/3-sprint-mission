@@ -21,6 +21,7 @@ import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -148,10 +149,7 @@ public class SecurityConfig {
 
             // 세션 관리 설정
             .sessionManagement(management -> management
-                .sessionConcurrency(concurrency -> concurrency
-                    .maximumSessions(1)
-                    .sessionRegistry(sessionRegistry)
-                )
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
 
             // 폼 기반 로그인 설정
