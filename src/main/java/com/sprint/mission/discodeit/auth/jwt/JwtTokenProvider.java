@@ -144,7 +144,7 @@ public class JwtTokenProvider {
             }
 
             String tokenType = signedJWT.getJWTClaimsSet().getStringClaim("type");
-            if (type.equals(tokenType)) {
+            if (!type.equals(tokenType)) {
                 log.debug("[TokenProvider] 토큰 타입 검증 실패");
                 return false;
             }
