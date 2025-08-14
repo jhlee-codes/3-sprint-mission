@@ -162,6 +162,21 @@ public class JwtTokenProvider {
         }
     }
 
+    public UUID getUserIdFromToken(String token) {
+        try {
+            log.debug("[TokenProvider] 사용자ID 추출 시작");
+
+            SignedJWT signedJWT = SignedJWT.parse(token);
+            String userIdStr = (String) signedJWT.getJWTClaimsSet().getClaim("userId");
+            UUID userId = UUID.fromString(userIdStr);
+
+            log.debug("[TokenProvider] 사용자ID 추출 완료: {}", userId);
+            return userId;
+        } catch (Exception e) {
+            throw new IllegalArgumentException(e);
+        }
+    }
+
     public String getUsernameFromToken(String token) {
         try {
             log.debug("[TokenProvider] 사용자명 추출 시작");

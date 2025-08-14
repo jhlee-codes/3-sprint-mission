@@ -77,10 +77,11 @@ remember-me:
 # JWT 설정
 jwt:
   access-token:
-    secret: 0yKHwuC6-0QFZL5O2rw4NB7AntTXaklroUICxZJsWvo
-    exp: 900000
+    secret: ${ACCESS_TOKEN_SECRET_KEY:0yKHwuC6-0QFZL5O2rw4NB7AntTXaklroUICxZJsWvo}
+    #    exp: 900000
+    exp: 100000
   refresh-token:
-    secret: 92r4ZxHZjLBuor4g57HfjHUGT-kf9ANDrXOHW0ScnVw
+    secret: ${REFRESH_TOKEN_SECRET_KEY:92r4ZxHZjLBuor4g57HfjHUGT-kf9ANDrXOHW0ScnVw}
     exp: 3600000
   cookie:
     secure: false

@@ -4,7 +4,6 @@ import com.sprint.mission.discodeit.auth.DiscodeitUserDetailsService;
 import com.sprint.mission.discodeit.auth.handler.CustomAccessDeniedHandler;
 import com.sprint.mission.discodeit.auth.handler.JwtLoginSuccessHandler;
 import com.sprint.mission.discodeit.auth.handler.LoginFailureHandler;
-import com.sprint.mission.discodeit.auth.handler.LoginSuccessHandler;
 import com.sprint.mission.discodeit.auth.jwt.JwtAuthenticationFilter;
 import com.sprint.mission.discodeit.entity.Role;
 import jakarta.servlet.http.HttpServletRequest;
@@ -148,6 +147,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/api/users").permitAll()
                 .requestMatchers("/api/auth/login").permitAll()
                 .requestMatchers("/api/auth/logout").permitAll()
+                .requestMatchers("/api/auth/refresh").permitAll()
 
                 // 퍼블릭 채널 관리: CHANNEL_MANAGER
                 .requestMatchers(HttpMethod.POST, "/api/channels/public")
