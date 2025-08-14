@@ -12,6 +12,7 @@ import com.sprint.mission.discodeit.service.AuthService;
 import com.sprint.mission.discodeit.service.UserService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -85,7 +86,8 @@ public class AuthController implements AuthApi {
 
     @PostMapping("/refresh")
     public ResponseEntity<?> refreshAccessToken(
-        HttpServletRequest request
+        HttpServletRequest request,
+        HttpServletResponse response
     ) {
 
         log.debug("[AuthController] RefreshToken으로 AccessToken 재발급 요청");
@@ -113,9 +115,14 @@ public class AuthController implements AuthApi {
             UUID userId = jwtTokenProvider.getUserIdFromToken(refreshToken);
             DiscodeitUserDetails discodeitUserDetails = discodeitUserDetailsService.loadUserByUserId(
                 userId);
+
             String newAccessToken = jwtTokenProvider.generateAccessToken(discodeitUserDetails);
             UserDto userDto = discodeitUserDetails.getUserDto();
             JwtDto jwtDto = new JwtDto(userDto, newAccessToken);
+
+            // RefreshToken Rotation
+            String newRefreshToken = jwtTokenProvider.generateRefreshToken(discodeitUserDetails);
+            jwtTokenProvider.addRefreshCookie(response, newRefreshToken);
 
             log.debug("[AuthController] Refresh 토큰으로 AccessToken 재발급 완료");
             return ResponseEntity
