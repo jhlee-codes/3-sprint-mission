@@ -2,6 +2,7 @@ package com.sprint.mission.discodeit.config;
 
 import com.sprint.mission.discodeit.auth.handler.CustomAccessDeniedHandler;
 import com.sprint.mission.discodeit.auth.handler.JwtLoginSuccessHandler;
+import com.sprint.mission.discodeit.auth.handler.JwtLogoutHandler;
 import com.sprint.mission.discodeit.auth.handler.LoginFailureHandler;
 import com.sprint.mission.discodeit.auth.jwt.JwtAuthenticationFilter;
 import com.sprint.mission.discodeit.entity.Role;
@@ -43,7 +44,7 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 @EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfig {
-    
+
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -89,7 +90,8 @@ public class SecurityConfig {
         CustomAccessDeniedHandler accessDeniedHandler,
         SessionRegistry sessionRegistry,
         JwtAuthenticationFilter jwtAuthenticationFilter,
-        JwtLoginSuccessHandler jwtLoginSuccessHandler) throws Exception {
+        JwtLoginSuccessHandler jwtLoginSuccessHandler,
+        JwtLogoutHandler jwtLogoutHandler) throws Exception {
 
         log.debug("[SecurityConfig] FilterChain 구성 시작");
 
@@ -152,6 +154,7 @@ public class SecurityConfig {
             // 로그아웃 설정
             .logout(logout -> logout
                 .logoutUrl("/api/auth/logout")
+                .addLogoutHandler(jwtLogoutHandler)
                 .logoutSuccessHandler(
                     new HttpStatusReturningLogoutSuccessHandler(HttpStatus.NO_CONTENT))
             )

@@ -114,9 +114,28 @@ public class JwtTokenProvider {
         return cookie;
     }
 
+    public Cookie generateRefreshTokenExpirationCookie() {
+        log.debug("[TokenProvider] Refresh Token 만료 쿠키 생성 시작");
+
+        Cookie cookie = new Cookie(REFRESH_TOKEN_COOKIE_NAME, "");
+        cookie.setHttpOnly(true);
+        cookie.setSecure(isCookieSecured);
+        cookie.setPath("/");
+        cookie.setMaxAge(0);
+
+        log.debug("[TokenProvider] Refresh Token 만료 쿠키 생성 완료");
+        return cookie;
+    }
+
     public void addRefreshCookie(HttpServletResponse response, String refreshToken) {
-        log.debug("[TokenProvider] Refresh Token 쿠키 응답에 추가 시작");
+        log.debug("[TokenProvider] Refresh Token 쿠키 응답에 추가");
         Cookie cookie = generateRefreshTokenCookie(refreshToken);
+        response.addCookie(cookie);
+    }
+
+    public void expireRefreshCookie(HttpServletResponse response) {
+        System.out.println("[TokenProvider] Refresh Token 만료 쿠키 응답에 추가");
+        Cookie cookie = generateRefreshTokenExpirationCookie();
         response.addCookie(cookie);
     }
 
