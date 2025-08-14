@@ -27,24 +27,7 @@ public interface AuthApi {
         )
     })
     ResponseEntity<Void> getCsrfToken(CsrfToken csrfToken);
-
-    @Operation(summary = "현재 로그인된 사용자 정보 조회")
-    @ApiResponses(value = {
-        @ApiResponse(
-            responseCode = "200",
-            description = "사용자 정보 조회 성공",
-            content = @Content(schema = @Schema(implementation = UserDto.class))
-        ),
-        @ApiResponse(
-            responseCode = "401",
-            description = "인증되지 않은 사용자",
-            content = @Content
-        )
-    })
-    ResponseEntity<UserDto> getCurrentUser(
-        @Parameter(hidden = true) @AuthenticationPrincipal DiscodeitUserDetails userDetails
-    );
-
+    
     @Operation(summary = "사용자 권한 변경")
     @ApiResponses(value = {
         @ApiResponse(

@@ -49,22 +49,6 @@ public class AuthController implements AuthApi {
             .build();
     }
 
-    @GetMapping("/me")
-    @Override
-    public ResponseEntity<UserDto> getCurrentUser(
-        @AuthenticationPrincipal DiscodeitUserDetails userDetails) {
-
-        log.debug("[AuthController] 세션 기반 사용자 정보 조회 요청(me)");
-
-        UserDto userDto = authService.getCurrentUserInfo(userDetails);
-
-        log.debug("[AuthController] 사용자 정보 조회 완료: " + userDto);
-
-        return ResponseEntity
-            .status(HttpStatus.OK)
-            .body(userDto);
-    }
-
     @PutMapping("/role")
     @Override
     public ResponseEntity<UserDto> updateUserRole(
