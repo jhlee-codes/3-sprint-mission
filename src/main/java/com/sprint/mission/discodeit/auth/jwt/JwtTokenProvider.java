@@ -7,14 +7,12 @@ import com.nimbusds.jose.JWSSigner;
 import com.nimbusds.jose.JWSVerifier;
 import com.nimbusds.jose.crypto.MACSigner;
 import com.nimbusds.jose.crypto.MACVerifier;
-import com.nimbusds.jose.util.Base64URL;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import com.sprint.mission.discodeit.auth.DiscodeitUserDetails;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import java.nio.charset.StandardCharsets;
-import java.util.Base64;
 import java.util.Date;
 import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
@@ -84,12 +82,12 @@ public class JwtTokenProvider {
 
         // 토큰 클레임 설정
         JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
-            .subject(discodeitUserDetails.getId().toString())   // ID값을 sub로 설정(불변)
+            .subject(discodeitUserDetails.getUsername())
             .jwtID(jti)
             .issueTime(now)
             .notBeforeTime(now)
             .expirationTime(expirationDate)
-            .claim("username", discodeitUserDetails.getUsername())
+            .claim("userId", discodeitUserDetails.getId().toString())
             .claim("type", tokenType)
             .build();
 
@@ -108,7 +106,7 @@ public class JwtTokenProvider {
         Cookie cookie = new Cookie(REFRESH_TOKEN_COOKIE_NAME, refreshToken);
         log.debug("[TokenProvider] Refresh Token 쿠키 응답에 추가");
         cookie.setHttpOnly(true);
-        cookie.setSecure(false);    // 개발 환경이라 false 처리
+        cookie.setSecure(isCookieSecured);    // 개발 환경이라 false 처리
         cookie.setPath("/");
         cookie.setMaxAge(refreshTokenExpirationMs / 1000);
 
@@ -119,7 +117,62 @@ public class JwtTokenProvider {
     public void addRefreshCookie(HttpServletResponse response, String refreshToken) {
         log.debug("[TokenProvider] Refresh Token 쿠키 응답에 추가 시작");
         Cookie cookie = generateRefreshTokenCookie(refreshToken);
-
         response.addCookie(cookie);
+    }
+
+    public boolean validateAccessToken(String accessToken) {
+        log.debug("[TokenProvider] Access Token 유효성 검사 시작");
+        boolean result = validateToken(accessToken, accessTokenVerifier, "access");
+        log.debug("[TokenProvider] Access Token 유효성 검사 완료 : {}", result);
+        return result;
+    }
+
+    public boolean validateRefreshToken(String refreshToken) {
+        log.debug("[TokenProvider] Refresh Token 유효성 검사 시작");
+        boolean result = validateToken(refreshToken, refreshTokenVerifier, "refresh");
+        log.debug("[TokenProvider] Refresh Token 유효성 검사 완료 : {}", result);
+        return result;
+    }
+
+    public boolean validateToken(String token, JWSVerifier verifier, String type) {
+        try {
+            SignedJWT signedJWT = SignedJWT.parse(token);
+
+            if (!signedJWT.verify(verifier)) {
+                log.debug("[TokenProvider] 서명 검증 실패");
+                return false;
+            }
+
+            String tokenType = signedJWT.getJWTClaimsSet().getStringClaim("type");
+            if (type.equals(tokenType)) {
+                log.debug("[TokenProvider] 토큰 타입 검증 실패");
+                return false;
+            }
+
+            Date exp = signedJWT.getJWTClaimsSet().getExpirationTime();
+            if (exp == null && exp.before(new Date())) {
+                log.debug("[TokenProvider] 만료 시간 검증 실패");
+                return false;
+            }
+
+            return true;
+        } catch (Exception e) {
+            log.error("[TokenProvider] 토큰 유효성 검증 예외 발생");
+            return false;
+        }
+    }
+
+    public String getUsernameFromToken(String token) {
+        try {
+            log.debug("[TokenProvider] 사용자명 추출 시작");
+
+            SignedJWT signedJWT = SignedJWT.parse(token);
+            String subject = signedJWT.getJWTClaimsSet().getSubject();
+
+            log.debug("[TokenProvider] 사용자명 추출 완료: {}", subject);
+            return subject;
+        } catch (Exception e) {
+            throw new IllegalArgumentException(e);
+        }
     }
 }
