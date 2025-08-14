@@ -39,6 +39,7 @@ import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 @Slf4j
 @Configuration
@@ -136,18 +137,19 @@ public class SecurityConfig {
 
             // 요청 권한 설정
             .authorizeHttpRequests(auth -> auth
-
                 .requestMatchers(
                     "/", "/index.html", "/favicon.ico", "/assets/**",
                     "/swagger-ui/**", "/v3/api-docs/**", "/actuator/**",
                     "/error", "/error/**"
                 ).permitAll()
 
-                .requestMatchers("/api/auth/csrf-token").permitAll()
-                .requestMatchers(HttpMethod.POST, "/api/users").permitAll()
-                .requestMatchers("/api/auth/login").permitAll()
-                .requestMatchers("/api/auth/logout").permitAll()
-                .requestMatchers("/api/auth/refresh").permitAll()
+                .requestMatchers(
+                    AntPathRequestMatcher.antMatcher(HttpMethod.GET, "/api/auth/csrf-token"),
+                    AntPathRequestMatcher.antMatcher(HttpMethod.POST, "/api/users"),
+                    AntPathRequestMatcher.antMatcher(HttpMethod.POST, "/api/auth/login"),
+                    AntPathRequestMatcher.antMatcher(HttpMethod.POST, "/api/auth/logout"),
+                    AntPathRequestMatcher.antMatcher(HttpMethod.POST, "/api/auth/refresh")
+                ).permitAll()
 
                 // 퍼블릭 채널 관리: CHANNEL_MANAGER
                 .requestMatchers(HttpMethod.POST, "/api/channels/public")
@@ -159,7 +161,6 @@ public class SecurityConfig {
 
                 // 사용자 권한 변경: ADMIN
                 .requestMatchers(HttpMethod.PUT, "/api/auth/role").hasRole(Role.ADMIN.name())
-
                 .anyRequest().authenticated()
             )
 
