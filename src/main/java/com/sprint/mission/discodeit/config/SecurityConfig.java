@@ -1,6 +1,5 @@
 package com.sprint.mission.discodeit.config;
 
-import com.sprint.mission.discodeit.auth.DiscodeitUserDetailsService;
 import com.sprint.mission.discodeit.auth.handler.CustomAccessDeniedHandler;
 import com.sprint.mission.discodeit.auth.handler.JwtLoginSuccessHandler;
 import com.sprint.mission.discodeit.auth.handler.LoginFailureHandler;
@@ -12,7 +11,6 @@ import java.util.List;
 import java.util.function.Supplier;
 import java.util.stream.IntStream;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -34,7 +32,6 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.Http403ForbiddenEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.logout.HttpStatusReturningLogoutSuccessHandler;
-import org.springframework.security.web.authentication.rememberme.TokenBasedRememberMeServices;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
@@ -46,10 +43,7 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 @EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfig {
-
-    @Value("${remember-me.key}")
-    private String rememberMeKey;
-
+    
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -89,32 +83,11 @@ public class SecurityConfig {
     }
 
     @Bean
-    public TokenBasedRememberMeServices rememberMeServices(
-        DiscodeitUserDetailsService userDetailsService) {
-
-        TokenBasedRememberMeServices rememberMeServices =
-            new TokenBasedRememberMeServices(
-                rememberMeKey,
-                userDetailsService
-            );
-
-        // 유지 기간: 7일
-        rememberMeServices.setTokenValiditySeconds(7 * 24 * 60 * 60);
-        rememberMeServices.setCookieName("remember-me");
-        rememberMeServices.setParameter("remember-me");
-
-        log.debug("[SecurityConfig] Remember-Me 설정 완료");
-
-        return rememberMeServices;
-    }
-
-    @Bean
     public SecurityFilterChain filterChain(
         HttpSecurity http,
         LoginFailureHandler loginFailureHandler,
         CustomAccessDeniedHandler accessDeniedHandler,
         SessionRegistry sessionRegistry,
-        TokenBasedRememberMeServices rememberMeService,
         JwtAuthenticationFilter jwtAuthenticationFilter,
         JwtLoginSuccessHandler jwtLoginSuccessHandler) throws Exception {
 
@@ -181,11 +154,6 @@ public class SecurityConfig {
                 .logoutUrl("/api/auth/logout")
                 .logoutSuccessHandler(
                     new HttpStatusReturningLogoutSuccessHandler(HttpStatus.NO_CONTENT))
-            )
-
-            // Remember-Me 설정
-            .rememberMe(remember -> remember
-                .rememberMeServices(rememberMeService)
             )
 
             // 예외 처리 설정
