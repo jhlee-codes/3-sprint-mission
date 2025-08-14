@@ -69,6 +69,7 @@ public class AuthController implements AuthApi {
     }
 
     @PostMapping("/refresh")
+    @Override
     public ResponseEntity<?> refreshAccessToken(
         HttpServletRequest request,
         HttpServletResponse response
