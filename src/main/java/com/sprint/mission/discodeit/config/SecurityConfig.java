@@ -5,8 +5,12 @@ import com.sprint.mission.discodeit.auth.handler.CustomAccessDeniedHandler;
 import com.sprint.mission.discodeit.auth.handler.JwtLoginSuccessHandler;
 import com.sprint.mission.discodeit.auth.handler.LoginFailureHandler;
 import com.sprint.mission.discodeit.auth.handler.LoginSuccessHandler;
+import com.sprint.mission.discodeit.auth.jwt.JwtAuthenticationFilter;
 import com.sprint.mission.discodeit.entity.Role;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.List;
+import java.util.function.Supplier;
 import java.util.stream.IntStream;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -29,9 +33,11 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.Http403ForbiddenEntryPoint;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.logout.HttpStatusReturningLogoutSuccessHandler;
 import org.springframework.security.web.authentication.rememberme.TokenBasedRememberMeServices;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
 
@@ -109,6 +115,7 @@ public class SecurityConfig {
         CustomAccessDeniedHandler accessDeniedHandler,
         SessionRegistry sessionRegistry,
         TokenBasedRememberMeServices rememberMeService,
+        JwtAuthenticationFilter jwtAuthenticationFilter,
         JwtLoginSuccessHandler jwtLoginSuccessHandler) throws Exception {
 
         log.debug("[SecurityConfig] FilterChain 구성 시작");
@@ -117,7 +124,15 @@ public class SecurityConfig {
             // CSRF 설정
             .csrf(csrf -> csrf
                 .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler())
+                .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler() {
+                    // 토큰을 강제 로드해서 XSRF-TOKEN 쿠키의 발급/회전을 보강하는 handle 메서드 재정의
+                    @Override
+                    public void handle(HttpServletRequest request, HttpServletResponse response,
+                        Supplier<CsrfToken> csrfToken) {
+                        super.handle(request, response, csrfToken);
+                        csrfToken.get();
+                    }
+                })
             )
 
             // 요청 권한 설정
@@ -125,7 +140,8 @@ public class SecurityConfig {
 
                 .requestMatchers(
                     "/", "/index.html", "/favicon.ico", "/assets/**",
-                    "/swagger-ui/**", "/v3/api-docs/**", "/actuator/**"
+                    "/swagger-ui/**", "/v3/api-docs/**", "/actuator/**",
+                    "/error", "/error/**"
                 ).permitAll()
 
                 .requestMatchers("/api/auth/csrf-token").permitAll()
@@ -175,7 +191,10 @@ public class SecurityConfig {
             .exceptionHandling(ex -> ex
                 .authenticationEntryPoint(new Http403ForbiddenEntryPoint())
                 .accessDeniedHandler(accessDeniedHandler)
-            );
+            )
+
+            // JWT 인증 필터 UsernamePasswordAuthenticationFilter 이전에 배치
+            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         log.debug("[SecurityConfig] FilterChain 구성 완료");
         return http.build();
