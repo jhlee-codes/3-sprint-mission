@@ -81,3 +81,4 @@ jwt:
     exp: 3600000
   cookie:
     secure: false
+  max-active-count: 1

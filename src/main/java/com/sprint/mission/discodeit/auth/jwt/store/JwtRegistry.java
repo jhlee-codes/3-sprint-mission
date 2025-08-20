@@ -15,5 +15,5 @@ public interface JwtRegistry {
 
     boolean hasActiveJwtInformationByRefreshToken(String refreshToken);
 
-    JwtInformation rotateJwtInformation(String refreshToken, JwtInformation newJwtInformation);
+    void rotateJwtInformation(String refreshToken, JwtInformation newJwtInformation);
 }

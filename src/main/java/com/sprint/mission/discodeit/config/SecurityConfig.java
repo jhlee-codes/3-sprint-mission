@@ -88,7 +88,6 @@ public class SecurityConfig {
         HttpSecurity http,
         LoginFailureHandler loginFailureHandler,
         CustomAccessDeniedHandler accessDeniedHandler,
-        SessionRegistry sessionRegistry,
         JwtAuthenticationFilter jwtAuthenticationFilter,
         JwtLoginSuccessHandler jwtLoginSuccessHandler,
         JwtLogoutHandler jwtLogoutHandler) throws Exception {
