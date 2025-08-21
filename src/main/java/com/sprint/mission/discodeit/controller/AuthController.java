@@ -1,25 +1,21 @@
 package com.sprint.mission.discodeit.controller;
 
-import com.sprint.mission.discodeit.auth.DiscodeitUserDetails;
 import com.sprint.mission.discodeit.auth.DiscodeitUserDetailsService;
 import com.sprint.mission.discodeit.auth.jwt.JwtTokenProvider;
+import com.sprint.mission.discodeit.auth.jwt.store.JwtRegistry;
 import com.sprint.mission.discodeit.controller.api.AuthApi;
-import com.sprint.mission.discodeit.dto.Common.ApiErrorResponse;
 import com.sprint.mission.discodeit.dto.JwtDto;
 import com.sprint.mission.discodeit.dto.User.UserDto;
 import com.sprint.mission.discodeit.dto.User.UserRoleUpdateRequest;
 import com.sprint.mission.discodeit.service.AuthService;
 import com.sprint.mission.discodeit.service.UserService;
-import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.web.csrf.CsrfToken;
+import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -37,6 +33,7 @@ public class AuthController implements AuthApi {
     private final UserService userService;
     private final JwtTokenProvider jwtTokenProvider;
     private final DiscodeitUserDetailsService discodeitUserDetailsService;
+    private final JwtRegistry jwtRegistry;
 
     @GetMapping("/csrf-token")
     @Override
@@ -71,53 +68,20 @@ public class AuthController implements AuthApi {
     @PostMapping("/refresh")
     @Override
     public ResponseEntity<?> refreshAccessToken(
-        HttpServletRequest request,
+        @CookieValue(
+            name = JwtTokenProvider.REFRESH_TOKEN_COOKIE_NAME,
+            required = false
+        ) String refreshToken,
         HttpServletResponse response
     ) {
 
         log.debug("[AuthController] RefreshToken으로 AccessToken 재발급 요청");
 
-        String refreshToken = null;
-        for (Cookie cookie : request.getCookies()) {
-            if ("REFRESH_TOKEN".equals(cookie.getName())) {
-                refreshToken = cookie.getValue();
-                break;
-            }
-        }
+        JwtDto jwtDto = authService.refreshToken(refreshToken, response);
 
-        if (refreshToken == null || !jwtTokenProvider.validateRefreshToken(refreshToken)) {
-            log.debug("[AuthController] 유효하지 않은 RefreshToken");
-
-            ApiErrorResponse apiErrorResponse = ApiErrorResponse.of(HttpStatus.UNAUTHORIZED,
-                "Refresh Token이 유효하지 않습니다.");
-
-            return ResponseEntity
-                .status(HttpStatus.UNAUTHORIZED)
-                .body(apiErrorResponse);
-        }
-
-        try {
-            UUID userId = jwtTokenProvider.getUserIdFromToken(refreshToken);
-            DiscodeitUserDetails discodeitUserDetails = discodeitUserDetailsService.loadUserByUserId(
-                userId);
-
-            String newAccessToken = jwtTokenProvider.generateAccessToken(discodeitUserDetails);
-            UserDto userDto = discodeitUserDetails.getUserDto();
-            JwtDto jwtDto = new JwtDto(userDto, newAccessToken);
-
-            // RefreshToken Rotation
-            String newRefreshToken = jwtTokenProvider.generateRefreshToken(discodeitUserDetails);
-            jwtTokenProvider.addRefreshCookie(response, newRefreshToken);
-
-            log.debug("[AuthController] Refresh 토큰으로 AccessToken 재발급 완료");
-            return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(jwtDto);
-        } catch (Exception e) {
-            log.error("[AuthController] 토큰 재발급 중 예외", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(
-                    ApiErrorResponse.of(HttpStatus.INTERNAL_SERVER_ERROR, "토큰 재발급 중 오류가 발생했습니다."));
-        }
+        log.debug("[AuthController] Refresh 토큰으로 AccessToken 재발급 완료");
+        return ResponseEntity
+            .status(HttpStatus.OK)
+            .body(jwtDto);
     }
 }

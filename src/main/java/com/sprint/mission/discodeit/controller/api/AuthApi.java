@@ -68,7 +68,7 @@ public interface AuthApi {
         )
     })
     ResponseEntity<?> refreshAccessToken(
-        HttpServletRequest request,
+        String refreshToken,
         HttpServletResponse response
     );
 }
