@@ -7,7 +7,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
-
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -34,7 +33,7 @@ public class InMemoryJwtRegistry implements JwtRegistry {
         origin.compute(userId, (id, q) -> {
             Queue<JwtInformation> queue = (q == null) ? new ConcurrentLinkedQueue<>() : q;
 
-            if (queue.size() >= maxActiveJwtCount) {
+            if (!queue.isEmpty()) {
                 JwtInformation removed = queue.poll();
                 if (removed != null) {
                     removeTokenIndex(
@@ -44,7 +43,7 @@ public class InMemoryJwtRegistry implements JwtRegistry {
                 }
             }
 
-            queue.add(jwtInformation);
+            queue.offer(jwtInformation);
             addTokenIndex(
                 jwtInformation.accessToken(),
                 jwtInformation.refreshToken()
@@ -67,9 +66,11 @@ public class InMemoryJwtRegistry implements JwtRegistry {
                 );
             });
             q.clear();
-            log.debug("[InMemoryJwtRegistry] JwtInformation 무효화 완료 - userId={}", userId);
             return null;
         });
+
+        origin.remove(userId);
+        log.debug("[InMemoryJwtRegistry] JwtInformation 무효화 완료 - userId={}", userId);
     }
 
     @Override
