@@ -35,13 +35,11 @@ import org.springframework.util.StringUtils;
 @RequiredArgsConstructor
 public class BasicUserService implements UserService {
 
-    private final AuthService authService;
     private final UserRepository userRepository;
     private final BinaryContentRepository binaryContentRepository;
     private final BinaryContentStorage binaryContentStorage;
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
-    private final SessionRegistry sessionRegistry;
     private final JwtRegistry jwtRegistry;
 
     /**
