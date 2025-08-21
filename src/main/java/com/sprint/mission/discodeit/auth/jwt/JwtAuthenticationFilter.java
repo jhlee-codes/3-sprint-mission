@@ -39,13 +39,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             log.debug("[JwtAuthenticationFilter] 요청 처리 시작: {} {}", request.getMethod(),
                 request.getRequestURI());
 
-            // 이미 인증된 경우 스킵
-            if (SecurityContextHolder.getContext().getAuthentication() != null) {
-                log.debug("[JwtAuthenticationFilter] 인증 컨텍스트 존재 → 토큰 검증 스킵");
-                filterChain.doFilter(request, response);
-                return;
-            }
-
             String token = resolveToken(request);
             if (token != null) {
                 log.debug("[JwtAuthenticationFilter] Bearer 토큰 추출 성공");

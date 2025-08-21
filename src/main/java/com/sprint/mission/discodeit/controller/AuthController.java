@@ -31,9 +31,6 @@ public class AuthController implements AuthApi {
 
     private final AuthService authService;
     private final UserService userService;
-    private final JwtTokenProvider jwtTokenProvider;
-    private final DiscodeitUserDetailsService discodeitUserDetailsService;
-    private final JwtRegistry jwtRegistry;
 
     @GetMapping("/csrf-token")
     @Override

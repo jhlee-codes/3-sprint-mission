@@ -43,11 +43,15 @@ public class JwtLoginSuccessHandler implements AuthenticationSuccessHandler {
                 log.debug("[JwtLoginSuccessHandler] 새 토큰 발급 시작: username={}",
                     discodeitUserDetails.getUsername());
 
+                UserDto userDto = discodeitUserDetails.getUserDto();
+
+                log.debug("[JwtLoginSuccessHandler] 동일 계정의 기존 로그인 모두 무효화");
+                jwtRegistry.invalidateJwtInformationByUserId(userDto.id());
+
                 String accessToken = jwtTokenProvider.generateAccessToken(discodeitUserDetails);
                 String refreshToken = jwtTokenProvider.generateRefreshToken(discodeitUserDetails);
-                UserDto userDto = discodeitUserDetails.getUserDto();
                 JwtDto jwtDto = new JwtDto(userDto, accessToken);
-
+                
                 log.debug("[JwtLoginSuccessHandler] jwtRegistry에 JwtInformation 등록 시작");
                 jwtRegistry.registerJwtInformation(
                     new JwtInformation(userDto, accessToken, refreshToken));

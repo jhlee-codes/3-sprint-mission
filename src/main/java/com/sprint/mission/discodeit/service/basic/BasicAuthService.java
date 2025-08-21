@@ -52,8 +52,7 @@ public class BasicAuthService implements AuthService {
 
         log.debug("[AuthService] RefreshToken으로 AccessToken 재발급 시작");
 
-        if (refreshToken == null || !jwtTokenProvider.validateRefreshToken(refreshToken)
-            || !jwtRegistry.hasActiveJwtInformationByRefreshToken(refreshToken)) {
+        if (refreshToken == null || !jwtTokenProvider.validateRefreshToken(refreshToken)) {
             log.debug("[AuthService] 유효하지 않은 RefreshToken");
             throw new InvalidTokenException(refreshToken);
         }

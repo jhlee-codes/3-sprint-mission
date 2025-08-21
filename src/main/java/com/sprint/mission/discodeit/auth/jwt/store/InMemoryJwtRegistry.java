@@ -33,7 +33,7 @@ public class InMemoryJwtRegistry implements JwtRegistry {
         origin.compute(userId, (id, q) -> {
             Queue<JwtInformation> queue = (q == null) ? new ConcurrentLinkedQueue<>() : q;
 
-            if (!queue.isEmpty()) {
+            while (queue.size() >= maxActiveJwtCount) {
                 JwtInformation removed = queue.poll();
                 if (removed != null) {
                     removeTokenIndex(
@@ -66,21 +66,28 @@ public class InMemoryJwtRegistry implements JwtRegistry {
                 );
             });
             q.clear();
+            log.debug("[InMemoryJwtRegistry] JwtInformation 무효화 완료 - userId={}", userId);
             return null;
         });
-
-        origin.remove(userId);
-        log.debug("[InMemoryJwtRegistry] JwtInformation 무효화 완료 - userId={}", userId);
     }
 
     @Override
     public boolean hasActiveJwtInformationByUserId(UUID userId) {
-        return origin.containsKey(userId);
+        Queue<JwtInformation> q = origin.get(userId);
+        return q != null && !q.isEmpty();
     }
 
     @Override
     public boolean hasActiveJwtInformationByAccessToken(String accessToken) {
-        return accessTokenIndexes.contains(accessToken);
+        boolean result = accessTokenIndexes.contains(accessToken);
+        if (!result) {
+            log.debug("[InMemoryJwtRegistry] Access Token 유효성 검사 실패");
+
+            for (String accessTokenIndex : accessTokenIndexes) {
+                System.out.println("[ACCESS TOKEN 확인] : " + accessTokenIndex);
+            }
+        }
+        return result;
     }
 
     @Override
@@ -96,17 +103,20 @@ public class InMemoryJwtRegistry implements JwtRegistry {
         log.debug("[InMemoryJwtRegistry] Token Rotation 시작 - userId={}", userId);
 
         origin.computeIfPresent(userId, (id, q) -> {
-            q.stream().filter(jwtInformation -> jwtInformation.refreshToken().equals(refreshToken))
-                .findFirst()
-                .ifPresent(jwtInformation -> {
-                    removeTokenIndex(jwtInformation.accessToken(), jwtInformation.refreshToken());
-                    jwtInformation.rotate(
-                        newJwtInformation.accessToken(),
-                        newJwtInformation.refreshToken()
-                    );
-                    addTokenIndex(newJwtInformation.accessToken(),
-                        newJwtInformation.refreshToken());
-                });
+            JwtInformation target = q.stream()
+                .filter(jwtInformation -> jwtInformation.refreshToken().equals(refreshToken))
+                .findFirst().orElse(null);
+
+            if (target == null) {
+                log.warn("[InMemoryJwtRegistry] Refresh 토큰 매칭 실패");
+                System.out.println(origin);
+                System.out.println("refreshToken = " + refreshToken);
+                return q;
+            }
+
+            removeTokenIndex(target.accessToken(), target.refreshToken());
+            target.rotate(newJwtInformation.accessToken(), newJwtInformation.refreshToken());
+            addTokenIndex(newJwtInformation.accessToken(), newJwtInformation.refreshToken());
 
             log.debug("[InMemoryJwtRegistry] Token Rotation 완료 - userId={}", userId);
             return q;
