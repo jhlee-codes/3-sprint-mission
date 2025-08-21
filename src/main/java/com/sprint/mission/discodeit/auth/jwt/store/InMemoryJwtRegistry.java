@@ -1,5 +1,6 @@
 package com.sprint.mission.discodeit.auth.jwt.store;
 
+import com.sprint.mission.discodeit.auth.jwt.JwtTokenProvider;
 import com.sprint.mission.discodeit.dto.JwtInformation;
 import java.util.Map;
 import java.util.Queue;
@@ -96,31 +97,41 @@ public class InMemoryJwtRegistry implements JwtRegistry {
     }
 
     @Override
-    public void rotateJwtInformation(String refreshToken,
+    public boolean rotateJwtInformation(String refreshToken,
         JwtInformation newJwtInformation) {
 
         UUID userId = newJwtInformation.userDto().id();
         log.debug("[InMemoryJwtRegistry] Token Rotation 시작 - userId={}", userId);
 
+        final boolean[] updated = {false};
+
         origin.computeIfPresent(userId, (id, q) -> {
+
             JwtInformation target = q.stream()
                 .filter(jwtInformation -> jwtInformation.refreshToken().equals(refreshToken))
                 .findFirst().orElse(null);
 
             if (target == null) {
                 log.warn("[InMemoryJwtRegistry] Refresh 토큰 매칭 실패");
-                System.out.println(origin);
-                System.out.println("refreshToken = " + refreshToken);
                 return q;
             }
 
             removeTokenIndex(target.accessToken(), target.refreshToken());
-            target.rotate(newJwtInformation.accessToken(), newJwtInformation.refreshToken());
+            JwtInformation replaced = target.rotate(newJwtInformation.accessToken(),
+                newJwtInformation.refreshToken());
+
+            // 큐 교체
+            q.remove(target);
+            q.offer(replaced);
+
             addTokenIndex(newJwtInformation.accessToken(), newJwtInformation.refreshToken());
 
+            updated[0] = true;
             log.debug("[InMemoryJwtRegistry] Token Rotation 완료 - userId={}", userId);
             return q;
         });
+
+        return updated[0];
     }
 
     private void addTokenIndex(String accessToken, String refreshToken) {

@@ -67,12 +67,17 @@ public class BasicAuthService implements AuthService {
             String newRefreshToken = jwtTokenProvider.generateRefreshToken(discodeitUserDetails);
 
             log.debug("[AuthService] JwtInformation 회전 시작");
-            jwtRegistry.rotateJwtInformation(refreshToken,
+            boolean rotatedSuccess = jwtRegistry.rotateJwtInformation(refreshToken,
                 new JwtInformation(userDto, newAccessToken, newRefreshToken));
+
+            if (!rotatedSuccess) {
+                log.warn("[AuthService] Refresh 회전 실패 - userId={}", userId);
+                jwtTokenProvider.expireRefreshCookie(response);
+                throw new InvalidTokenException("refresh-rotation-failed");
+            }
 
             // RefreshToken Rotation
             jwtTokenProvider.addRefreshCookie(response, newRefreshToken);
-
             log.debug("[AuthService] Refresh 토큰으로 AccessToken 재발급 완료");
             return new JwtDto(userDto, newAccessToken);
         } catch (Exception e) {
