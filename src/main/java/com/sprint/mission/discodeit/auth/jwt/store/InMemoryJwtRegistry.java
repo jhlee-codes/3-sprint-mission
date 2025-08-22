@@ -128,8 +128,8 @@ public class InMemoryJwtRegistry implements JwtRegistry {
             Queue<JwtInformation> queue = entry.getValue();
             queue.removeIf(jwtInformation -> {
                 boolean isExpired =
-                    jwtTokenProvider.validateAccessToken(jwtInformation.getAccessToken()) ||
-                        jwtTokenProvider.validateRefreshToken(jwtInformation.getRefreshToken());
+                    !jwtTokenProvider.validateAccessToken(jwtInformation.getAccessToken()) ||
+                        !jwtTokenProvider.validateRefreshToken(jwtInformation.getRefreshToken());
                 if (isExpired) {
                     removeTokenIndex(
                         jwtInformation.getAccessToken(),
