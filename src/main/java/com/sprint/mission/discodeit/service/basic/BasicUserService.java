@@ -209,24 +209,4 @@ public class BasicUserService implements UserService {
         userRepository.deleteById(userId);
         log.info("유저 삭제 완료: ID = {}", userId);
     }
-
-    @Override
-    @Transactional
-    public UserDto updateUserRole(UUID userId, Role newRole) {
-
-        log.info("유저 권한 변경 요청: ID = {}, Role = {}", userId, newRole);
-
-        User user = userRepository.findById(userId)
-            .orElseThrow(() -> UserNotFoundException.byId(userId));
-
-        user.updateRole(newRole);
-        User updateUser = userRepository.save(user);
-
-        log.info("사용자의 JwtInformation 정보 무효화 시작");
-        jwtRegistry.invalidateJwtInformationByUserId(updateUser.getId());
-
-        log.info("유저 권한 변경 완료: ID = {}, Role = {}", userId, newRole);
-
-        return userMapper.toDto(updateUser);
-    }
 }
