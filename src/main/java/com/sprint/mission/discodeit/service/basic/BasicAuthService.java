@@ -9,6 +9,7 @@ import com.sprint.mission.discodeit.dto.JwtInformation;
 import com.sprint.mission.discodeit.dto.User.UserDto;
 import com.sprint.mission.discodeit.entity.Role;
 import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.event.RoleUpdatedEvent;
 import com.sprint.mission.discodeit.exception.Auth.InvalidTokenException;
 import com.sprint.mission.discodeit.exception.User.UserNotFoundException;
 import com.sprint.mission.discodeit.mapper.UserMapper;
@@ -18,6 +19,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,6 +34,7 @@ public class BasicAuthService implements AuthService {
     private final JwtTokenProvider jwtTokenProvider;
     private final JwtRegistry jwtRegistry;
     private final DiscodeitUserDetailsService discodeitUserDetailsService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
     @Transactional(readOnly = true)
@@ -103,6 +106,9 @@ public class BasicAuthService implements AuthService {
 
         log.info("사용자의 JwtInformation 정보 무효화 시작");
         jwtRegistry.invalidateJwtInformationByUserId(updateUser.getId());
+
+        RoleUpdatedEvent event = new RoleUpdatedEvent(userId, newRole);
+        eventPublisher.publishEvent(event);
 
         log.info("유저 권한 변경 완료: ID = {}, Role = {}", userId, newRole);
 
