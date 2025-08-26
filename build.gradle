@@ -83,6 +83,9 @@ dependencies {
 
     // JWT 의존성 추가
     implementation 'com.nimbusds:nimbus-jose-jwt:10.3'
+
+    // spring-retry 의존성 추가
+    implementation 'org.springframework.retry:spring-retry:2.0.12'
 }
 
 tasks.withType(JavaCompile) {
