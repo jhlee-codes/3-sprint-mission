@@ -24,6 +24,9 @@ public enum ErrorCode {
     READ_STATUS_NOT_FOUND("존재하지 않는 ReadStatus입니다."),
     DUPLICATE_READ_STATUS("이미 존재하는 ReadStatus입니다."),
 
+    // Notification
+    NOTIFICATION_NOT_FOUND("존재하지 않는 알림입니다."),
+
     // Auth
     TOKEN_INVALID("유효하지 않은 토큰입니다.");
 

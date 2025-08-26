@@ -8,12 +8,12 @@ import lombok.Getter;
 @Getter
 public class MessageNotFoundException extends MessageException {
 
-    public final UUID messageId;
+    private final UUID messageId;
 
     public MessageNotFoundException(UUID messageId) {
         super(
-                ErrorCode.MESSAGE_NOT_FOUND,
-                Map.of("messageId", messageId)
+            ErrorCode.MESSAGE_NOT_FOUND,
+            Map.of("messageId", messageId)
         );
         this.messageId = messageId;
     }

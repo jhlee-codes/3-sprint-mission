@@ -4,6 +4,7 @@ import com.sprint.mission.discodeit.exception.BinaryContent.BinaryContentNotFoun
 import com.sprint.mission.discodeit.exception.Channel.ChannelNotFoundException;
 import com.sprint.mission.discodeit.exception.Channel.PrivateChannelUpdateException;
 import com.sprint.mission.discodeit.exception.Message.MessageNotFoundException;
+import com.sprint.mission.discodeit.exception.Notification.NotificationNotFoundException;
 import com.sprint.mission.discodeit.exception.ReadStatus.ReadStatusAlreadyExistsException;
 import com.sprint.mission.discodeit.exception.ReadStatus.ReadStatusNotFoundException;
 import com.sprint.mission.discodeit.exception.User.UserAlreadyExistsException;
@@ -113,6 +114,15 @@ public class GlobalExceptionHandler {
         ReadStatusAlreadyExistsException e) {
         log.warn("Read status already exists: {}", e.getMessage());
         return toErrorResponse(HttpStatus.CONFLICT, e);
+    }
+
+    // Notification
+    @ExceptionHandler(NotificationNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleNotificationNotFoundException(
+        NotificationNotFoundException e
+    ) {
+        log.warn("Notification not found: {}", e.getMessage());
+        return toErrorResponse(HttpStatus.NOT_FOUND, e);
     }
 
     // 입력값 유효성 검증 실패
