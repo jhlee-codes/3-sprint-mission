@@ -43,6 +43,9 @@ management:
   endpoint:
     health:
       show-details: always
+  observations:
+    annotations:
+      enabled: true
 
 # 애플리케이션 정보 (Actuator info 엔드포인트용)
 info:

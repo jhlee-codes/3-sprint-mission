@@ -8,6 +8,7 @@ import com.sprint.mission.discodeit.dto.Message.MessageUpdateRequest;
 import com.sprint.mission.discodeit.dto.response.PageResponse;
 import com.sprint.mission.discodeit.service.MessageService;
 import com.sprint.mission.discodeit.common.util.BinaryContentUtil;
+import io.micrometer.core.annotation.Timed;
 import jakarta.validation.Valid;
 import java.time.Instant;
 import java.util.List;
@@ -45,6 +46,7 @@ public class MessageController implements MessageApi {
      * @param attachments          첨부파일 목록
      * @return 생성된 Message (HTTP 201 CREATED)
      */
+    @Timed("message.create.async")
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Override
     public ResponseEntity<MessageDto> create(
