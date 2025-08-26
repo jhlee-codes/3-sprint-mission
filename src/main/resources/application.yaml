@@ -82,3 +82,22 @@ jwt:
   cookie:
     secure: false
   max-active-count: 1
+
+# 비동기 설정
+async:
+  executors:
+    file:
+      core-size: 2
+      max-size: 4
+      queue-capacity: 100
+      keep-alive-seconds: 120
+    notification:
+      core-size: 2
+      max-size: 4
+      queue-capacity: 500
+      keep-alive-seconds: 60
+    default:
+      core-size: 2
+      max-size: 4
+      queue-capacity: 100
+      keep-alive-seconds: 60
