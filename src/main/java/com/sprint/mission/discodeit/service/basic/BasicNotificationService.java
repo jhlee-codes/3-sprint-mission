@@ -38,6 +38,8 @@ public class BasicNotificationService implements NotificationService {
 
         List<Notification> notifications = notificationRepository.findAllByReceiverId(receiverId);
 
+        log.debug("[NotificationService] 전체 알림 {}개 조회 완료", notifications.size());
+
         return notifications.stream()
             .map(notificationMapper::toDto)
             .toList();

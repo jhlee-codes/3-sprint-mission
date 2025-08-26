@@ -22,7 +22,7 @@ public class Notification extends BaseEntity {
     @JoinColumn(name = "receiver_id")
     private User receiver;
 
-    @Column(name = "title", length = 20)
+    @Column(name = "title")
     private String title;
 
     @Column(name = "content")

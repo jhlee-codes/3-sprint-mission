@@ -109,7 +109,7 @@ CREATE TABLE IF NOT EXISTS notifications
     id          UUID PRIMARY KEY,
     created_at  timestamp with time zone NOT NULL,
     receiver_id UUID                     NOT NULL,
-    title       VARCHAR(20),
+    title       VARCHAR,
     content     TEXT,
 
     CONSTRAINT fk_receiver_id_users FOREIGN KEY (receiver_id)
