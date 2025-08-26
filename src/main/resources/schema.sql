@@ -51,12 +51,13 @@ CREATE TABLE IF NOT EXISTS channels
 -- read_statuses
 CREATE TABLE IF NOT EXISTS read_statuses
 (
-    id           UUID PRIMARY KEY,
-    created_at   timestamp with time zone NOT NULL,
-    updated_at   timestamp with time zone,
-    user_id      UUID,
-    channel_id   UUID,
-    last_read_at timestamp with time zone NOT NULL,
+    id                   UUID PRIMARY KEY,
+    created_at           timestamp with time zone NOT NULL,
+    updated_at           timestamp with time zone,
+    user_id              UUID,
+    channel_id           UUID,
+    last_read_at         timestamp with time zone NOT NULL,
+    notification_enabled boolean                  NOT NULL,
 
     UNIQUE (user_id, channel_id),
 

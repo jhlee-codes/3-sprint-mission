@@ -18,10 +18,10 @@ import lombok.ToString;
 @Getter
 @Entity
 @Table(
-        name = "read_statuses",
-        uniqueConstraints = {
-                @UniqueConstraint(columnNames = {"user_id", "channel_id"})
-        }
+    name = "read_statuses",
+    uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"user_id", "channel_id"})
+    }
 )
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ReadStatus extends BaseUpdatableEntity {
@@ -37,11 +37,15 @@ public class ReadStatus extends BaseUpdatableEntity {
     @Column(name = "last_read_at", columnDefinition = "timestamp with time zone", nullable = false)
     private Instant lastReadAt;
 
+    @Column(name = "notification_enabled")
+    private boolean notificationEnabled;
+
     @Builder
     public ReadStatus(User user, Channel channel, Instant lastReadAt) {
         this.user = user;
         this.channel = channel;
         this.lastReadAt = lastReadAt;
+        this.notificationEnabled = channel.getType() == ChannelType.PRIVATE;
     }
 
     public void update(Instant newLastReadAt) {

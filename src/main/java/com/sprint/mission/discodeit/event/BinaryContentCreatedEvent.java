@@ -1,6 +1,5 @@
 package com.sprint.mission.discodeit.event;
 
-import com.sprint.mission.discodeit.dto.BinaryContent.BinaryContentDto;
 import java.util.UUID;
 
 public record BinaryContentCreatedEvent(
