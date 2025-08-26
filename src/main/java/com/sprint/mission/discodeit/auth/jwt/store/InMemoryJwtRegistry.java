@@ -1,7 +1,7 @@
 package com.sprint.mission.discodeit.auth.jwt.store;
 
 import com.sprint.mission.discodeit.auth.jwt.JwtTokenProvider;
-import com.sprint.mission.discodeit.dto.JwtInformation;
+import com.sprint.mission.discodeit.dto.Jwt.JwtInformation;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;

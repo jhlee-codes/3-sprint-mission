@@ -1,4 +1,4 @@
-package com.sprint.mission.discodeit.dto;
+package com.sprint.mission.discodeit.dto.Jwt;
 
 import com.sprint.mission.discodeit.dto.User.UserDto;
 import lombok.AllArgsConstructor;

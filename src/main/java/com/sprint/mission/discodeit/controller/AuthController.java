@@ -2,11 +2,10 @@ package com.sprint.mission.discodeit.controller;
 
 import com.sprint.mission.discodeit.auth.jwt.JwtTokenProvider;
 import com.sprint.mission.discodeit.controller.api.AuthApi;
-import com.sprint.mission.discodeit.dto.JwtDto;
+import com.sprint.mission.discodeit.dto.Jwt.JwtDto;
 import com.sprint.mission.discodeit.dto.User.UserDto;
 import com.sprint.mission.discodeit.dto.User.UserRoleUpdateRequest;
 import com.sprint.mission.discodeit.service.AuthService;
-import com.sprint.mission.discodeit.service.UserService;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

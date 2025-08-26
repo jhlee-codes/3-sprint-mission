@@ -5,8 +5,8 @@ import com.sprint.mission.discodeit.auth.DiscodeitUserDetails;
 import com.sprint.mission.discodeit.auth.jwt.JwtTokenProvider;
 import com.sprint.mission.discodeit.auth.jwt.store.JwtRegistry;
 import com.sprint.mission.discodeit.dto.Common.ApiErrorResponse;
-import com.sprint.mission.discodeit.dto.JwtDto;
-import com.sprint.mission.discodeit.dto.JwtInformation;
+import com.sprint.mission.discodeit.dto.Jwt.JwtDto;
+import com.sprint.mission.discodeit.dto.Jwt.JwtInformation;
 import com.sprint.mission.discodeit.dto.User.UserDto;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -51,7 +51,7 @@ public class JwtLoginSuccessHandler implements AuthenticationSuccessHandler {
                 String accessToken = jwtTokenProvider.generateAccessToken(discodeitUserDetails);
                 String refreshToken = jwtTokenProvider.generateRefreshToken(discodeitUserDetails);
                 JwtDto jwtDto = new JwtDto(userDto, accessToken);
-                
+
                 log.debug("[JwtLoginSuccessHandler] jwtRegistry에 JwtInformation 등록 시작");
                 jwtRegistry.registerJwtInformation(
                     new JwtInformation(userDto, accessToken, refreshToken));
