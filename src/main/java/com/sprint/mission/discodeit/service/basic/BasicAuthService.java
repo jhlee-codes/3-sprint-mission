@@ -103,13 +103,14 @@ public class BasicAuthService implements AuthService {
         User user = userRepository.findById(userId)
             .orElseThrow(() -> UserNotFoundException.byId(userId));
 
+        Role beforeRole = user.getRole();
         user.updateRole(newRole);
         User updateUser = userRepository.save(user);
 
         log.info("사용자의 JwtInformation 정보 무효화 시작");
         jwtRegistry.invalidateJwtInformationByUserId(updateUser.getId());
 
-        RoleUpdatedEvent event = new RoleUpdatedEvent(userId, newRole);
+        RoleUpdatedEvent event = new RoleUpdatedEvent(userId, beforeRole, updateUser.getRole());
         eventPublisher.publishEvent(event);
 
         log.info("유저 권한 변경 완료: ID = {}, Role = {}", userId, newRole);
