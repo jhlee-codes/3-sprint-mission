@@ -7,6 +7,7 @@ DROP TABLE IF EXISTS read_statuses CASCADE;
 DROP TABLE IF EXISTS channels CASCADE;
 DROP TABLE IF EXISTS messages CASCADE;
 DROP TABLE IF EXISTS message_attachments CASCADE;
+DROP TABLE IF EXISTS notifications CASCADE;
 
 -- binary_contents
 CREATE TABLE IF NOT EXISTS binary_contents
@@ -102,3 +103,16 @@ CREATE TABLE IF NOT EXISTS message_attachments
         REFERENCES binary_contents (id)
         ON DELETE CASCADE
 );
+
+CREATE TABLE IF NOT EXISTS notifications
+(
+    id          UUID PRIMARY KEY,
+    created_at  timestamp with time zone NOT NULL,
+    receiver_id UUID                     NOT NULL,
+    title       VARCHAR(20),
+    content     TEXT,
+
+    CONSTRAINT fk_receiver_id_users FOREIGN KEY (receiver_id)
+        REFERENCES users (id)
+        ON DELETE CASCADE
+)

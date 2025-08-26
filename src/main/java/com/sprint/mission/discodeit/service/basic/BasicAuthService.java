@@ -1,5 +1,6 @@
 package com.sprint.mission.discodeit.service.basic;
 
+import com.sprint.mission.discodeit.annotation.Logging;
 import com.sprint.mission.discodeit.auth.DiscodeitUserDetails;
 import com.sprint.mission.discodeit.auth.DiscodeitUserDetailsService;
 import com.sprint.mission.discodeit.auth.jwt.JwtTokenProvider;
@@ -26,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Slf4j
+@Logging
 @RequiredArgsConstructor
 public class BasicAuthService implements AuthService {
 
