@@ -22,6 +22,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -47,11 +48,15 @@ public class S3BinaryContentStorageTest {
     @Mock
     S3Presigner s3Presigner;
 
+    @Mock
+    ApplicationEventPublisher eventPublisher;
+
     private S3BinaryContentStorage s3BinaryContentStorage = new S3BinaryContentStorage(
-            "testAccessKey",
-            "testSecretKey",
-            "ap-northeast-2",
-            "testBucket"
+        "testAccessKey",
+        "testSecretKey",
+        "ap-northeast-2",
+        "testBucket",
+        eventPublisher
     );
 
     @BeforeEach
@@ -72,12 +77,12 @@ public class S3BinaryContentStorageTest {
         byte[] content = "test".getBytes();
 
         PutObjectRequest expectedRequest = PutObjectRequest.builder()
-                .bucket("testBucket")
-                .key(id.toString())
-                .build();
+            .bucket("testBucket")
+            .key(id.toString())
+            .build();
 
         given(s3Client.putObject(eq(expectedRequest), any(RequestBody.class))).willReturn(
-                PutObjectResponse.builder().build());
+            PutObjectResponse.builder().build());
 
         // when
         UUID result = s3BinaryContentStorage.put(id, content);
@@ -95,16 +100,16 @@ public class S3BinaryContentStorageTest {
         UUID id = UUID.randomUUID();
 
         GetObjectRequest getObjectRequest = GetObjectRequest.builder()
-                .bucket("testBucket")
-                .key(id.toString())
-                .build();
+            .bucket("testBucket")
+            .key(id.toString())
+            .build();
 
         GetObjectResponse response = GetObjectResponse.builder().build();
         ResponseInputStream<GetObjectResponse> expectedInputStream = mock(
-                ResponseInputStream.class);
+            ResponseInputStream.class);
 
         given(s3Client.getObject(any(GetObjectRequest.class))).willReturn(
-                expectedInputStream);
+            expectedInputStream);
 
         // when
         InputStream result = s3BinaryContentStorage.get(id);
@@ -126,8 +131,8 @@ public class S3BinaryContentStorageTest {
 
         S3BinaryContentStorage spyStorage = spy(s3BinaryContentStorage);
         doReturn("http://testBucket/test.png")
-                .when(spyStorage)
-                .generatePresignedUrl(metadata.id().toString(), metadata.contentType());
+            .when(spyStorage)
+            .generatePresignedUrl(metadata.id().toString(), metadata.contentType());
 
         // when
         ResponseEntity<Resource> result = spyStorage.download(metadata);
@@ -165,7 +170,7 @@ public class S3BinaryContentStorageTest {
         given(mockPresignedRequest.url()).willReturn(mockUrl);
 
         given(s3Presigner.presignGetObject(any(GetObjectPresignRequest.class)))
-                .willReturn(mockPresignedRequest);
+            .willReturn(mockPresignedRequest);
 
         // when
         String result = s3BinaryContentStorage.generatePresignedUrl(key, contentType);

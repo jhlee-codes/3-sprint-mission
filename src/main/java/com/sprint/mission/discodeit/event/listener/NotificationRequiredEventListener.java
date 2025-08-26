@@ -4,9 +4,11 @@ import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.Notification;
 import com.sprint.mission.discodeit.entity.ReadStatus;
+import com.sprint.mission.discodeit.entity.Role;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.event.MessageCreatedEvent;
 import com.sprint.mission.discodeit.event.RoleUpdatedEvent;
+import com.sprint.mission.discodeit.event.S3FileUploadFailedEvent;
 import com.sprint.mission.discodeit.exception.Channel.ChannelNotFoundException;
 import com.sprint.mission.discodeit.exception.Message.MessageNotFoundException;
 import com.sprint.mission.discodeit.exception.User.UserNotFoundException;
@@ -15,7 +17,6 @@ import com.sprint.mission.discodeit.repository.MessageRepository;
 import com.sprint.mission.discodeit.repository.NotificationRepository;
 import com.sprint.mission.discodeit.repository.ReadStatusRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
-import com.sprint.mission.discodeit.service.AuthService;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -38,7 +39,7 @@ public class NotificationRequiredEventListener {
     private final UserRepository userRepository;
     private final NotificationRepository notificationRepository;
 
-    @Async("fileTaskExecutor")
+    @Async("notificationTaskExecutor")
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void on(MessageCreatedEvent event) {
@@ -104,5 +105,29 @@ public class NotificationRequiredEventListener {
 
         notificationRepository.save(notification);
         log.debug("[NotificationRequiredEventListener] 권한 변경 알림 생성 완료 - userId = {}", userId);
+    }
+
+    @Async("notificationTaskExecutor")
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT, fallbackExecution = true)
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void on(S3FileUploadFailedEvent event) {
+
+        List<User> adminUsers = userRepository.findAllByRole(Role.ADMIN);
+
+        String title = "S3 파일 업로드 실패";
+        String content = String.format("RequestId: %s \n BinaryContentId: %s \n Error: %s",
+            event.requestId(), event.binaryContentId(), event.errorMsg());
+
+        List<Notification> notifications = adminUsers.stream()
+            .map(user ->
+                Notification.builder()
+                    .receiver(user)
+                    .title(title)
+                    .content(content)
+                    .build())
+            .toList();
+
+        notificationRepository.saveAll(notifications);
+        log.debug("[NotificationRequiredEventListener] S3 파일 업로드 실패 알림 생성 완료");
     }
 }
