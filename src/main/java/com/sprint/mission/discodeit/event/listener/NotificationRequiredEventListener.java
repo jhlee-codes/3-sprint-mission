@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,13 +32,13 @@ import org.springframework.transaction.event.TransactionalEventListener;
 @RequiredArgsConstructor
 public class NotificationRequiredEventListener {
 
-    private final AuthService authService;
     private final ReadStatusRepository readStatusRepository;
     private final ChannelRepository channelRepository;
     private final MessageRepository messageRepository;
     private final UserRepository userRepository;
     private final NotificationRepository notificationRepository;
 
+    @Async("fileTaskExecutor")
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void on(MessageCreatedEvent event) {
@@ -82,6 +83,7 @@ public class NotificationRequiredEventListener {
         log.debug("[NotificationRequiredEventListener] 메시지 알림 {}개 생성 완료", notifications.size());
     }
 
+    @Async("notificationTaskExecutor")
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void on(RoleUpdatedEvent event) {
