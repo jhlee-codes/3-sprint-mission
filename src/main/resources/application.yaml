@@ -19,12 +19,23 @@ spring:
     active:
       - dev
   cache: # 캐시 설정
-    type: caffeine
+    #    type: caffeine
+    type: redis
     caffeine:
       spec: >
         maximumSize=100,
         expireAfterAccess=600s,
         recordStats
+    cache-names:
+      - user:channels
+      - user:notifications
+      - users:list
+    redis:
+      enable-statistics: true
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
   kafka: # Kafka 설정
     bootstrap-servers: localhost:9092
     producer:
