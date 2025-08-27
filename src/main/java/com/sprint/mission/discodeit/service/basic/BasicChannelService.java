@@ -23,6 +23,10 @@ import java.util.NoSuchElementException;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,6 +42,7 @@ public class BasicChannelService implements ChannelService {
     private final MessageRepository messageRepository;
     private final UserRepository userRepository;
     private final ChannelMapper channelMapper;
+    private final CacheManager cacheManager;
 
     /**
      * 주어진 요청 DTO를 기반으로 Public 채널 생성
@@ -46,6 +51,7 @@ public class BasicChannelService implements ChannelService {
      * @return 생성된 채널
      */
     @Override
+    @CacheEvict(value = "user:channels", allEntries = true)
     @Transactional
     public ChannelDto create(PublicChannelCreateRequest createRequest) {
         log.info("{} 채널 생성 요청: 채널명 = {}, 채널 설명 = {}", ChannelType.PUBLIC, createRequest.name(),
@@ -68,6 +74,7 @@ public class BasicChannelService implements ChannelService {
      * @return 생성된 채널
      */
     @Override
+    @CacheEvict(value = "user:channels", allEntries = true)
     @Transactional
     public ChannelDto create(PrivateChannelCreateRequest createRequest) {
         log.info("{} 채널 생성 요청: 참여 인원 = {}", ChannelType.PRIVATE, createRequest.participantIds());
@@ -99,7 +106,7 @@ public class BasicChannelService implements ChannelService {
      * @return 조회된 채널DTO 리스트
      */
     @Override
-    @Cacheable("user:channels")
+    @Cacheable(value = "user:channels", key = "#userId")
     @Transactional(readOnly = true)
     public List<ChannelDto> findAllByUserId(UUID userId) {
 
@@ -137,6 +144,7 @@ public class BasicChannelService implements ChannelService {
      * @throws PrivateChannelUpdateException PRIVATE 채널 수정을 시도한 경우
      */
     @Override
+    @CacheEvict(value = "user:channels", allEntries = true)
     @Transactional
     public ChannelDto update(UUID channelId, PublicChannelUpdateRequest updateRequest) {
         log.info("{} 채널 수정 요청: 채널명 = {}, 채널 설명 = {}", ChannelType.PUBLIC, updateRequest.newName(),
@@ -163,6 +171,7 @@ public class BasicChannelService implements ChannelService {
      * @throws ChannelNotFoundException 존재하는 채널이 없는 경우
      */
     @Override
+    @CacheEvict(value = "user:channels", allEntries = true)
     @Transactional
     public void delete(UUID channelId) {
         log.info("채널 삭제 요청: ID = {}", channelId);

@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -46,6 +47,7 @@ public class BasicUserService implements UserService {
      * @throws UserAlreadyExistsException 유저명/이메일이 중복된 경우
      */
     @Override
+    @CacheEvict("users:list")
     @Transactional
     public UserDto create(UserCreateRequest userCreateRequest,
         BinaryContentCreateRequest profileCreateRequest) {
