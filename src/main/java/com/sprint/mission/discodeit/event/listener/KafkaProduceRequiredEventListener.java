@@ -23,22 +23,40 @@ public class KafkaProduceRequiredEventListener {
 
     @Async("notificationTaskExecutor")
     @TransactionalEventListener
-    public void on(MessageCreatedEvent event) throws JsonProcessingException {
-        String payload = objectMapper.writeValueAsString(event);
-        kafkaTemplate.send("discodeit.MessageCreatedEvent", payload);
+    public void on(MessageCreatedEvent event) {
+
+        log.debug("[KafkaProduceRequiredEventListener] MessageCreatedEvent Kafka로 발행");
+        try {
+            String payload = objectMapper.writeValueAsString(event);
+            kafkaTemplate.send("discodeit.MessageCreatedEvent", payload);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Async("notificationTaskExecutor")
     @TransactionalEventListener
-    public void on(RoleUpdatedEvent event) throws JsonProcessingException {
-        String payload = objectMapper.writeValueAsString(event);
-        kafkaTemplate.send("discodeit.RoleUpdatedEvent", payload);
+    public void on(RoleUpdatedEvent event) {
+
+        log.debug("[KafkaProduceRequiredEventListener] RoleUpdatedEvent Kafka로 발행");
+        try {
+            String payload = objectMapper.writeValueAsString(event);
+            kafkaTemplate.send("discodeit.RoleUpdatedEvent", payload);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Async("notificationTaskExecutor")
     @EventListener
-    public void on(S3FileUploadFailedEvent event) throws JsonProcessingException {
-        String payload = objectMapper.writeValueAsString(event);
-        kafkaTemplate.send("discodeit.S3FileUploadFailedEvent", payload);
+    public void on(S3FileUploadFailedEvent event) {
+
+        log.debug("[KafkaProduceRequiredEventListener] S3FileUploadFailedEvent Kafka로 발행");
+        try {
+            String payload = objectMapper.writeValueAsString(event);
+            kafkaTemplate.send("discodeit.S3FileUploadFailedEvent", payload);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
