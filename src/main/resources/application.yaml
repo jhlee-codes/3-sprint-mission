@@ -20,6 +20,12 @@ spring:
       - dev
   cache: # 캐시 설정
     type: caffeine
+    caffeine:
+      spec: >
+        maximumSize=100,
+        expireAfterAccess=600s,
+        recordStats
+
 
 discodeit:
   storage:
@@ -44,7 +50,8 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics,loggers,prometheus
+        include: "*"
+      base-path: /actuator
   endpoint:
     health:
       show-details: always
@@ -109,3 +116,5 @@ async:
       max-size: 4
       queue-capacity: 100
       keep-alive-seconds: 60
+
+

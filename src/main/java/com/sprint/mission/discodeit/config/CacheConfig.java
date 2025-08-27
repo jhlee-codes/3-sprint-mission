@@ -20,8 +20,8 @@ public class CacheConfig {
         CaffeineCacheManager manager = new CaffeineCacheManager();
 
         manager.setCaffeine(Caffeine.newBuilder()
-            .maximumSize(1000)
-            .expireAfterWrite(Duration.ofMinutes(10))
+            .maximumSize(100)
+            .expireAfterAccess(Duration.ofMinutes(10))
             .recordStats()
             .removalListener((key, value, cause) -> {
                 switch (cause) {
