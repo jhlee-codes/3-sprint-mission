@@ -24,6 +24,7 @@ public class NotificationRequiredTopicListener {
     @KafkaListener(topics = "discodeit.MessageCreatedEvent")
     public void onMessageCreatedEvent(String kafkaEvent) {
 
+        log.debug("[NotificationRequiredTopicListener] MessageCreatedEvent 토픽 구독 - 알림 생성 시작");
         try {
             MessageCreatedEvent event = objectMapper.readValue(kafkaEvent,
                 MessageCreatedEvent.class);
@@ -40,6 +41,7 @@ public class NotificationRequiredTopicListener {
     @KafkaListener(topics = "discodeit.RoleUpdatedEvent")
     public void onRoleUpdatedEvent(String kafkaEvent) {
 
+        log.debug("[NotificationRequiredTopicListener] RoleUpdatedEvent 토픽 구독 - 알림 생성 시작");
         try {
             RoleUpdatedEvent event = objectMapper.readValue(kafkaEvent, RoleUpdatedEvent.class);
             UUID userId = event.userId();
@@ -56,6 +58,7 @@ public class NotificationRequiredTopicListener {
     @KafkaListener(topics = "discodeit.S3FileUploadFailedEvent")
     public void onS3UploadFailedEvent(String kafkaEvent) {
 
+        log.debug("[NotificationRequiredTopicListener] S3FileUploadFailedEvent 토픽 구독 - 알림 생성 시작");
         try {
             S3FileUploadFailedEvent event = objectMapper.readValue(kafkaEvent,
                 S3FileUploadFailedEvent.class);

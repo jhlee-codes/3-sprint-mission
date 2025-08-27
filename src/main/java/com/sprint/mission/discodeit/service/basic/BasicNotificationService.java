@@ -93,6 +93,7 @@ public class BasicNotificationService implements NotificationService {
     }
 
     @Override
+    @Transactional
     public void createForNewMessage(UUID channelId, UUID messageId) {
 
         log.debug("[NotificationService] 새로운 메시지 알림 생성 시작, channelId = {}, messageId = {}",
@@ -120,6 +121,7 @@ public class BasicNotificationService implements NotificationService {
     }
 
     @Override
+    @Transactional
     public void createForRoleUpdate(UUID userId, Role before, Role after) {
 
         log.debug("[NotificationService] 권한 변경 알림 생성 시작 - userId = {}", userId);
@@ -136,6 +138,7 @@ public class BasicNotificationService implements NotificationService {
     }
 
     @Override
+    @Transactional
     public void createForS3UploadFailed(UUID binaryContentId, String requestId, String errorMsg) {
 
         log.debug("[NotificationService] S3 파일 업로드 실패 알림 생성 시작 - binaryContentId = {}",
