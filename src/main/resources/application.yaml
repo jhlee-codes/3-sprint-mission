@@ -18,6 +18,8 @@ spring:
   profiles:
     active:
       - dev
+  cache: # 캐시 설정
+    type: caffeine
 
 discodeit:
   storage:

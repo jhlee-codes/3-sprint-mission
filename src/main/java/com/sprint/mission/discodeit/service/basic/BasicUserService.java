@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -98,6 +99,7 @@ public class BasicUserService implements UserService {
      * @return 조회된 유저 데이터
      */
     @Override
+    @Cacheable("users:list")
     @Transactional(readOnly = true)
     public List<UserDto> findAll() {
 
