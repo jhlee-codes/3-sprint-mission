@@ -5,11 +5,8 @@ import com.sprint.mission.discodeit.dto.BinaryContent.BinaryContentCreateRequest
 import com.sprint.mission.discodeit.dto.User.UserCreateRequest;
 import com.sprint.mission.discodeit.dto.User.UserDto;
 import com.sprint.mission.discodeit.dto.User.UserUpdateRequest;
-import com.sprint.mission.discodeit.dto.UserStatus.UserStatusDto;
-import com.sprint.mission.discodeit.dto.UserStatus.UserStatusUpdateRequest;
 import com.sprint.mission.discodeit.service.UserService;
-import com.sprint.mission.discodeit.service.UserStatusService;
-import com.sprint.mission.discodeit.util.BinaryContentUtil;
+import com.sprint.mission.discodeit.common.util.BinaryContentUtil;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
@@ -17,12 +14,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
@@ -47,7 +44,6 @@ import org.springframework.web.multipart.MultipartFile;
 public class UserController implements UserApi {
 
     private final UserService userService;
-    private final UserStatusService userStatusService;
 
     /**
      * 신규 사용자 등록
@@ -59,8 +55,8 @@ public class UserController implements UserApi {
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Override
     public ResponseEntity<UserDto> create(
-            @Valid @RequestPart("userCreateRequest") UserCreateRequest userCreateRequest,
-            @RequestPart(value = "profile", required = false) MultipartFile profile
+        @Valid @RequestPart("userCreateRequest") UserCreateRequest userCreateRequest,
+        @RequestPart(value = "profile", required = false) MultipartFile profile
     ) {
         BinaryContentCreateRequest profileRequestDTO = null;
 
@@ -71,8 +67,8 @@ public class UserController implements UserApi {
         UserDto createdUser = userService.create(userCreateRequest, profileRequestDTO);
 
         return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(createdUser);
+            .status(HttpStatus.OK)
+            .body(createdUser);
     }
 
     /**
@@ -83,15 +79,16 @@ public class UserController implements UserApi {
      * @param profile           수정할 프로필 이미지
      * @return 수정된 User (HTTP 200 OK)
      */
+    @PreAuthorize("#userId == principal.id")
     @PatchMapping(
-            path = "/{userId}",
-            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+        path = "/{userId}",
+        consumes = MediaType.MULTIPART_FORM_DATA_VALUE
     )
     @Override
     public ResponseEntity<UserDto> update(
-            @PathVariable UUID userId,
-            @Valid @RequestPart("userUpdateRequest") UserUpdateRequest userUpdateRequest,
-            @RequestPart(value = "profile", required = false) MultipartFile profile
+        @PathVariable UUID userId,
+        @Valid @RequestPart("userUpdateRequest") UserUpdateRequest userUpdateRequest,
+        @RequestPart(value = "profile", required = false) MultipartFile profile
     ) {
         BinaryContentCreateRequest profileRequestDTO = null;
 
@@ -102,8 +99,8 @@ public class UserController implements UserApi {
         UserDto updatedUser = userService.update(userId, userUpdateRequest, profileRequestDTO);
 
         return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(updatedUser);
+            .status(HttpStatus.OK)
+            .body(updatedUser);
     }
 
     /**
@@ -112,16 +109,17 @@ public class UserController implements UserApi {
      * @param userId 삭제할 유저 ID
      * @return 삭제 완료 메시지 (HTTP 200 OK)
      */
+    @PreAuthorize("#userId == principal.id")
     @DeleteMapping(path = "/{userId}")
     @Override
     public ResponseEntity<Void> delete(
-            @PathVariable UUID userId
+        @PathVariable UUID userId
     ) {
         userService.delete(userId);
 
         return ResponseEntity
-                .status(HttpStatus.NO_CONTENT)
-                .build();
+            .status(HttpStatus.NO_CONTENT)
+            .build();
     }
 
     /**
@@ -136,28 +134,7 @@ public class UserController implements UserApi {
         List<UserDto> userDtoList = userService.findAll();
 
         return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(userDtoList);
-    }
-
-    /**
-     * 사용자의 온라인 상태 업데이트
-     *
-     * @param userId                  대상 사용자 ID
-     * @param userStatusUpdateRequest 유저상태 수정 요청 DTO
-     * @return 업데이트 된 UserStatus (HTTP 200 OK)
-     */
-    @PatchMapping(path = "/{userId}/userStatus")
-    @Override
-    public ResponseEntity<UserStatusDto> updateUserStatusByUserId(
-            @PathVariable UUID userId,
-            @Valid @RequestBody UserStatusUpdateRequest userStatusUpdateRequest
-    ) {
-        UserStatusDto updatedUserStatus = userStatusService.updateByUserId(userId,
-                userStatusUpdateRequest);
-
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(updatedUserStatus);
+            .status(HttpStatus.OK)
+            .body(userDtoList);
     }
 }

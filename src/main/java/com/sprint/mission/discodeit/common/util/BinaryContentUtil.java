@@ -1,4 +1,4 @@
-package com.sprint.mission.discodeit.util;
+package com.sprint.mission.discodeit.common.util;
 
 import com.sprint.mission.discodeit.dto.BinaryContent.BinaryContentCreateRequest;
 import java.io.IOException;
@@ -16,9 +16,9 @@ public class BinaryContentUtil {
         } else {
             try {
                 BinaryContentCreateRequest binaryContentCreateRequest = new BinaryContentCreateRequest(
-                        file.getOriginalFilename(),
-                        file.getContentType(),
-                        file.getBytes()
+                    file.getOriginalFilename(),
+                    file.getContentType(),
+                    file.getBytes()
                 );
                 return Optional.of(binaryContentCreateRequest);
             } catch (IOException e) {

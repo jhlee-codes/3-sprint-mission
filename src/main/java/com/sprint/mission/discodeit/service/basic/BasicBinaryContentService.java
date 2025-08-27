@@ -35,10 +35,10 @@ public class BasicBinaryContentService implements BinaryContentService {
     public BinaryContentDto create(BinaryContentCreateRequest createRequest) {
 
         BinaryContent binaryContent = BinaryContent.builder()
-                .fileName(createRequest.fileName())
-                .contentType(createRequest.contentType())
-                .size(((long) createRequest.bytes().length))
-                .build();
+            .fileName(createRequest.fileName())
+            .contentType(createRequest.contentType())
+            .size(((long) createRequest.bytes().length))
+            .build();
 
         binaryContentRepository.save(binaryContent);
         binaryContentStorage.put(binaryContent.getId(), createRequest.bytes());
@@ -56,13 +56,9 @@ public class BasicBinaryContentService implements BinaryContentService {
     @Transactional(readOnly = true)
     public List<BinaryContentDto> findAllByIdIn(List<UUID> ids) {
 
-//        if (ids == null || ids.isEmpty()) {
-//            throw new IllegalArgumentException("조회할 ID 목록이 비어 있습니다.");
-//        }
-
         return binaryContentRepository.findAllById(ids).stream()
-                .map(binaryContentMapper::toDto)
-                .toList();
+            .map(binaryContentMapper::toDto)
+            .toList();
     }
 
     /**
@@ -76,7 +72,7 @@ public class BasicBinaryContentService implements BinaryContentService {
     @Transactional(readOnly = true)
     public BinaryContentDto find(UUID id) {
         BinaryContent binaryContent = binaryContentRepository.findById(id)
-                .orElseThrow(() -> new BinaryContentNotFoundException(id));
+            .orElseThrow(() -> new BinaryContentNotFoundException(id));
 
         return binaryContentMapper.toDto(binaryContent);
     }

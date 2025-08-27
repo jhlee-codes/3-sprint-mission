@@ -5,6 +5,7 @@ server:
 # logging config
 logging:
   level:
+    org.springframework.security: trace
     com.sprint.mission.discodeit: debug
     org.hibernate.SQL: debug
     org.hibernate.orm.jdbc.bind: trace

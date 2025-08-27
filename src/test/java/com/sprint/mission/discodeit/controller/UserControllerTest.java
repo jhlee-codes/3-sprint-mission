@@ -20,7 +20,6 @@ import com.sprint.mission.discodeit.dto.User.UserUpdateRequest;
 import com.sprint.mission.discodeit.dto.UserStatus.UserStatusDto;
 import com.sprint.mission.discodeit.dto.UserStatus.UserStatusUpdateRequest;
 import com.sprint.mission.discodeit.service.UserService;
-import com.sprint.mission.discodeit.service.UserStatusService;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -59,27 +58,27 @@ public class UserControllerTest {
         // given
         UUID userId = UUID.randomUUID();
         UserCreateRequest createRequest = new UserCreateRequest("테스트유저", "test@codeit.com",
-                "test1234");
+            "test1234");
 
         MockMultipartFile jsonPart = new MockMultipartFile(
-                "userCreateRequest",
-                "",
-                "application/json",
-                objectMapper.writeValueAsBytes(createRequest)
+            "userCreateRequest",
+            "",
+            "application/json",
+            objectMapper.writeValueAsBytes(createRequest)
         );
         UserDto userDto = new UserDto(userId, "테스트유저", "test@codeit.com", null, true);
 
         given(userService.create(any(UserCreateRequest.class),
-                nullable(BinaryContentCreateRequest.class))).willReturn(userDto);
+            nullable(BinaryContentCreateRequest.class))).willReturn(userDto);
 
         // when & then
         mockMvc.perform(multipart("/api/users")
-                        .file(jsonPart)
-                        .contentType(MediaType.MULTIPART_FORM_DATA_VALUE))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.id").value(userId.toString()))
-                .andExpect(jsonPath("$.username").value("테스트유저"))
-                .andExpect(jsonPath("$.email").value("test@codeit.com"));
+                .file(jsonPart)
+                .contentType(MediaType.MULTIPART_FORM_DATA_VALUE))
+            .andExpect(status().isCreated())
+            .andExpect(jsonPath("$.id").value(userId.toString()))
+            .andExpect(jsonPath("$.username").value("테스트유저"))
+            .andExpect(jsonPath("$.email").value("test@codeit.com"));
     }
 
     @Test
@@ -88,20 +87,20 @@ public class UserControllerTest {
 
         // given
         UserCreateRequest createRequest = new UserCreateRequest("", "test@codeit.com",
-                "test1234");
+            "test1234");
 
         MockMultipartFile jsonPart = new MockMultipartFile(
-                "userCreateRequest",
-                "",
-                "application/json",
-                objectMapper.writeValueAsBytes(createRequest)
+            "userCreateRequest",
+            "",
+            "application/json",
+            objectMapper.writeValueAsBytes(createRequest)
         );
 
         // when & then
         mockMvc.perform(multipart("/api/users")
-                        .file(jsonPart)
-                        .contentType(MediaType.MULTIPART_FORM_DATA_VALUE))
-                .andExpect(status().isBadRequest());
+                .file(jsonPart)
+                .contentType(MediaType.MULTIPART_FORM_DATA_VALUE))
+            .andExpect(status().isBadRequest());
     }
 
     @Test
@@ -111,13 +110,13 @@ public class UserControllerTest {
         // given
         UUID userId = UUID.randomUUID();
         UserUpdateRequest updateRequest = new UserUpdateRequest("(수정)테스트유저", "test@codeit.com",
-                "test1234");
+            "test1234");
 
         MockMultipartFile jsonPart = new MockMultipartFile(
-                "userUpdateRequest",
-                "",
-                "application/json",
-                objectMapper.writeValueAsBytes(updateRequest)
+            "userUpdateRequest",
+            "",
+            "application/json",
+            objectMapper.writeValueAsBytes(updateRequest)
         );
 
         UserDto userDto = new UserDto(userId, "(수정)테스트유저", "test@codeit.com", null, true);
@@ -126,11 +125,11 @@ public class UserControllerTest {
 
         // when & then
         mockMvc.perform(multipart(HttpMethod.PATCH, "/api/users/" + userId.toString())
-                        .file(jsonPart)
-                        .contentType(MediaType.MULTIPART_FORM_DATA_VALUE))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(userId.toString()))
-                .andExpect(jsonPath("$.username").value("(수정)테스트유저"));
+                .file(jsonPart)
+                .contentType(MediaType.MULTIPART_FORM_DATA_VALUE))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.id").value(userId.toString()))
+            .andExpect(jsonPath("$.username").value("(수정)테스트유저"));
     }
 
     @Test
@@ -140,20 +139,20 @@ public class UserControllerTest {
         // given
         UUID userId = UUID.randomUUID();
         UserUpdateRequest updateRequest = new UserUpdateRequest("(수정)테스트유저", "testcodeit.com",
-                "test1234");
+            "test1234");
 
         MockMultipartFile jsonPart = new MockMultipartFile(
-                "userUpdateRequest",
-                "",
-                "application/json",
-                objectMapper.writeValueAsBytes(updateRequest)
+            "userUpdateRequest",
+            "",
+            "application/json",
+            objectMapper.writeValueAsBytes(updateRequest)
         );
 
         // when & then
         mockMvc.perform(multipart(HttpMethod.PATCH, "/api/users/" + userId.toString())
-                        .file(jsonPart)
-                        .contentType(MediaType.MULTIPART_FORM_DATA_VALUE))
-                .andExpect(status().isBadRequest());
+                .file(jsonPart)
+                .contentType(MediaType.MULTIPART_FORM_DATA_VALUE))
+            .andExpect(status().isBadRequest());
     }
 
     @Test
@@ -167,7 +166,7 @@ public class UserControllerTest {
 
         // when & then
         mockMvc.perform(delete("/api/users/" + userId.toString()))
-                .andExpect(status().isNoContent());
+            .andExpect(status().isNoContent());
     }
 
     @Test
@@ -176,19 +175,19 @@ public class UserControllerTest {
 
         // given
         List<UserDto> users = List.of(
-                new UserDto(UUID.randomUUID(), "테스트 유저1", "test1@codeit.com", null, true),
-                new UserDto(UUID.randomUUID(), "테스트 유저2", "test2@codeit.com", null, true)
+            new UserDto(UUID.randomUUID(), "테스트 유저1", "test1@codeit.com", null, true),
+            new UserDto(UUID.randomUUID(), "테스트 유저2", "test2@codeit.com", null, true)
         );
 
         given(userService.findAll()).willReturn(users);
 
         // when & then
         mockMvc.perform(get("/api/users"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].username").value("테스트 유저1"))
-                .andExpect(jsonPath("$[0].email").value("test1@codeit.com"))
-                .andExpect(jsonPath("$[1].username").value("테스트 유저2"))
-                .andExpect(jsonPath("$[1].email").value("test2@codeit.com"));
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$[0].username").value("테스트 유저1"))
+            .andExpect(jsonPath("$[0].email").value("test1@codeit.com"))
+            .andExpect(jsonPath("$[1].username").value("테스트 유저2"))
+            .andExpect(jsonPath("$[1].email").value("test2@codeit.com"));
     }
 
     @Test
@@ -207,10 +206,10 @@ public class UserControllerTest {
 
         // when & then
         mockMvc.perform(patch("/api/users/" + userId.toString() + "/userStatus")
-                        .contentType(MediaType.APPLICATION_JSON_VALUE)
-                        .content(objectMapper.writeValueAsBytes(updateRequest)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(userStatusId.toString()))
-                .andExpect(jsonPath("$.lastActiveAt").value(now.toString()));
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(objectMapper.writeValueAsBytes(updateRequest)))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.id").value(userStatusId.toString()))
+            .andExpect(jsonPath("$.lastActiveAt").value(now.toString()));
     }
 }

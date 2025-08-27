@@ -6,22 +6,27 @@ import com.sprint.mission.discodeit.dto.User.UserCreateRequest;
 import com.sprint.mission.discodeit.dto.User.UserDto;
 import com.sprint.mission.discodeit.dto.User.UserUpdateRequest;
 import com.sprint.mission.discodeit.entity.BinaryContent;
+import com.sprint.mission.discodeit.entity.Role;
 import com.sprint.mission.discodeit.entity.User;
-import com.sprint.mission.discodeit.entity.UserStatus;
 import com.sprint.mission.discodeit.exception.User.UserAlreadyExistsException;
 import com.sprint.mission.discodeit.exception.User.UserNotFoundException;
 import com.sprint.mission.discodeit.mapper.UserMapper;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
+import com.sprint.mission.discodeit.service.AuthService;
 import com.sprint.mission.discodeit.service.UserService;
 import com.sprint.mission.discodeit.storage.BinaryContentStorage;
-import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.session.SessionInformation;
+import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 @Service
 @Slf4j
@@ -29,11 +34,13 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class BasicUserService implements UserService {
 
+    private final AuthService authService;
     private final UserRepository userRepository;
     private final BinaryContentRepository binaryContentRepository;
     private final BinaryContentStorage binaryContentStorage;
-
     private final UserMapper userMapper;
+    private final PasswordEncoder passwordEncoder;
+    private final SessionRegistry sessionRegistry;
 
     /**
      * 주어진 생성 요청 DTO(유저, 프로필사진)를 기반으로 유저 생성
@@ -46,9 +53,9 @@ public class BasicUserService implements UserService {
     @Override
     @Transactional
     public UserDto create(UserCreateRequest userCreateRequest,
-            BinaryContentCreateRequest profileCreateRequest) {
+        BinaryContentCreateRequest profileCreateRequest) {
         log.info("유저 생성 요청: 유저명 = {}, 이메일 = {}", userCreateRequest.username(),
-                userCreateRequest.email());
+            userCreateRequest.email());
 
         String username = userCreateRequest.username();
         String email = userCreateRequest.email();
@@ -67,29 +74,23 @@ public class BasicUserService implements UserService {
 
         if (isProfileCreated) {
             binaryContent = BinaryContent.builder()
-                    .fileName(profileCreateRequest.fileName())
-                    .contentType(profileCreateRequest.contentType())
-                    .size(((long) profileCreateRequest.bytes().length))
-                    .build();
+                .fileName(profileCreateRequest.fileName())
+                .contentType(profileCreateRequest.contentType())
+                .size(((long) profileCreateRequest.bytes().length))
+                .build();
 
             binaryContentRepository.save(binaryContent);
             binaryContentStorage.put(binaryContent.getId(), profileCreateRequest.bytes());
         }
 
+        String encodedPassword = passwordEncoder.encode(userCreateRequest.password());
+
         User user = User.builder()
-                .username(username)
-                .email(email)
-                .password(userCreateRequest.password())
-                .profile(binaryContent)
-                .build();
-
-        UserStatus userStatus = UserStatus.builder()
-                .user(user)
-                .lastActiveAt(Instant.now())
-                .build();
-
-        user.setStatus(userStatus);
-        userStatus.setUser(user);
+            .username(username)
+            .email(email)
+            .password(encodedPassword)
+            .profile(binaryContent)
+            .build();
 
         userRepository.save(user);
         return userMapper.toDto(user);
@@ -107,8 +108,8 @@ public class BasicUserService implements UserService {
         List<User> users = userRepository.findAll();
 
         return users.stream()
-                .map(userMapper::toDto)
-                .toList();
+            .map(userMapper::toDto)
+            .toList();
     }
 
     /**
@@ -123,7 +124,7 @@ public class BasicUserService implements UserService {
     public UserDto find(UUID userId) {
 
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> UserNotFoundException.byId(userId));
+            .orElseThrow(() -> UserNotFoundException.byId(userId));
 
         return userMapper.toDto(user);
     }
@@ -141,12 +142,12 @@ public class BasicUserService implements UserService {
     @Override
     @Transactional
     public UserDto update(UUID userId, UserUpdateRequest updateRequest,
-            BinaryContentCreateRequest profileCreateRequest) {
+        BinaryContentCreateRequest profileCreateRequest) {
         log.info("유저 수정 요청: 유저명 = {}, 이메일 = {}", updateRequest.newUsername(),
-                updateRequest.newEmail());
+            updateRequest.newEmail());
 
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> UserNotFoundException.byId(userId));
+            .orElseThrow(() -> UserNotFoundException.byId(userId));
 
         String newUsername = updateRequest.newUsername();
         String newEmail = updateRequest.newEmail();
@@ -165,20 +166,25 @@ public class BasicUserService implements UserService {
 
         if (isProfileCreated) {
             binaryContent = BinaryContent.builder()
-                    .fileName(profileCreateRequest.fileName())
-                    .contentType(profileCreateRequest.contentType())
-                    .size(((long) profileCreateRequest.bytes().length))
-                    .build();
+                .fileName(profileCreateRequest.fileName())
+                .contentType(profileCreateRequest.contentType())
+                .size(((long) profileCreateRequest.bytes().length))
+                .build();
 
             binaryContentRepository.save(binaryContent);
             binaryContentStorage.put(binaryContent.getId(), profileCreateRequest.bytes());
         }
 
+        String newPassword = updateRequest.newPassword();
+        String encodedPassword =
+            StringUtils.hasText(newPassword) ? passwordEncoder.encode(newPassword)
+                : null;
+
         user.update(
-                newUsername,
-                newEmail,
-                updateRequest.newPassword(),
-                binaryContent
+            newUsername,
+            newEmail,
+            encodedPassword,
+            binaryContent
         );
 
         return userMapper.toDto(user);
@@ -202,5 +208,59 @@ public class BasicUserService implements UserService {
 
         userRepository.deleteById(userId);
         log.info("유저 삭제 완료: ID = {}", userId);
+    }
+
+    @Override
+    @Transactional
+    public UserDto updateUserRole(UUID userId, Role newRole) {
+
+        log.info("유저 권한 변경 요청: ID = {}, Role = {}", userId, newRole);
+
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> UserNotFoundException.byId(userId));
+
+        user.updateRole(newRole);
+
+        User updateUser = userRepository.save(user);
+
+        // 사용자의 모든 활성 세션 무효화
+        invalidateUserSession(updateUser.getUsername());
+
+        log.info("유저 권한 변경 완료: ID = {}, Role = {}", userId, newRole);
+
+        return userMapper.toDto(updateUser);
+    }
+
+    private void invalidateUserSession(String username) {
+        try {
+            log.debug("세션 무효화 요청: {}", username);
+
+            List<Object> allPrincipals = sessionRegistry.getAllPrincipals();
+
+            for (Object principal : allPrincipals) {
+
+                UserDetails user = (UserDetails) principal;
+                String principalName = user.getUsername();
+
+                if (username.equals(principalName)) {
+
+                    List<SessionInformation> sessions = sessionRegistry.getAllSessions(principal,
+                        false);
+                    log.debug("대상 사용자의 활성 세션 수: {}", sessions.size());
+
+                    for (SessionInformation session : sessions) {
+                        log.debug("세션 무효화 시작 - 세션 ID: {}", session.getSessionId());
+                        session.expireNow();
+                        log.debug("세션 무효화 완료 - 만료됨: {}", session.isExpired());
+                    }
+
+                    log.debug("대상 사용자 '{}'의 모든 세션 무효화 완료", username);
+                    break;
+                }
+            }
+            log.debug("세션 무효화 완료");
+        } catch (Exception e) {
+            log.debug("세션 무효화 중 오류 발생: {}", e.getMessage());
+        }
     }
 }

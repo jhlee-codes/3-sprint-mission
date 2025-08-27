@@ -60,31 +60,31 @@ public class BasicMessageService implements MessageService {
     @Override
     @Transactional
     public MessageDto create(MessageCreateRequest createRequest,
-            List<BinaryContentCreateRequest> binaryContentCreateRequests) {
+        List<BinaryContentCreateRequest> binaryContentCreateRequests) {
 
         UUID authorId = createRequest.authorId();
         UUID channelId = createRequest.channelId();
         String content = createRequest.content();
 
         log.info("메시지 생성 요청: 작성자 = {}, 채널 = {}, 내용 = {}", authorId,
-                channelId, content);
+            channelId, content);
 
         log.info("첨부파일 요청: {}", binaryContentCreateRequests);
 
         User user = userRepository.findById(authorId)
-                .orElseThrow(() -> UserNotFoundException.byId(authorId));
+            .orElseThrow(() -> UserNotFoundException.byId(authorId));
 
         Channel channel = channelRepository.findById(channelId)
-                .orElseThrow(() -> new ChannelNotFoundException(channelId));
+            .orElseThrow(() -> new ChannelNotFoundException(channelId));
 
         List<BinaryContent> binaryContents = new ArrayList<>();
 
         for (BinaryContentCreateRequest dto : binaryContentCreateRequests) {
             BinaryContent binaryContent = BinaryContent.builder()
-                    .fileName(dto.fileName())
-                    .contentType(dto.contentType())
-                    .size(((long) dto.bytes().length))
-                    .build();
+                .fileName(dto.fileName())
+                .contentType(dto.contentType())
+                .size(((long) dto.bytes().length))
+                .build();
 
             binaryContents.add(binaryContent);
         }
@@ -98,11 +98,11 @@ public class BasicMessageService implements MessageService {
         }
 
         Message msg = Message.builder()
-                .content(content)
-                .author(user)
-                .channel(channel)
-                .attachments(binaryContents)
-                .build();
+            .content(content)
+            .author(user)
+            .channel(channel)
+            .attachments(binaryContents)
+            .build();
 
         messageRepository.save(msg);
         return messageMapper.toDto(msg);
@@ -117,21 +117,21 @@ public class BasicMessageService implements MessageService {
     @Override
     @Transactional(readOnly = true)
     public PageResponse<MessageDto> findAllByChannelId(UUID channelId, Instant createAt,
-            Pageable pageable) {
+        Pageable pageable) {
 
         if (!channelRepository.existsById(channelId)) {
             throw new ChannelNotFoundException(channelId);
         }
 
         Slice<MessageDto> slice = messageRepository.findAllByChannelIdWithAuthor(channelId,
-                        Optional.ofNullable(createAt).orElse(Instant.now()),
-                        pageable)
-                .map(messageMapper::toDto);
+                Optional.ofNullable(createAt).orElse(Instant.now()),
+                pageable)
+            .map(messageMapper::toDto);
 
         Instant nextCursor = null;
         if (!slice.getContent().isEmpty()) {
             nextCursor = slice.getContent().get(slice.getContent().size() - 1)
-                    .createdAt();
+                .createdAt();
         }
 
         return pageResponseMapper.fromSlice(slice, nextCursor);
@@ -149,7 +149,7 @@ public class BasicMessageService implements MessageService {
     public MessageDto find(UUID messageId) {
 
         Message message = messageRepository.findById(messageId)
-                .orElseThrow(() -> new MessageNotFoundException(messageId));
+            .orElseThrow(() -> new MessageNotFoundException(messageId));
 
         return messageMapper.toDto(message);
     }
@@ -168,7 +168,7 @@ public class BasicMessageService implements MessageService {
         log.info("메시지 수정 요청: 내용 = {}", updateRequest.newContent());
 
         Message message = messageRepository.findById(messageId)
-                .orElseThrow(() -> new MessageNotFoundException(messageId));
+            .orElseThrow(() -> new MessageNotFoundException(messageId));
 
         message.update(updateRequest.newContent());
         return messageMapper.toDto(message);
@@ -193,5 +193,19 @@ public class BasicMessageService implements MessageService {
         messageRepository.deleteById(messageId);
 
         log.info("메시지 삭제 완료: ID = {}", messageId);
+    }
+
+    /**
+     * 요청자가 해당 메시지의 작성자인지 판별
+     *
+     * @param messageId 메시지 ID
+     * @param userId    요청자 ID
+     * @return 요청자가 해당 메시지의 작성자인지 여부
+     */
+    @Transactional(readOnly = true)
+    public boolean isOwner(UUID messageId, UUID userId) {
+        return messageRepository.findById(messageId)
+            .map(msg -> msg.getAuthor().getId().equals(userId))
+            .orElse(false);
     }
 }

@@ -28,24 +28,11 @@ CREATE TABLE IF NOT EXISTS users
     email      VARCHAR(100) UNIQUE      NOT NULL,
     password   VARCHAR(60)              NOT NULL,
     profile_id UUID,
+    role       varchar(20)              NOT NULL,
 
     CONSTRAINT fk_profile_id_users FOREIGN KEY (profile_id)
         REFERENCES binary_contents (id)
         ON DELETE SET NULL
-);
-
--- user_statuses
-CREATE TABLE IF NOT EXISTS user_statuses
-(
-    id             UUID PRIMARY KEY,
-    created_at     timestamp with time zone NOT NULL,
-    updated_at     timestamp with time zone,
-    user_id        UUID UNIQUE              NOT NULL,
-    last_active_at timestamp with time zone NOT NULL,
-
-    CONSTRAINT fk_user_id_user_statuses FOREIGN KEY (user_id)
-        REFERENCES users (id)
-        ON DELETE CASCADE
 );
 
 -- channels
@@ -112,5 +99,3 @@ CREATE TABLE IF NOT EXISTS message_attachments
         REFERENCES binary_contents (id)
         ON DELETE CASCADE
 );
-
-
