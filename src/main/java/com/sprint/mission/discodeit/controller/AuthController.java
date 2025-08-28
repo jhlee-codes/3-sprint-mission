@@ -63,8 +63,7 @@ public class AuthController implements AuthApi {
     @Override
     public ResponseEntity<?> refreshAccessToken(
         @CookieValue(
-            name = JwtTokenProvider.REFRESH_TOKEN_COOKIE_NAME,
-            required = false
+            name = JwtTokenProvider.REFRESH_TOKEN_COOKIE_NAME
         ) String refreshToken,
         HttpServletResponse response
     ) {
