@@ -110,10 +110,12 @@ public class BasicMessageService implements MessageService {
             .build();
 
         messageRepository.save(msg);
-        MessageCreatedEvent event = new MessageCreatedEvent(channelId, msg.getId());
+
+        MessageDto messageDto = messageMapper.toDto(msg);
+        MessageCreatedEvent event = new MessageCreatedEvent(messageDto, channelId, msg.getId());
         eventPublisher.publishEvent(event);
 
-        return messageMapper.toDto(msg);
+        return messageDto;
     }
 
     /**

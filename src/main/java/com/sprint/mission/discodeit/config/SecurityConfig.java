@@ -117,7 +117,8 @@ public class SecurityConfig {
                 .requestMatchers(
                     "/", "/index.html", "/favicon.ico", "/assets/**",
                     "/swagger-ui/**", "/v3/api-docs/**", "/actuator/**",
-                    "/error", "/error/**"
+                    "/error", "/error/**",
+                    "/ws/**"
                 ).permitAll()
 
                 .requestMatchers(
