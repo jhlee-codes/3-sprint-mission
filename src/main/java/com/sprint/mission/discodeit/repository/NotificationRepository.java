@@ -11,5 +11,5 @@ public interface NotificationRepository extends JpaRepository<Notification, UUID
 
     List<Notification> findAllByReceiverId(UUID receiverId);
 
-    boolean existsByIdAndReceiver_Id(UUID id, UUID receiverId);
+    boolean existsByIdAndReceiverId(UUID id, UUID receiverId);
 }

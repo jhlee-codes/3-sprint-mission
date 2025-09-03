@@ -110,9 +110,5 @@ CREATE TABLE IF NOT EXISTS notifications
     created_at  timestamp with time zone NOT NULL,
     receiver_id UUID                     NOT NULL,
     title       VARCHAR,
-    content     TEXT,
-
-    CONSTRAINT fk_receiver_id_users FOREIGN KEY (receiver_id)
-        REFERENCES users (id)
-        ON DELETE CASCADE
+    content     TEXT
 )

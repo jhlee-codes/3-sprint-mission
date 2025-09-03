@@ -5,9 +5,9 @@ import com.sprint.mission.discodeit.dto.Notification.NotificationDto;
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.Notification;
-import com.sprint.mission.discodeit.entity.ReadStatus;
 import com.sprint.mission.discodeit.entity.Role;
 import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.entity.base.BaseEntity;
 import com.sprint.mission.discodeit.exception.Channel.ChannelNotFoundException;
 import com.sprint.mission.discodeit.exception.Message.MessageNotFoundException;
 import com.sprint.mission.discodeit.exception.Notification.NotificationNotFoundException;
@@ -20,13 +20,16 @@ import com.sprint.mission.discodeit.repository.ReadStatusRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.NotificationService;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
@@ -74,7 +77,7 @@ public class BasicNotificationService implements NotificationService {
                 log.warn("알림 삭제 실패: 존재하지 않는 알림: ID = {}", notificationId);
                 return new NotificationNotFoundException(notificationId);
             });
-        UUID receiverId = notification.getReceiver().getId();
+        UUID receiverId = notification.getReceiverId();
 
         notificationRepository.deleteById(notificationId);
 
@@ -89,7 +92,7 @@ public class BasicNotificationService implements NotificationService {
 
     @Transactional(readOnly = true)
     public boolean isOwner(UUID notificationId, UUID userId) {
-        return notificationRepository.existsByIdAndReceiver_Id(notificationId, userId);
+        return notificationRepository.existsByIdAndReceiverId(notificationId, userId);
     }
 
     @Override
@@ -107,17 +110,18 @@ public class BasicNotificationService implements NotificationService {
                 messageId));
 
         UUID authorId = msg.getAuthor().getId();
-        List<User> receivers = readStatusRepository.findByChannel_IdAndNotificationEnabled(
-                channelId, true).stream()
-            .map(ReadStatus::getUser)
-            .filter(u -> !u.getId().equals(authorId))
-            .distinct()
-            .toList();
+
+        Set<UUID> receiverIds = readStatusRepository.findAllByChannelIdAndNotificationEnabled(
+                channelId, true
+            ).stream().map(rs -> rs.getUser().getId())
+            .filter(receiverId -> !receiverId.equals(authorId))
+            .collect(Collectors.toSet());
+
         String title = ch.getName() == null ? msg.getAuthor().getUsername()
             : String.format("%s (#%s)", msg.getAuthor().getUsername(), ch.getName());
         String content = msg.getContent();
 
-        createAndEvict(receivers, title, content);
+        create(receiverIds, title, content);
     }
 
     @Override
@@ -132,7 +136,7 @@ public class BasicNotificationService implements NotificationService {
         String title = "권한이 변경되었습니다.";
         String content = String.format("%s -> %s", before, after);
 
-        createAndEvict(List.of(user), title, content);
+        create(Set.of(user.getId()), title, content);
 
         log.debug("[NotificationService] 권한 변경 알림 생성 완료 - userId = {}", userId);
     }
@@ -144,42 +148,54 @@ public class BasicNotificationService implements NotificationService {
         log.debug("[NotificationService] S3 파일 업로드 실패 알림 생성 시작 - binaryContentId = {}",
             binaryContentId);
 
-        List<User> adminUsers = userRepository.findAllByRole(Role.ADMIN);
+        Set<UUID> adminUserIds = userRepository.findAllByRole(Role.ADMIN)
+            .stream().map(BaseEntity::getId)
+            .collect(Collectors.toSet());
 
         String title = "S3 파일 업로드 실패";
         String content = String.format("RequestId: %s \n BinaryContentId: %s \n Error: %s",
             requestId, binaryContentId, errorMsg);
 
-        createAndEvict(adminUsers, title, content);
+        create(adminUserIds, title, content);
 
         log.debug("[NotificationService] S3 파일 업로드 실패 알림 생성 완료 - binaryContentId = {}",
             binaryContentId);
     }
 
     /**
-     * 알림을 생성, 저장하고 캐시를 무효화 하는 공통 메서드
+     * 알림을 생성, 저장하는 메서드
      */
-    private void createAndEvict(List<User> receivers, String title, String content) {
-        if (receivers == null || receivers.isEmpty()) {
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @Override
+    public void create(Set<UUID> receiverIds, String title, String content) {
+
+        if (receiverIds.isEmpty()) {
+            log.warn("[NotificationService] 알림 생성 요청이 비어있음: receiverIds={}", receiverIds);
             return;
         }
 
-        List<Notification> notifications = receivers.stream()
-            .map(user -> Notification.builder()
-                .receiver(user)
+        List<Notification> notifications = receiverIds.stream()
+            .map(receiverId -> Notification.builder()
+                .receiverId(receiverId)
                 .title(title)
                 .content(content)
                 .build())
             .toList();
 
         notificationRepository.saveAll(notifications);
+        evictNotificationCache(receiverIds);
+        log.debug("[NotificationService] 알림 {}개 생성 완료", notifications.size());
+    }
 
-        // 캐시 무효화
+    /* 알림 캐시를 무효화하는 메서드 */
+    private void evictNotificationCache(Set<UUID> receiverIds) {
+
         Cache cache = cacheManager.getCache("user:notifications");
         if (cache != null) {
-            receivers.forEach(receiver -> cache.evictIfPresent(receiver.getId()));
+            receiverIds.forEach(cache::evictIfPresent);
+            log.debug("[NotificationService] 알림 캐시 무효화 완료");
+        } else {
+            log.debug("[NotificationService] 알림 캐시가 존재하지 않음");
         }
-
-        log.debug("[NotificationService} 알림 {}개 생성 및 캐시 무효화 완료", notifications.size());
     }
 }
