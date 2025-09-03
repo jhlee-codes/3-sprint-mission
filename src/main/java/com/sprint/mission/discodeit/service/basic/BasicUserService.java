@@ -47,7 +47,7 @@ public class BasicUserService implements UserService {
      * @throws UserAlreadyExistsException 유저명/이메일이 중복된 경우
      */
     @Override
-    @CacheEvict("users:list")
+    @CacheEvict(value = "users:list", key = "'all'")
     @Transactional
     public UserDto create(UserCreateRequest userCreateRequest,
         BinaryContentCreateRequest profileCreateRequest) {
@@ -101,7 +101,7 @@ public class BasicUserService implements UserService {
      * @return 조회된 유저 데이터
      */
     @Override
-    @Cacheable("users:list")
+    @Cacheable(value = "users:list", unless = "#result.isEmpty()")
     @Transactional(readOnly = true)
     public List<UserDto> findAll() {
 
@@ -141,6 +141,7 @@ public class BasicUserService implements UserService {
      */
     @Override
     @Transactional
+    @CacheEvict(value = "users:list", key = "'all'")
     public UserDto update(UUID userId, UserUpdateRequest updateRequest,
         BinaryContentCreateRequest profileCreateRequest) {
         log.info("유저 수정 요청: 유저명 = {}, 이메일 = {}", updateRequest.newUsername(),
@@ -200,6 +201,7 @@ public class BasicUserService implements UserService {
      */
     @Override
     @Transactional
+    @CacheEvict(value = "users:list", key = "'all'")
     public void delete(UUID userId) {
         log.info("유저 삭제 요청: ID = {}", userId);
 

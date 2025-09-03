@@ -27,6 +27,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -47,7 +48,7 @@ public class BasicNotificationService implements NotificationService {
     private final CacheManager cacheManager;
 
     @Override
-    @Cacheable(value = "user:notifications", key = "#receiverId")
+    @Cacheable(value = "user:notifications", key = "#receiverId", unless = "#result.isEmpty()")
     @Transactional(readOnly = true)
     public List<NotificationDto> findAllByReceiverId(UUID receiverId) {
 
@@ -68,7 +69,8 @@ public class BasicNotificationService implements NotificationService {
 
     @Override
     @Transactional
-    public void delete(UUID notificationId) {
+    @CacheEvict(cacheNames = "user:notifications", key = "#result")
+    public UUID delete(UUID notificationId) {
 
         log.debug("[NotificationService] 알림 확인 시작, ID = {}", notificationId);
 
@@ -80,14 +82,9 @@ public class BasicNotificationService implements NotificationService {
         UUID receiverId = notification.getReceiverId();
 
         notificationRepository.deleteById(notificationId);
-
-        // 해당 사용자의 캐시 무효화
-        Cache userNotificationsCache = cacheManager.getCache("user:notifications");
-        if (userNotificationsCache != null) {
-            userNotificationsCache.evictIfPresent(receiverId);
-        }
-
         log.debug("[NotificationService] 알림 확인 완료, ID = {}", notificationId);
+
+        return receiverId;
     }
 
     @Transactional(readOnly = true)

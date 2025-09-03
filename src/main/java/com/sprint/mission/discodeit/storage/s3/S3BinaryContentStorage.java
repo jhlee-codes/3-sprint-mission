@@ -6,7 +6,6 @@ import com.sprint.mission.discodeit.storage.BinaryContentStorage;
 import jakarta.annotation.PostConstruct;
 import java.io.InputStream;
 import java.net.URI;
-import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
@@ -15,10 +14,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.io.Resource;
-import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Recover;
@@ -84,6 +81,7 @@ public class S3BinaryContentStorage implements BinaryContentStorage {
      * @return 저장된 파일의 UUID
      */
     @Retryable(
+        retryFor = S3Exception.class,
         maxAttempts = 3,
         backoff = @Backoff(delay = 1000, multiplier = 2.0)
     )
@@ -210,7 +208,7 @@ public class S3BinaryContentStorage implements BinaryContentStorage {
     @Recover
     private UUID recoverS3FileUploadFailed(Exception e, UUID binaryContentId, byte[] bytes) {
 
-        log.debug("S3 파일 업로드 실패 Recover 요청");
+        log.error("S3 파일 업로드 재시도 실패: {}", e.getMessage());
 
         S3FileUploadFailedEvent event = new S3FileUploadFailedEvent(
             binaryContentId,
@@ -219,7 +217,6 @@ public class S3BinaryContentStorage implements BinaryContentStorage {
         );
         eventPublisher.publishEvent(event);
 
-        log.debug("S3 파일 업로드 실패 Recover 완료");
-        return binaryContentId;
+        throw new RuntimeException(e);
     }
 }

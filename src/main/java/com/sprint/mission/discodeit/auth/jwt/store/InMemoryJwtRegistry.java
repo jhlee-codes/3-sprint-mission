@@ -10,6 +10,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.scheduling.annotation.Scheduled;
 
 @Slf4j
@@ -22,6 +23,7 @@ public class InMemoryJwtRegistry implements JwtRegistry {
     private final int maxActiveJwtCount;
     private final JwtTokenProvider jwtTokenProvider;
 
+    @CacheEvict(value = "users:list", key = "'all'")
     @Override
     public void registerJwtInformation(JwtInformation jwtInformation) {
 
@@ -51,6 +53,7 @@ public class InMemoryJwtRegistry implements JwtRegistry {
         });
     }
 
+    @CacheEvict(value = "users:list", key = "'all'")
     @Override
     public void invalidateJwtInformationByUserId(UUID userId) {
 

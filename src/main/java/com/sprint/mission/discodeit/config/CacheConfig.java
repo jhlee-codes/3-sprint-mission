@@ -61,7 +61,6 @@ public class CacheConfig {
                     default:
                         log.debug("캐시 엔트리 제거 - key: {}, cause: {}", key, cause);
                 }
-
             })
         );
 
