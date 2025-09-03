@@ -28,7 +28,15 @@ public class KafkaProduceRequiredEventListener {
         log.debug("[KafkaProduceRequiredEventListener] MessageCreatedEvent Kafka로 발행");
         try {
             String payload = objectMapper.writeValueAsString(event);
-            kafkaTemplate.send("discodeit.MessageCreatedEvent", payload);
+            kafkaTemplate.send("discodeit.MessageCreatedEvent", payload)
+                .whenComplete((res, ex) -> {
+                    if (ex != null) {
+                        log.error("Kafka send 실패 topic={} err={}", "discodeit.MessageCreatedEvent",
+                            ex.getMessage(), ex);
+                        return;
+                    }
+                    log.debug("Kafka send 성공 topic={}", "discodeit.MessageCreatedEvent");
+                });
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
@@ -41,7 +49,15 @@ public class KafkaProduceRequiredEventListener {
         log.debug("[KafkaProduceRequiredEventListener] RoleUpdatedEvent Kafka로 발행");
         try {
             String payload = objectMapper.writeValueAsString(event);
-            kafkaTemplate.send("discodeit.RoleUpdatedEvent", payload);
+            kafkaTemplate.send("discodeit.RoleUpdatedEvent", payload)
+                .whenComplete((res, ex) -> {
+                    if (ex != null) {
+                        log.error("Kafka send 실패 topic={} err={}", "discodeit.RoleUpdatedEvent",
+                            ex.getMessage(), ex);
+                        return;
+                    }
+                    log.debug("Kafka send 성공 topic={}", "discodeit.RoleUpdatedEvent");
+                });
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
@@ -54,7 +70,16 @@ public class KafkaProduceRequiredEventListener {
         log.debug("[KafkaProduceRequiredEventListener] S3FileUploadFailedEvent Kafka로 발행");
         try {
             String payload = objectMapper.writeValueAsString(event);
-            kafkaTemplate.send("discodeit.S3FileUploadFailedEvent", payload);
+            kafkaTemplate.send("discodeit.S3FileUploadFailedEvent", payload)
+                .whenComplete((res, ex) -> {
+                    if (ex != null) {
+                        log.error("Kafka send 실패 topic={} err={}",
+                            "discodeit.S3FileUploadFailedEvent",
+                            ex.getMessage(), ex);
+                        return;
+                    }
+                    log.debug("Kafka send 성공 topic={}", "discodeit.S3FileUploadFailedEvent");
+                });
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
