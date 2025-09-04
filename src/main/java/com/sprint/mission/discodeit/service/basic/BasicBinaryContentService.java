@@ -3,6 +3,7 @@ package com.sprint.mission.discodeit.service.basic;
 import com.sprint.mission.discodeit.annotation.Logging;
 import com.sprint.mission.discodeit.dto.BinaryContent.BinaryContentCreateRequest;
 import com.sprint.mission.discodeit.dto.BinaryContent.BinaryContentDto;
+import com.sprint.mission.discodeit.dto.Notification.NotificationDto;
 import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.entity.BinaryContentStatus;
 import com.sprint.mission.discodeit.event.BinaryContentCreatedEvent;
@@ -10,8 +11,10 @@ import com.sprint.mission.discodeit.exception.BinaryContent.BinaryContentNotFoun
 import com.sprint.mission.discodeit.mapper.BinaryContentMapper;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.service.BinaryContentService;
+import com.sprint.mission.discodeit.service.SseService;
 import com.sprint.mission.discodeit.storage.BinaryContentStorage;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
@@ -27,6 +30,7 @@ public class BasicBinaryContentService implements BinaryContentService {
     private final BinaryContentRepository binaryContentRepository;
     private final BinaryContentMapper binaryContentMapper;
     private final ApplicationEventPublisher eventPublisher;
+    private final SseService sseService;
 
     /**
      * 주어진 요청 DTO를 기반으로 BinaryContent 생성
@@ -107,6 +111,13 @@ public class BasicBinaryContentService implements BinaryContentService {
             .orElseThrow(() -> new BinaryContentNotFoundException(id));
 
         binaryContent.updateStatus(status);
-        return binaryContentMapper.toDto(binaryContent);
+
+        BinaryContentDto binaryContentDto = binaryContentMapper.toDto(binaryContent);
+
+        // SSE Send
+        sseService.broadcast("binaryContents.updated",
+            binaryContentDto);
+
+        return binaryContentDto;
     }
 }

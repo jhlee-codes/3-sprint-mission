@@ -13,6 +13,7 @@ import com.sprint.mission.discodeit.exception.User.UserNotFoundException;
 import com.sprint.mission.discodeit.mapper.UserMapper;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
+import com.sprint.mission.discodeit.service.SseService;
 import com.sprint.mission.discodeit.service.UserService;
 import java.util.List;
 import java.util.UUID;
@@ -37,6 +38,7 @@ public class BasicUserService implements UserService {
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
     private final ApplicationEventPublisher eventPublisher;
+    private final SseService sseService;
 
     /**
      * 주어진 생성 요청 DTO(유저, 프로필사진)를 기반으로 유저 생성
@@ -92,7 +94,13 @@ public class BasicUserService implements UserService {
             .build();
 
         userRepository.save(user);
-        return userMapper.toDto(user);
+        UserDto savedUserDto = userMapper.toDto(user);
+
+        // SSE Send
+        sseService.broadcast("users.created",
+            savedUserDto);
+
+        return savedUserDto;
     }
 
     /**
@@ -190,7 +198,13 @@ public class BasicUserService implements UserService {
             binaryContent
         );
 
-        return userMapper.toDto(user);
+        UserDto savedUserDto = userMapper.toDto(user);
+
+        // SSE Send
+        sseService.broadcast("users.updated",
+            savedUserDto);
+
+        return savedUserDto;
     }
 
     /**
@@ -203,14 +217,18 @@ public class BasicUserService implements UserService {
     @Transactional
     @CacheEvict(value = "users:list", key = "'all'")
     public void delete(UUID userId) {
+
         log.info("유저 삭제 요청: ID = {}", userId);
 
-        if (!userRepository.existsById(userId)) {
-            log.warn("유저 삭제 실패: 존재하지 않는 유저: ID = {}", userId);
-            throw UserNotFoundException.byId(userId);
-        }
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> UserNotFoundException.byId(userId));
+        UserDto savedUserDto = userMapper.toDto(user);
 
         userRepository.deleteById(userId);
         log.info("유저 삭제 완료: ID = {}", userId);
+
+        // SSE Send
+        sseService.broadcast("users.deleted",
+            savedUserDto);
     }
 }

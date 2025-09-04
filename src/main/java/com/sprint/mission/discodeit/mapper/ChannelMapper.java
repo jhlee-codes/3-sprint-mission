@@ -8,6 +8,7 @@ import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.repository.MessageRepository;
 import com.sprint.mission.discodeit.repository.ReadStatusRepository;
 import java.time.Instant;
+import java.util.Collections;
 import java.util.List;
 import org.springframework.stereotype.Component;
 
@@ -19,8 +20,8 @@ public class ChannelMapper {
     private final UserMapper userMapper;
 
     public ChannelMapper(MessageRepository messageRepository,
-            ReadStatusRepository readStatusRepository,
-            UserMapper userMapper) {
+        ReadStatusRepository readStatusRepository,
+        UserMapper userMapper) {
         this.messageRepository = messageRepository;
         this.readStatusRepository = readStatusRepository;
         this.userMapper = userMapper;
@@ -29,26 +30,26 @@ public class ChannelMapper {
     public ChannelDto toDto(Channel channel) {
 
         Message lastMessage = messageRepository.findTopByChannel_IdOrderByCreatedAtDesc(
-                channel.getId()).orElse(null);
+            channel.getId()).orElse(null);
 
         Instant lastMessageAt = lastMessage != null ? lastMessage.getCreatedAt() : null;
 
-        List<UserDto> users = null;
+        List<UserDto> users = Collections.emptyList();
 
         if (ChannelType.PRIVATE.equals(channel.getType())) {
             users = readStatusRepository.findAllByChannel_Id(channel.getId())
-                    .stream()
-                    .map(rs -> userMapper.toDto(rs.getUser()))
-                    .toList();
+                .stream()
+                .map(rs -> userMapper.toDto(rs.getUser()))
+                .toList();
         }
 
         return new ChannelDto(
-                channel.getId(),
-                channel.getName(),
-                channel.getDescription(),
-                channel.getType(),
-                lastMessageAt,
-                users
+            channel.getId(),
+            channel.getName(),
+            channel.getDescription(),
+            channel.getType(),
+            lastMessageAt,
+            users
         );
     }
 }

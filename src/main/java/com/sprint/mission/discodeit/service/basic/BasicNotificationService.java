@@ -19,6 +19,7 @@ import com.sprint.mission.discodeit.repository.NotificationRepository;
 import com.sprint.mission.discodeit.repository.ReadStatusRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.NotificationService;
+import com.sprint.mission.discodeit.service.SseService;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -46,6 +47,7 @@ public class BasicNotificationService implements NotificationService {
     private final ReadStatusRepository readStatusRepository;
     private final NotificationMapper notificationMapper;
     private final CacheManager cacheManager;
+    private final SseService sseService;
 
     @Override
     @Cacheable(value = "user:notifications", key = "#receiverId", unless = "#result.isEmpty()")
@@ -179,9 +181,16 @@ public class BasicNotificationService implements NotificationService {
                 .build())
             .toList();
 
-        notificationRepository.saveAll(notifications);
+        List<Notification> savedNotifications = notificationRepository.saveAll(notifications);
         evictNotificationCache(receiverIds);
-        log.debug("[NotificationService] 알림 {}개 생성 완료", notifications.size());
+        log.debug("[NotificationService] 알림 {}개 생성 완료", savedNotifications.size());
+
+        // SSE Send
+        savedNotifications.forEach(notification -> {
+            NotificationDto notificationDto = notificationMapper.toDto(notification);
+            sseService.send(Set.of(notification.getReceiverId()), "notifications.created",
+                notificationDto);
+        });
     }
 
     /* 알림 캐시를 무효화하는 메서드 */

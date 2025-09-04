@@ -4,6 +4,7 @@ import com.sprint.mission.discodeit.auth.handler.CustomAccessDeniedHandler;
 import com.sprint.mission.discodeit.auth.handler.JwtLoginSuccessHandler;
 import com.sprint.mission.discodeit.auth.handler.JwtLogoutHandler;
 import com.sprint.mission.discodeit.auth.handler.LoginFailureHandler;
+import com.sprint.mission.discodeit.auth.handler.SpaCsrfTokenRequestHandler;
 import com.sprint.mission.discodeit.auth.jwt.JwtAuthenticationFilter;
 import com.sprint.mission.discodeit.auth.jwt.JwtTokenProvider;
 import com.sprint.mission.discodeit.auth.jwt.store.InMemoryJwtRegistry;
@@ -101,15 +102,7 @@ public class SecurityConfig {
             // CSRF 설정
             .csrf(csrf -> csrf
                 .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler() {
-                    // 토큰을 강제 로드해서 XSRF-TOKEN 쿠키의 발급/회전을 보강하는 handle 메서드 재정의
-                    @Override
-                    public void handle(HttpServletRequest request, HttpServletResponse response,
-                        Supplier<CsrfToken> csrfToken) {
-                        super.handle(request, response, csrfToken);
-                        csrfToken.get();
-                    }
-                })
+                .csrfTokenRequestHandler(new SpaCsrfTokenRequestHandler())
             )
 
             // 요청 권한 설정
