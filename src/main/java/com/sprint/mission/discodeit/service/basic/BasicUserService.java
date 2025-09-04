@@ -49,7 +49,7 @@ public class BasicUserService implements UserService {
      * @throws UserAlreadyExistsException 유저명/이메일이 중복된 경우
      */
     @Override
-    @CacheEvict(value = "users:list", key = "'all'")
+    @CacheEvict(value = "users:list", allEntries = true)
     @Transactional
     public UserDto create(UserCreateRequest userCreateRequest,
         BinaryContentCreateRequest profileCreateRequest) {
@@ -149,7 +149,7 @@ public class BasicUserService implements UserService {
      */
     @Override
     @Transactional
-    @CacheEvict(value = "users:list", key = "'all'")
+    @CacheEvict(value = "users:list", allEntries = true)
     public UserDto update(UUID userId, UserUpdateRequest updateRequest,
         BinaryContentCreateRequest profileCreateRequest) {
         log.info("유저 수정 요청: 유저명 = {}, 이메일 = {}", updateRequest.newUsername(),
@@ -215,7 +215,7 @@ public class BasicUserService implements UserService {
      */
     @Override
     @Transactional
-    @CacheEvict(value = "users:list", key = "'all'")
+    @CacheEvict(value = "users:list", allEntries = true)
     public void delete(UUID userId) {
 
         log.info("유저 삭제 요청: ID = {}", userId);

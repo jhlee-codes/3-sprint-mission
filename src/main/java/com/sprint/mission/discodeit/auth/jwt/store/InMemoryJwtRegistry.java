@@ -23,7 +23,7 @@ public class InMemoryJwtRegistry implements JwtRegistry {
     private final int maxActiveJwtCount;
     private final JwtTokenProvider jwtTokenProvider;
 
-    @CacheEvict(value = "users:list", key = "'all'")
+    @CacheEvict(value = "users:list", allEntries = true)
     @Override
     public void registerJwtInformation(JwtInformation jwtInformation) {
 
@@ -53,7 +53,7 @@ public class InMemoryJwtRegistry implements JwtRegistry {
         });
     }
 
-    @CacheEvict(value = "users:list", key = "'all'")
+    @CacheEvict(value = "users:list", allEntries = true)
     @Override
     public void invalidateJwtInformationByUserId(UUID userId) {
 
