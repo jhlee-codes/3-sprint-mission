@@ -4,6 +4,7 @@ import com.sprint.mission.discodeit.auth.DiscodeitUserDetailsService;
 import com.sprint.mission.discodeit.auth.jwt.JwtTokenProvider;
 import com.sprint.mission.discodeit.auth.jwt.store.JwtRegistry;
 import com.sprint.mission.discodeit.exception.Auth.InvalidTokenException;
+import java.util.Collection;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.Message;
@@ -13,6 +14,8 @@ import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.MessageHeaderAccessor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.mapping.GrantedAuthoritiesMapper;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -25,6 +28,7 @@ public class JwtAuthenticationChannelInterceptor implements ChannelInterceptor {
     private final JwtTokenProvider jwtTokenProvider;
     private final DiscodeitUserDetailsService discodeitUserDetailsService;
     private final JwtRegistry jwtRegistry;
+    private final GrantedAuthoritiesMapper authoritiesMapper;
 
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
@@ -37,6 +41,7 @@ public class JwtAuthenticationChannelInterceptor implements ChannelInterceptor {
             String token = resolveToken(accessor);
 
             if (token != null) {
+
                 log.debug("[JwtAuthenticationChannelInterceptor] Bearer 토큰 추출 성공");
 
                 // 토큰 유효성 검사
@@ -48,6 +53,8 @@ public class JwtAuthenticationChannelInterceptor implements ChannelInterceptor {
                     log.error("[JwtAuthenticationChannelInterceptor] 토큰 유효성 검사 실패");
                     throw new InvalidTokenException("유효하지 않은 토큰입니다.");
                 }
+
+
             }
         }
         return message;
@@ -69,11 +76,15 @@ public class JwtAuthenticationChannelInterceptor implements ChannelInterceptor {
         UserDetails userDetails = discodeitUserDetailsService.loadUserByUsername(username);
         log.debug("[JwtAuthenticationChannelInterceptor] 사용자 정보 로드 완료: {}", username);
 
+        // 역할 계층 매핑 적용
+        Collection<? extends GrantedAuthority> mapped = authoritiesMapper.mapAuthorities(
+            userDetails.getAuthorities());
+
         UsernamePasswordAuthenticationToken authentication =
             new UsernamePasswordAuthenticationToken(
                 userDetails,
                 null,
-                userDetails.getAuthorities()
+                mapped
             );
 
         // STOMP 세션에 인증 정보 설정

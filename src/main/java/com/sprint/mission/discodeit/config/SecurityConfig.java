@@ -25,11 +25,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler;
 import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
+import org.springframework.security.access.hierarchicalroles.RoleHierarchyAuthoritiesMapper;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.authority.mapping.GrantedAuthoritiesMapper;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -80,6 +82,11 @@ public class SecurityConfig {
             "ROLE_ADMIN > ROLE_CHANNEL_MANAGER > ROLE_USER");
         log.debug("[SecurityConfig] RoleHierarchy 설정 완료");
         return roleHierarchy;
+    }
+
+    @Bean
+    public GrantedAuthoritiesMapper authoritiesMapper(RoleHierarchy roleHierarchy) {
+        return new RoleHierarchyAuthoritiesMapper(roleHierarchy);
     }
 
     @Bean
