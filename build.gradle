@@ -99,6 +99,8 @@ dependencies {
 
     // Websocket 의존성 추가
     implementation 'org.springframework.boot:spring-boot-starter-websocket'
+    
+    implementation("org.springframework.security:spring-security-messaging")
 }
 
 tasks.withType(JavaCompile) {
