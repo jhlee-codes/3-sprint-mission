@@ -1,5 +1,6 @@
 package com.sprint.mission.discodeit.service.basic;
 
+import java.time.Instant;
 import com.sprint.mission.discodeit.annotation.Logging;
 import com.sprint.mission.discodeit.dto.ReadStatus.ReadStatusCreateRequest;
 import com.sprint.mission.discodeit.dto.ReadStatus.ReadStatusDto;
@@ -63,7 +64,7 @@ public class BasicReadStatusService implements ReadStatusService {
         ReadStatus readStatus = ReadStatus.builder()
             .user(user)
             .channel(channel)
-            .lastReadAt(createRequest.lastReadAt())
+            .lastReadAt(Instant.now())
             .build();
 
         readStatusRepository.save(readStatus);

@@ -12,8 +12,12 @@ logging:
 
 # Spring config
 spring:
+  data:
+    redis:
+      host: redis
+      port: 6379
   datasource:
-    url: jdbc:postgresql://localhost:5432/discodeit
+    url: jdbc:postgresql://postgres:5432/discodeit
     username: discodeit_user
     password: discodeit1234
   jpa:
