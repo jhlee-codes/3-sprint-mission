@@ -111,4 +111,4 @@ CREATE TABLE IF NOT EXISTS notifications
     receiver_id UUID                     NOT NULL,
     title       VARCHAR,
     content     TEXT
-)
+);

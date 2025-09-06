@@ -7,7 +7,7 @@ services:
     ports:
       - "3000:80"
     depends_on:
-      - app
+      - backend
     networks:
       - edge
       - app-network
@@ -18,16 +18,16 @@ services:
       retries: 3
       start_period: 10s
 
-  app:
+  backend:
     build:
       context: .
       dockerfile: Dockerfile
       args:
         PROJECT_NAME: ${PROJECT_NAME}
         PROJECT_VERSION: ${PROJECT_VERSION}
-    container_name: discodeit-app
-    ports:
-      - "${APP_PORT:-8081}:${SERVER_PORT:-8080}"
+    #    container_name: discodeit-app
+    #    ports:
+    #      - "${APP_PORT:-8081}:${SERVER_PORT:-8080}"
     env_file:
       - .env
     environment:
@@ -52,7 +52,9 @@ services:
       - app-network
     expose:
       - "8080"
-
+    deploy:
+      replicas: 3
+  
   postgres:
     image: postgres:17
     container_name: discodeit-db

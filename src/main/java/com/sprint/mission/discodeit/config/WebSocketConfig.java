@@ -5,6 +5,7 @@ import com.sprint.mission.discodeit.interceptor.JwtAuthenticationChannelIntercep
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.messaging.simp.SimpMessageType;
 import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.security.messaging.access.intercept.AuthorizationChannelInterceptor;
@@ -51,6 +52,13 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         return new AuthorizationChannelInterceptor(
             MessageMatcherDelegatingAuthorizationManager.builder()
                 .anyMessage().hasRole(Role.USER.name())
+                // 메시지 타입 허용 추가
+                .simpTypeMatchers(
+                    SimpMessageType.CONNECT,
+                    SimpMessageType.HEARTBEAT,
+                    SimpMessageType.UNSUBSCRIBE,
+                    SimpMessageType.DISCONNECT
+                ).permitAll()
                 .build()
         );
     }
