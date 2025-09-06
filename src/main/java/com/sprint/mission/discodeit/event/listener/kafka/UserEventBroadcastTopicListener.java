@@ -24,7 +24,7 @@ public class UserEventBroadcastTopicListener {
     public void onUserCreatedEvent(String kafkaEvent) {
         log.debug(
             "[UserEventBroadcastTopicListener] UserCreatedEvent 토픽 구독 - SSE 브로드캐스팅 시작");
-        processUserEvent(kafkaEvent, "user.created");
+        processUserEvent(kafkaEvent, "users.created");
     }
 
     @KafkaListener(
@@ -34,7 +34,7 @@ public class UserEventBroadcastTopicListener {
     public void onUserUpdatedEvent(String kafkaEvent) {
         log.debug(
             "[UserEventBroadcastTopicListener] UserUpdatedEvent 토픽 구독 - SSE 브로드캐스팅 시작");
-        processUserEvent(kafkaEvent, "user.updated");
+        processUserEvent(kafkaEvent, "users.updated");
     }
 
     @KafkaListener(
@@ -44,7 +44,7 @@ public class UserEventBroadcastTopicListener {
     public void onUserDeletedEvent(String kafkaEvent) {
         log.debug(
             "[UserEventBroadcastTopicListener] UserDeletedEvent 토픽 구독 - SSE 브로드캐스팅 시작");
-        processUserEvent(kafkaEvent, "user.deleted");
+        processUserEvent(kafkaEvent, "users.deleted");
     }
 
     private void processUserEvent(String kafkaEvent, String eventName) {

@@ -75,6 +75,7 @@ public class RedisJwtRegistry implements JwtRegistry {
             });
         }
 
+        log.debug("[RedisJwtRegistry] Redis에서 사용자 JWT 정보 삭제 시도: userKey={}", userKey);
         redisTemplate.delete(userKey);
     }
 
