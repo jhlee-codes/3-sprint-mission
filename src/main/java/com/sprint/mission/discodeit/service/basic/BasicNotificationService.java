@@ -1,5 +1,7 @@
 package com.sprint.mission.discodeit.service.basic;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sprint.mission.discodeit.annotation.Logging;
 import com.sprint.mission.discodeit.dto.Notification.NotificationDto;
 import com.sprint.mission.discodeit.entity.Channel;
@@ -30,6 +32,7 @@ import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -48,6 +51,8 @@ public class BasicNotificationService implements NotificationService {
     private final NotificationMapper notificationMapper;
     private final CacheManager cacheManager;
     private final SseService sseService;
+    private final ObjectMapper objectMapper;
+    private final KafkaTemplate<String, String> kafkaTemplate;
 
     @Override
     @Cacheable(value = "user:notifications", key = "#receiverId", unless = "#result.isEmpty()")
@@ -185,11 +190,10 @@ public class BasicNotificationService implements NotificationService {
         evictNotificationCache(receiverIds);
         log.debug("[NotificationService] 알림 {}개 생성 완료", savedNotifications.size());
 
-        // SSE Send
+        // Kafka 이벤트 발행
         savedNotifications.forEach(notification -> {
             NotificationDto notificationDto = notificationMapper.toDto(notification);
-            sseService.send(Set.of(notification.getReceiverId()), "notifications.created",
-                notificationDto);
+            publishKafkaEvent(notificationDto);
         });
     }
 
@@ -202,6 +206,19 @@ public class BasicNotificationService implements NotificationService {
             log.debug("[NotificationService] 알림 캐시 무효화 완료");
         } else {
             log.debug("[NotificationService] 알림 캐시가 존재하지 않음");
+        }
+    }
+
+    private void publishKafkaEvent(NotificationDto notificationDto) {
+
+        try {
+            String payload = objectMapper.writeValueAsString(notificationDto);
+            String topic = "discodeit.NotificationCreatedEvent";
+            kafkaTemplate.send(topic, payload);
+            log.debug("[NotificationService] SSE 푸시 Kafka 이벤트 발행 완료: {}", payload);
+        } catch (JsonProcessingException e) {
+            log.error("[NotificationService] NotificationDto 직렬화 실패: {}",
+                e.getMessage());
         }
     }
 }

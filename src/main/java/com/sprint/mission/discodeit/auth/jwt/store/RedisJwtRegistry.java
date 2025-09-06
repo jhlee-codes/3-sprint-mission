@@ -2,7 +2,6 @@ package com.sprint.mission.discodeit.auth.jwt.store;
 
 import com.sprint.mission.discodeit.auth.jwt.JwtTokenProvider;
 import com.sprint.mission.discodeit.dto.Jwt.JwtInformation;
-import com.sprint.mission.discodeit.event.UserLogInOutEvent;
 import com.sprint.mission.discodeit.redis.RedisLockProvider;
 import com.sprint.mission.discodeit.redis.RedisLockProvider.RedisLockAcquisitionException;
 import java.time.Duration;
@@ -60,9 +59,6 @@ public class RedisJwtRegistry implements JwtRegistry {
         } finally {
             redisLockProvider.releaseLock(lockKey);
         }
-
-        log.debug("[RedisJwtRegistry] 로그인/로그아웃 이벤트 발행");
-        eventPublisher.publishEvent(new UserLogInOutEvent(jwtInformation.getUserDto().id(), false));
     }
 
     @CacheEvict(value = "users:list", allEntries = true)
@@ -80,8 +76,6 @@ public class RedisJwtRegistry implements JwtRegistry {
         }
 
         redisTemplate.delete(userKey);
-        log.debug("[RedisJwtRegistry] 로그인/로그아웃 이벤트 발행");
-        eventPublisher.publishEvent(new UserLogInOutEvent(userId, false));
     }
 
     @Override
@@ -128,7 +122,7 @@ public class RedisJwtRegistry implements JwtRegistry {
                         addTokenIndex(newJwtInformation.getAccessToken(),
                             newJwtInformation.getRefreshToken());
                         redisTemplate.expire(userKey, DEFAULT_TTL);
-                        break;
+                        return true;
                     }
                 }
             }

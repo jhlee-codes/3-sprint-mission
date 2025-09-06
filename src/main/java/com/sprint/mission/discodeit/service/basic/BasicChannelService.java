@@ -1,10 +1,13 @@
 package com.sprint.mission.discodeit.service.basic;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sprint.mission.discodeit.annotation.Logging;
 import com.sprint.mission.discodeit.dto.Channel.ChannelDto;
 import com.sprint.mission.discodeit.dto.Channel.PrivateChannelCreateRequest;
 import com.sprint.mission.discodeit.dto.Channel.PublicChannelCreateRequest;
 import com.sprint.mission.discodeit.dto.Channel.PublicChannelUpdateRequest;
+import com.sprint.mission.discodeit.dto.User.UserDto;
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.ChannelType;
 import com.sprint.mission.discodeit.entity.ReadStatus;
@@ -25,6 +28,7 @@ import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -41,6 +45,8 @@ public class BasicChannelService implements ChannelService {
     private final ChannelMapper channelMapper;
     private final CacheManager cacheManager;
     private final SseService sseService;
+    private final ObjectMapper objectMapper;
+    private final KafkaTemplate<String, String> kafkaTemplate;
 
     /**
      * 주어진 요청 DTO를 기반으로 Public 채널 생성
@@ -64,9 +70,8 @@ public class BasicChannelService implements ChannelService {
         channelRepository.save(publicChannel);
         ChannelDto savedChannelDto = channelMapper.toDto(publicChannel);
 
-        // SSE Send
-        sseService.broadcast("channels.created",
-            savedChannelDto);
+        // Kafka 이벤트 발행
+        publishKafkaEvent("channels.created", savedChannelDto);
 
         return savedChannelDto;
     }
@@ -102,9 +107,8 @@ public class BasicChannelService implements ChannelService {
         evictCache(createRequest.participantIds());
         ChannelDto savedChannelDto = channelMapper.toDto(privateChannel);
 
-        // SSE Send
-        sseService.broadcast("channels.created",
-            savedChannelDto);
+        // Kafka 이벤트 발행
+        publishKafkaEvent("channels.created", savedChannelDto);
 
         return savedChannelDto;
     }
@@ -173,9 +177,8 @@ public class BasicChannelService implements ChannelService {
         channelRepository.save(channel);
         ChannelDto savedChannelDto = channelMapper.toDto(channel);
 
-        // SSE Send
-        sseService.broadcast("channels.updated",
-            savedChannelDto);
+        // Kafka 이벤트 발행
+        publishKafkaEvent("channels.updated", savedChannelDto);
 
         return savedChannelDto;
     }
@@ -200,9 +203,8 @@ public class BasicChannelService implements ChannelService {
         readStatusRepository.deleteAllByChannelId(channelId);
         channelRepository.deleteById(channelId);
 
-        // SSE Send
-        sseService.broadcast("channels.deleted",
-            channelDto);
+        // Kafka 이벤트 발행
+        publishKafkaEvent("channels.deleted", channelDto);
 
         log.info("채널 삭제 완료: ID = {}", channelId);
     }
@@ -216,6 +218,30 @@ public class BasicChannelService implements ChannelService {
             log.debug("채널 캐시를 제거했습니다: userIds={}", participantIds);
         } else {
             log.warn("채널 캐시가 존재하지 않습니다.");
+        }
+    }
+
+    private void publishKafkaEvent(String eventName, ChannelDto channelDto) {
+
+        try {
+            String payload = objectMapper.writeValueAsString(channelDto);
+            String topic = "";
+            switch (eventName) {
+                case "channels.created":
+                    topic = "discodeit.ChannelCreatedEvent";
+                    break;
+                case "channels.updated":
+                    topic = "discodeit.ChannelUpdatedEvent";
+                    break;
+                case "channels.deleted":
+                    topic = "discodeit.ChannelDeletedEvent";
+                    break;
+            }
+            kafkaTemplate.send(topic, payload);
+            log.debug("[ChannelSerice] SSE 푸시 Kafka 이벤트 발행 완료: {}", payload);
+        } catch (JsonProcessingException e) {
+            log.error("[ChannelSerice] ChannelDto 직렬화 실패: {}",
+                e.getMessage());
         }
     }
 }

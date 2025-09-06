@@ -9,6 +9,7 @@ logging:
     com.sprint.mission.discodeit: debug
     org.hibernate.SQL: debug
     org.hibernate.orm.jdbc.bind: trace
+    org.springframework.data.redis: trace
 
 # Spring config
 spring:

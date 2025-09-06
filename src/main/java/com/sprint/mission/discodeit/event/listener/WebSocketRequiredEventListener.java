@@ -10,7 +10,7 @@ import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
 @RequiredArgsConstructor
-@Component
+//@Component
 public class WebSocketRequiredEventListener {
 
     private final SimpMessagingTemplate messagingTemplate;

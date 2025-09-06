@@ -1,5 +1,7 @@
 package com.sprint.mission.discodeit.service.basic;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sprint.mission.discodeit.annotation.Logging;
 import com.sprint.mission.discodeit.dto.BinaryContent.BinaryContentCreateRequest;
 import com.sprint.mission.discodeit.dto.User.UserCreateRequest;
@@ -22,6 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,6 +42,8 @@ public class BasicUserService implements UserService {
     private final PasswordEncoder passwordEncoder;
     private final ApplicationEventPublisher eventPublisher;
     private final SseService sseService;
+    private final ObjectMapper objectMapper;
+    private final KafkaTemplate<String, String> kafkaTemplate;
 
     /**
      * 주어진 생성 요청 DTO(유저, 프로필사진)를 기반으로 유저 생성
@@ -96,9 +101,8 @@ public class BasicUserService implements UserService {
         userRepository.save(user);
         UserDto savedUserDto = userMapper.toDto(user);
 
-        // SSE Send
-        sseService.broadcast("users.created",
-            savedUserDto);
+        // Kafka 이벤트 발행
+        publishKafkaEvent("users.created", savedUserDto);
 
         return savedUserDto;
     }
@@ -200,9 +204,8 @@ public class BasicUserService implements UserService {
 
         UserDto savedUserDto = userMapper.toDto(user);
 
-        // SSE Send
-        sseService.broadcast("users.updated",
-            savedUserDto);
+        // Kafka 이벤트 발행
+        publishKafkaEvent("users.updated", savedUserDto);
 
         return savedUserDto;
     }
@@ -227,8 +230,31 @@ public class BasicUserService implements UserService {
         userRepository.deleteById(userId);
         log.info("유저 삭제 완료: ID = {}", userId);
 
-        // SSE Send
-        sseService.broadcast("users.deleted",
-            savedUserDto);
+        // Kafka 이벤트 발행
+        publishKafkaEvent("users.deleted", savedUserDto);
+    }
+
+    private void publishKafkaEvent(String eventName, UserDto userDto) {
+
+        try {
+            String payload = objectMapper.writeValueAsString(userDto);
+            String topic = "";
+            switch (eventName) {
+                case "users.created":
+                    topic = "discodeit.UserCreatedEvent";
+                    break;
+                case "users.updated":
+                    topic = "discodeit.UserUpdatedEvent";
+                    break;
+                case "users.deleted":
+                    topic = "discodeit.UserDeletedEvent";
+                    break;
+            }
+            kafkaTemplate.send(topic, payload);
+            log.debug("[UserSerice] SSE 푸시 Kafka 이벤트 발행 완료: {}", payload);
+        } catch (JsonProcessingException e) {
+            log.error("[UserSerice] UserDto 직렬화 실패: {}",
+                e.getMessage());
+        }
     }
 }

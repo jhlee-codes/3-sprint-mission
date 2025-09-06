@@ -1,5 +1,7 @@
 package com.sprint.mission.discodeit.service.basic;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sprint.mission.discodeit.annotation.Logging;
 import com.sprint.mission.discodeit.dto.BinaryContent.BinaryContentCreateRequest;
 import com.sprint.mission.discodeit.dto.BinaryContent.BinaryContentDto;
@@ -17,12 +19,15 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@Slf4j
 @Logging
 @RequiredArgsConstructor
 public class BasicBinaryContentService implements BinaryContentService {
@@ -31,6 +36,8 @@ public class BasicBinaryContentService implements BinaryContentService {
     private final BinaryContentMapper binaryContentMapper;
     private final ApplicationEventPublisher eventPublisher;
     private final SseService sseService;
+    private final ObjectMapper objectMapper;
+    private final KafkaTemplate<String, String> kafkaTemplate;
 
     /**
      * 주어진 요청 DTO를 기반으로 BinaryContent 생성
@@ -114,10 +121,22 @@ public class BasicBinaryContentService implements BinaryContentService {
 
         BinaryContentDto binaryContentDto = binaryContentMapper.toDto(binaryContent);
 
-        // SSE Send
-        sseService.broadcast("binaryContents.updated",
-            binaryContentDto);
+        // Kafka 이벤트 발행
+        publishKafkaEvent(binaryContentDto);
 
         return binaryContentDto;
+    }
+
+    private void publishKafkaEvent(BinaryContentDto binaryContentDto) {
+
+        try {
+            String payload = objectMapper.writeValueAsString(binaryContentDto);
+            String topic = "discodeit.BinaryContentUpdatedEvent";
+            kafkaTemplate.send(topic, payload);
+            log.debug("[BinaryContentService] SSE 푸시 Kafka 이벤트 발행 완료: {}", payload);
+        } catch (JsonProcessingException e) {
+            log.error("[BinaryContentService] BinaryContentDto 직렬화 실패: {}",
+                e.getMessage());
+        }
     }
 }
