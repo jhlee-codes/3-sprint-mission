@@ -36,13 +36,13 @@ public class ReadStatusController implements ReadStatusApi {
     @PostMapping
     @Override
     public ResponseEntity<ReadStatusDto> create(
-            @Valid @RequestBody ReadStatusCreateRequest readStatusCreateRequest
+        @Valid @RequestBody ReadStatusCreateRequest readStatusCreateRequest
     ) {
         ReadStatusDto createdReadStatus = readStatusService.create(readStatusCreateRequest);
 
         return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(createdReadStatus);
+            .status(HttpStatus.CREATED)
+            .body(createdReadStatus);
     }
 
     /**
@@ -52,19 +52,18 @@ public class ReadStatusController implements ReadStatusApi {
      * @param readStatusUpdateRequest 메시지 수신 정보 수정 요청 DTO
      * @return 수정된 메시지 수신 정보 (HTTP 200 OK)
      */
-
     @PatchMapping(path = "/{readStatusId}")
     @Override
     public ResponseEntity<ReadStatusDto> update(
-            @PathVariable UUID readStatusId,
-            @Valid @RequestBody ReadStatusUpdateRequest readStatusUpdateRequest
+        @PathVariable UUID readStatusId,
+        @Valid @RequestBody ReadStatusUpdateRequest readStatusUpdateRequest
     ) {
         ReadStatusDto updatedReadStatus = readStatusService.update(readStatusId,
-                readStatusUpdateRequest);
+            readStatusUpdateRequest);
 
         return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(updatedReadStatus);
+            .status(HttpStatus.OK)
+            .body(updatedReadStatus);
     }
 
     /**
@@ -76,12 +75,12 @@ public class ReadStatusController implements ReadStatusApi {
     @GetMapping
     @Override
     public ResponseEntity<List<ReadStatusDto>> findAllByUserId(
-            @RequestParam("userId") UUID userId
+        @RequestParam("userId") UUID userId
     ) {
         List<ReadStatusDto> readStatusList = readStatusService.findAllByUserId(userId);
 
         return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(readStatusList);
+            .status(HttpStatus.OK)
+            .body(readStatusList);
     }
 }
