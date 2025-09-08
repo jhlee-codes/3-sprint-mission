@@ -1,4 +1,4 @@
-package com.sprint.mission.discodeit.event.publisher;
+package com.sprint.mission.discodeit.event.kafka.producer;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;

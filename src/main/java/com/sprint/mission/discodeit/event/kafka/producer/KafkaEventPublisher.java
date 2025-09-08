@@ -1,4 +1,4 @@
-package com.sprint.mission.discodeit.event.publisher;
+package com.sprint.mission.discodeit.event.kafka.producer;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -19,9 +19,11 @@ public class KafkaEventPublisher {
         try {
             String payload = objectMapper.writeValueAsString(eventData);
             kafkaTemplate.send(topic, payload);
-            log.debug("[KafkaEventPublisher] Kafka 이벤트 발행 완료: topic={}, payload={}", topic, payload);
+            log.debug("[KafkaEventPublisher] Kafka 이벤트 발행 완료: topic={}, payload={}", topic,
+                payload);
         } catch (JsonProcessingException e) {
-            log.error("[KafkaEventPublisher] 이벤트 직렬화 실패: topic={}, error={}", topic, e.getMessage());
+            log.error("[KafkaEventPublisher] 이벤트 직렬화 실패: topic={}, error={}", topic,
+                e.getMessage());
         }
     }
 }

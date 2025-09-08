@@ -2,7 +2,7 @@ package com.sprint.mission.discodeit.event.listener;
 
 import com.sprint.mission.discodeit.dto.Notification.NotificationDto;
 import com.sprint.mission.discodeit.event.NotificationsCreatedEvent;
-import com.sprint.mission.discodeit.event.publisher.SseEventPublisher;
+import com.sprint.mission.discodeit.event.kafka.producer.SseEventPublisher;
 import java.util.List;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
