@@ -30,6 +30,10 @@ public class BasicSseService implements SseService {
 
     @Override
     public SseEmitter connect(UUID receiverId, UUID lastEventId) {
+        log.debug("[BasicSseService] SSE 연결 요청: receiverId={}, lastEventId={}", receiverId,
+            lastEventId);
+        log.debug("[BasicSseService] SseEmitterRepository instance hash: {}",
+            emitterRepository.hashCode());
 
         if (receiverId == null) {
             throw new IllegalArgumentException("receiverId는 필수값입니다.");
@@ -37,8 +41,14 @@ public class BasicSseService implements SseService {
 
         SseEmitter sseEmitter = new SseEmitter(DEFAULT_TIMEOUT);
 
-        sseEmitter.onCompletion(() -> emitterRepository.remove(receiverId, sseEmitter));
-        sseEmitter.onTimeout(() -> emitterRepository.remove(receiverId, sseEmitter));
+        sseEmitter.onCompletion(() -> {
+            log.debug("[BasicSseService] SSE Emitter 완료: receiverId={}", receiverId);
+            emitterRepository.remove(receiverId, sseEmitter);
+        });
+        sseEmitter.onTimeout(() -> {
+            log.debug("[BasicSseService] SSE Emitter 타임아웃: receiverId={}", receiverId);
+            emitterRepository.remove(receiverId, sseEmitter);
+        });
         sseEmitter.onError(t -> {
             log.warn("[SSE] onError rid={} err={}", receiverId,
                 t != null ? t.toString() : "null");
@@ -65,7 +75,9 @@ public class BasicSseService implements SseService {
     @Override
     public void send(Collection<UUID> receiverIds, String eventName, Object data) {
 
-        log.debug("[BasicSseService] 이벤트 전송: receiverIds={} event={} ", receiverIds, eventName);
+        log.debug("[BasicSseService] 이벤트 전송: receiverIds={} event={} ", receiverIds,
+            eventName);
+
         SseMessage msg = new SseMessage(UUID.randomUUID(), eventName, data,
             new HashSet<>(receiverIds));
         messageRepository.save(msg);
@@ -113,6 +125,7 @@ public class BasicSseService implements SseService {
 
     @Override
     public boolean ping(SseEmitter sseEmitter) {
+        log.debug("[BasicSseService] ping() 호출됨. Emitter hashCode: {}", sseEmitter.hashCode());
 
         try {
             // 더미 데이터
@@ -122,8 +135,11 @@ public class BasicSseService implements SseService {
                     .name("ping")
                     .build()
             );
+            log.debug("[BasicSseService] ping() - sseEmitter.send() 성공. Emitter hashCode: {}",
+                sseEmitter.hashCode());
             return true;
         } catch (Exception e) {
+            log.error("[BasicSseService] Ping 실패: Emitter 종료됨. 에러: {}", e.getMessage(), e);
             sseEmitter.complete();
             return false;
         }

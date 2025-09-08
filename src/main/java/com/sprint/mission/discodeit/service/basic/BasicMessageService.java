@@ -46,7 +46,6 @@ public class BasicMessageService implements MessageService {
     private final ChannelRepository channelRepository;
     private final UserRepository userRepository;
     private final ApplicationEventPublisher eventPublisher;
-
     private final MessageMapper messageMapper;
     private final PageResponseMapper pageResponseMapper;
 

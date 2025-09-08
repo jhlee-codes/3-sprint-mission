@@ -1,7 +1,5 @@
 package com.sprint.mission.discodeit.service.basic;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sprint.mission.discodeit.annotation.Logging;
 import com.sprint.mission.discodeit.dto.Notification.NotificationDto;
 import com.sprint.mission.discodeit.entity.Channel;
@@ -10,6 +8,7 @@ import com.sprint.mission.discodeit.entity.Notification;
 import com.sprint.mission.discodeit.entity.Role;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.entity.base.BaseEntity;
+import com.sprint.mission.discodeit.event.NotificationsCreatedEvent;
 import com.sprint.mission.discodeit.exception.Channel.ChannelNotFoundException;
 import com.sprint.mission.discodeit.exception.Message.MessageNotFoundException;
 import com.sprint.mission.discodeit.exception.Notification.NotificationNotFoundException;
@@ -21,18 +20,16 @@ import com.sprint.mission.discodeit.repository.NotificationRepository;
 import com.sprint.mission.discodeit.repository.ReadStatusRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.NotificationService;
-import com.sprint.mission.discodeit.service.SseService;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.Cache;
-import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -49,10 +46,7 @@ public class BasicNotificationService implements NotificationService {
     private final MessageRepository messageRepository;
     private final ReadStatusRepository readStatusRepository;
     private final NotificationMapper notificationMapper;
-    private final CacheManager cacheManager;
-    private final SseService sseService;
-    private final ObjectMapper objectMapper;
-    private final KafkaTemplate<String, String> kafkaTemplate;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
     @Cacheable(value = "user:notifications", key = "#receiverId", unless = "#result.isEmpty()")
@@ -65,7 +59,8 @@ public class BasicNotificationService implements NotificationService {
             throw UserNotFoundException.byId(receiverId);
         }
 
-        List<Notification> notifications = notificationRepository.findAllByReceiverId(receiverId);
+        List<Notification> notifications = notificationRepository.findAllByReceiverId(receiverId,
+            Sort.by(Sort.Direction.DESC, "createdAt"));
 
         log.debug("[NotificationService] 전체 알림 {}개 조회 완료", notifications.size());
 
@@ -140,7 +135,7 @@ public class BasicNotificationService implements NotificationService {
         String title = "권한이 변경되었습니다.";
         String content = String.format("%s -> %s", before, after);
 
-        create(Set.of(user.getId()), title, content);
+        create(Set.of(userId), title, content);
 
         log.debug("[NotificationService] 권한 변경 알림 생성 완료 - userId = {}", userId);
     }
@@ -178,47 +173,22 @@ public class BasicNotificationService implements NotificationService {
             return;
         }
 
-        List<Notification> notifications = receiverIds.stream()
-            .map(receiverId -> Notification.builder()
-                .receiverId(receiverId)
-                .title(title)
-                .content(content)
-                .build())
+        List<Notification> saved = notificationRepository.saveAll(
+            receiverIds.stream()
+                .map(id -> Notification.builder()
+                    .receiverId(id)
+                    .title(title)
+                    .content(content)
+                    .build())
+                .toList()
+        );
+
+        List<NotificationDto> dtos = saved.stream()
+            .map(notificationMapper::toDto)
             .toList();
 
-        List<Notification> savedNotifications = notificationRepository.saveAll(notifications);
-        evictNotificationCache(receiverIds);
-        log.debug("[NotificationService] 알림 {}개 생성 완료", savedNotifications.size());
+        eventPublisher.publishEvent(new NotificationsCreatedEvent(receiverIds, dtos));
 
-        // Kafka 이벤트 발행
-        savedNotifications.forEach(notification -> {
-            NotificationDto notificationDto = notificationMapper.toDto(notification);
-            publishKafkaEvent(notificationDto);
-        });
-    }
-
-    /* 알림 캐시를 무효화하는 메서드 */
-    private void evictNotificationCache(Set<UUID> receiverIds) {
-
-        Cache cache = cacheManager.getCache("user:notifications");
-        if (cache != null) {
-            receiverIds.forEach(cache::evictIfPresent);
-            log.debug("[NotificationService] 알림 캐시 무효화 완료");
-        } else {
-            log.debug("[NotificationService] 알림 캐시가 존재하지 않음");
-        }
-    }
-
-    private void publishKafkaEvent(NotificationDto notificationDto) {
-
-        try {
-            String payload = objectMapper.writeValueAsString(notificationDto);
-            String topic = "discodeit.NotificationCreatedEvent";
-            kafkaTemplate.send(topic, payload);
-            log.debug("[NotificationService] SSE 푸시 Kafka 이벤트 발행 완료: {}", payload);
-        } catch (JsonProcessingException e) {
-            log.error("[NotificationService] NotificationDto 직렬화 실패: {}",
-                e.getMessage());
-        }
+        log.debug("[NotificationService] 알림 {}개 생성 완료", saved.size());
     }
 }

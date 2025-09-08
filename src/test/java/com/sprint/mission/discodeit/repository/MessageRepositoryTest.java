@@ -37,8 +37,8 @@ public class MessageRepositoryTest {
     @Autowired
     private UserRepository userRepository;
 
-    @Autowired
-    private UserStatusRepository userStatusRepository;
+    // @Autowired
+    // private UserStatusRepository userStatusRepository; // 삭제
 
     @Autowired
     private TestEntityManager em;
@@ -116,11 +116,11 @@ public class MessageRepositoryTest {
         // given
         messageRepository.deleteAll();
 
-        UserStatus userStatus = new UserStatus(user, Instant.now());
-        ReflectionTestUtils.setField(userStatus, "createdAt", Instant.now());
-        userStatusRepository.save(userStatus);
-        user.setStatus(userStatus);
-        userRepository.save(user);
+        // UserStatus userStatus = new UserStatus(user, Instant.now()); // 삭제
+        // ReflectionTestUtils.setField(userStatus, "createdAt", Instant.now()); // 삭제
+        // userStatusRepository.save(userStatus); // 삭제
+        // user.setStatus(userStatus); // 삭제
+        userRepository.save(user); // user.setStatus(userStatus)가 없으므로 이 부분은 유지
 
         Message oldMessage = createMessage("이전 메시지", channel, user, Instant.now());
         messageRepository.save(oldMessage);

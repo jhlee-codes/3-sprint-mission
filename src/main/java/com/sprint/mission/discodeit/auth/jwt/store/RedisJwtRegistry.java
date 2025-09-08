@@ -11,6 +11,7 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.retry.annotation.Backoff;
@@ -32,7 +33,11 @@ public class RedisJwtRegistry implements JwtRegistry {
     private final RedisTemplate<String, Object> redisTemplate;
     private final RedisLockProvider redisLockProvider;
 
-    @CacheEvict(value = "users:list", allEntries = true)
+    @Caching(evict = {
+        @CacheEvict(cacheNames = "users:list", allEntries = true),
+        @CacheEvict(cacheNames = "user:channels", key = "#jwtInformation.getUserDto.id()"),
+        @CacheEvict(cacheNames = "user:notifications", key = "#jwtInformation.getUserDto.id()")
+    })
     @Retryable(retryFor = RedisLockAcquisitionException.class, maxAttempts = 10,
         backoff = @Backoff(delay = 100, multiplier = 2))
     @Override
@@ -61,7 +66,11 @@ public class RedisJwtRegistry implements JwtRegistry {
         }
     }
 
-    @CacheEvict(value = "users:list", allEntries = true)
+    @Caching(evict = {
+        @CacheEvict(value = "users:list", allEntries = true),
+        @CacheEvict(value = "user:channels", key = "#userId"),
+        @CacheEvict(value = "user:notifications", key = "#userId")
+    })
     @Override
     public void invalidateJwtInformationByUserId(UUID userId) {
         String userKey = getUserKey(userId);
