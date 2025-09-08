@@ -103,7 +103,8 @@ public class BasicChannelService implements ChannelService {
         ChannelDto savedChannelDto = channelMapper.toDto(privateChannel);
 
         eventPublisher.publishEvent(
-            new SseNotificationEvent<>("channels.created", savedChannelDto, null));
+            new SseNotificationEvent<>("channels.created", savedChannelDto,
+                createRequest.participantIds()));
 
         return savedChannelDto;
     }
