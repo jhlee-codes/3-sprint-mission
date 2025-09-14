@@ -51,20 +51,20 @@ public class BasicReadStatusService implements ReadStatusService {
         UUID userId = createRequest.userId();
 
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> UserNotFoundException.byId(userId));
+            .orElseThrow(() -> UserNotFoundException.byId(userId));
 
         Channel channel = channelRepository.findById(channelId)
-                .orElseThrow(() -> new ChannelNotFoundException(channelId));
+            .orElseThrow(() -> new ChannelNotFoundException(channelId));
 
         if (readStatusRepository.existsByUserIdAndChannelId(userId, channelId)) {
             throw ReadStatusAlreadyExistsException.byUserIdAndChannelId(userId, channelId);
         }
 
         ReadStatus readStatus = ReadStatus.builder()
-                .user(user)
-                .channel(channel)
-                .lastReadAt(createRequest.lastReadAt())
-                .build();
+            .user(user)
+            .channel(channel)
+            .lastReadAt(createRequest.lastReadAt())
+            .build();
 
         readStatusRepository.save(readStatus);
         return readStatusMapper.toDto(readStatus);
@@ -81,8 +81,8 @@ public class BasicReadStatusService implements ReadStatusService {
     public List<ReadStatusDto> findAllByUserId(UUID userId) {
 
         return readStatusRepository.findAllByUserId(userId).stream()
-                .map(readStatusMapper::toDto)
-                .toList();
+            .map(readStatusMapper::toDto)
+            .toList();
     }
 
     /**
@@ -97,7 +97,7 @@ public class BasicReadStatusService implements ReadStatusService {
     public ReadStatusDto find(UUID id) {
 
         ReadStatus readStatus = readStatusRepository.findById(id)
-                .orElseThrow(() -> new ReadStatusNotFoundException(id));
+            .orElseThrow(() -> new ReadStatusNotFoundException(id));
 
         return readStatusMapper.toDto(readStatus);
     }
@@ -115,9 +115,9 @@ public class BasicReadStatusService implements ReadStatusService {
     public ReadStatusDto update(UUID id, ReadStatusUpdateRequest updateRequest) {
 
         ReadStatus readStatus = readStatusRepository.findById(id)
-                .orElseThrow(() -> new ReadStatusNotFoundException(id));
+            .orElseThrow(() -> new ReadStatusNotFoundException(id));
 
-        readStatus.update(updateRequest.newLastReadAt());
+        readStatus.update(updateRequest.newLastReadAt(), updateRequest.newNotificationEnabled());
         return readStatusMapper.toDto(readStatus);
     }
 

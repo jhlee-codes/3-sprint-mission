@@ -1,7 +1,7 @@
 package com.sprint.mission.discodeit.controller.api;
 
 import com.sprint.mission.discodeit.dto.Common.ApiErrorResponse;
-import com.sprint.mission.discodeit.dto.JwtDto;
+import com.sprint.mission.discodeit.dto.Jwt.JwtDto;
 import com.sprint.mission.discodeit.dto.User.UserDto;
 import com.sprint.mission.discodeit.dto.User.UserRoleUpdateRequest;
 import io.swagger.v3.oas.annotations.Operation;

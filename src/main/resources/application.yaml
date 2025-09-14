@@ -18,6 +18,34 @@ spring:
   profiles:
     active:
       - dev
+  cache: # 캐시 설정
+    #    type: caffeine
+    type: redis
+    caffeine:
+      spec: >
+        maximumSize=100,
+        expireAfterAccess=600s,
+        recordStats
+    cache-names:
+      - user:channels
+      - user:notifications
+      - users:list
+    redis:
+      enable-statistics: true
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+  kafka: # Kafka 설정
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+    consumer:
+      group-id: discodeit-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
 
 discodeit:
   storage:
@@ -34,15 +62,22 @@ discodeit:
 logging:
   level:
     root: info
+    # Spring Cache 관련 디버그 로그 활성화 (캐시 Hit/Miss 추적)
+    org.springframework.cache: DEBUG
+    org.springframework.cache.interceptor: TRACE
 
 management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics,loggers,prometheus
+        include: "*"
+      base-path: /actuator
   endpoint:
     health:
       show-details: always
+  observations:
+    annotations:
+      enabled: true
 
 # 애플리케이션 정보 (Actuator info 엔드포인트용)
 info:
@@ -82,3 +117,24 @@ jwt:
   cookie:
     secure: false
   max-active-count: 1
+
+# 비동기 설정
+async:
+  executors:
+    file:
+      core-size: 2
+      max-size: 4
+      queue-capacity: 100
+      keep-alive-seconds: 120
+    notification:
+      core-size: 2
+      max-size: 4
+      queue-capacity: 500
+      keep-alive-seconds: 60
+    default:
+      core-size: 2
+      max-size: 4
+      queue-capacity: 100
+      keep-alive-seconds: 60
+
+

@@ -23,6 +23,11 @@ import java.util.NoSuchElementException;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,6 +42,7 @@ public class BasicChannelService implements ChannelService {
     private final MessageRepository messageRepository;
     private final UserRepository userRepository;
     private final ChannelMapper channelMapper;
+    private final CacheManager cacheManager;
 
     /**
      * 주어진 요청 DTO를 기반으로 Public 채널 생성
@@ -45,16 +51,17 @@ public class BasicChannelService implements ChannelService {
      * @return 생성된 채널
      */
     @Override
+    @CacheEvict(value = "user:channels", allEntries = true)
     @Transactional
     public ChannelDto create(PublicChannelCreateRequest createRequest) {
         log.info("{} 채널 생성 요청: 채널명 = {}, 채널 설명 = {}", ChannelType.PUBLIC, createRequest.name(),
-                createRequest.description());
+            createRequest.description());
 
         Channel publicChannel = Channel.builder()
-                .name(createRequest.name())
-                .description(createRequest.description())
-                .type(ChannelType.PUBLIC)
-                .build();
+            .name(createRequest.name())
+            .description(createRequest.description())
+            .type(ChannelType.PUBLIC)
+            .build();
 
         channelRepository.save(publicChannel);
         return channelMapper.toDto(publicChannel);
@@ -67,25 +74,26 @@ public class BasicChannelService implements ChannelService {
      * @return 생성된 채널
      */
     @Override
+    @CacheEvict(value = "user:channels", allEntries = true)
     @Transactional
     public ChannelDto create(PrivateChannelCreateRequest createRequest) {
         log.info("{} 채널 생성 요청: 참여 인원 = {}", ChannelType.PRIVATE, createRequest.participantIds());
 
         Channel privateChannel = Channel.builder()
-                .type(ChannelType.PRIVATE)
-                .build();
+            .type(ChannelType.PRIVATE)
+            .build();
 
         channelRepository.save(privateChannel);
 
         // private 채널 입장 유저의 ReadStatus 생성
         List<ReadStatus> readStatuses = userRepository.findAllById(createRequest.participantIds())
-                .stream()
-                .map(user -> ReadStatus.builder()
-                        .user(user)
-                        .channel(privateChannel)
-                        .lastReadAt(privateChannel.getCreatedAt())
-                        .build())
-                .toList();
+            .stream()
+            .map(user -> ReadStatus.builder()
+                .user(user)
+                .channel(privateChannel)
+                .lastReadAt(privateChannel.getCreatedAt())
+                .build())
+            .toList();
 
         readStatusRepository.saveAll(readStatuses);
         return channelMapper.toDto(privateChannel);
@@ -98,14 +106,15 @@ public class BasicChannelService implements ChannelService {
      * @return 조회된 채널DTO 리스트
      */
     @Override
+    @Cacheable(value = "user:channels", key = "#userId")
     @Transactional(readOnly = true)
     public List<ChannelDto> findAllByUserId(UUID userId) {
 
         List<Channel> channels = channelRepository.findAllPublicOrUserChannels(userId);
 
         return channels.stream()
-                .map(channelMapper::toDto)
-                .toList();
+            .map(channelMapper::toDto)
+            .toList();
     }
 
     /**
@@ -120,7 +129,7 @@ public class BasicChannelService implements ChannelService {
     public ChannelDto find(UUID channelId) {
 
         Channel channel = channelRepository.findById(channelId)
-                .orElseThrow(() -> new ChannelNotFoundException(channelId));
+            .orElseThrow(() -> new ChannelNotFoundException(channelId));
 
         return channelMapper.toDto(channel);
     }
@@ -135,13 +144,14 @@ public class BasicChannelService implements ChannelService {
      * @throws PrivateChannelUpdateException PRIVATE 채널 수정을 시도한 경우
      */
     @Override
+    @CacheEvict(value = "user:channels", allEntries = true)
     @Transactional
     public ChannelDto update(UUID channelId, PublicChannelUpdateRequest updateRequest) {
         log.info("{} 채널 수정 요청: 채널명 = {}, 채널 설명 = {}", ChannelType.PUBLIC, updateRequest.newName(),
-                updateRequest.newDescription());
+            updateRequest.newDescription());
 
         Channel channel = channelRepository.findById(channelId)
-                .orElseThrow(() -> new ChannelNotFoundException(channelId));
+            .orElseThrow(() -> new ChannelNotFoundException(channelId));
 
         if (ChannelType.PRIVATE.equals(channel.getType())) {
             log.warn("채널 수정 실패: PRIVATE 채널 수정 불가");
@@ -161,6 +171,7 @@ public class BasicChannelService implements ChannelService {
      * @throws ChannelNotFoundException 존재하는 채널이 없는 경우
      */
     @Override
+    @CacheEvict(value = "user:channels", allEntries = true)
     @Transactional
     public void delete(UUID channelId) {
         log.info("채널 삭제 요청: ID = {}", channelId);

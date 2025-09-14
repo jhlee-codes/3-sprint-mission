@@ -1,14 +1,18 @@
 package com.sprint.mission.discodeit.service.basic;
 
+import com.sprint.mission.discodeit.annotation.Logging;
 import com.sprint.mission.discodeit.auth.DiscodeitUserDetails;
 import com.sprint.mission.discodeit.auth.DiscodeitUserDetailsService;
 import com.sprint.mission.discodeit.auth.jwt.JwtTokenProvider;
 import com.sprint.mission.discodeit.auth.jwt.store.JwtRegistry;
-import com.sprint.mission.discodeit.dto.JwtDto;
-import com.sprint.mission.discodeit.dto.JwtInformation;
+import com.sprint.mission.discodeit.dto.Jwt.JwtDto;
+import com.sprint.mission.discodeit.dto.Jwt.JwtInformation;
 import com.sprint.mission.discodeit.dto.User.UserDto;
+import com.sprint.mission.discodeit.entity.Role;
 import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.event.RoleUpdatedEvent;
 import com.sprint.mission.discodeit.exception.Auth.InvalidTokenException;
+import com.sprint.mission.discodeit.exception.User.UserNotFoundException;
 import com.sprint.mission.discodeit.mapper.UserMapper;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.AuthService;
@@ -16,12 +20,14 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Slf4j
+@Logging
 @RequiredArgsConstructor
 public class BasicAuthService implements AuthService {
 
@@ -30,6 +36,7 @@ public class BasicAuthService implements AuthService {
     private final JwtTokenProvider jwtTokenProvider;
     private final JwtRegistry jwtRegistry;
     private final DiscodeitUserDetailsService discodeitUserDetailsService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
     @Transactional(readOnly = true)
@@ -52,7 +59,8 @@ public class BasicAuthService implements AuthService {
 
         log.debug("[AuthService] RefreshToken으로 AccessToken 재발급 시작");
 
-        if (refreshToken == null || !jwtTokenProvider.validateRefreshToken(refreshToken)) {
+        if (!jwtTokenProvider.validateRefreshToken(refreshToken)
+            || !jwtRegistry.hasActiveJwtInformationByRefreshToken(refreshToken)) {
             log.debug("[AuthService] 유효하지 않은 RefreshToken");
             throw new InvalidTokenException(refreshToken);
         }
@@ -84,5 +92,29 @@ public class BasicAuthService implements AuthService {
             log.error("[AuthService] 토큰 재발급 중 예외", e);
             throw new RuntimeException(e);
         }
+    }
+
+    @Override
+    @Transactional
+    public UserDto updateUserRole(UUID userId, Role newRole) {
+
+        log.info("유저 권한 변경 요청: ID = {}, Role = {}", userId, newRole);
+
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> UserNotFoundException.byId(userId));
+
+        Role beforeRole = user.getRole();
+        user.updateRole(newRole);
+        User updateUser = userRepository.save(user);
+
+        log.info("사용자의 JwtInformation 정보 무효화 시작");
+        jwtRegistry.invalidateJwtInformationByUserId(updateUser.getId());
+
+        RoleUpdatedEvent event = new RoleUpdatedEvent(userId, beforeRole, updateUser.getRole());
+        eventPublisher.publishEvent(event);
+
+        log.info("유저 권한 변경 완료: ID = {}, Role = {}", userId, newRole);
+
+        return userMapper.toDto(updateUser);
     }
 }

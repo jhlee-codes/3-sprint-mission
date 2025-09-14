@@ -31,7 +31,7 @@ public class LocalBinaryContentStorage implements BinaryContentStorage {
     private final Path root;
 
     public LocalBinaryContentStorage(
-            @Value("${discodeit.storage.local.root-path}") String rootPath) {
+        @Value("${discodeit.storage.local.root-path}") String rootPath) {
         this.root = Paths.get(rootPath);
     }
 
@@ -59,6 +59,15 @@ public class LocalBinaryContentStorage implements BinaryContentStorage {
      */
     @Override
     public UUID put(UUID id, byte[] bytes) {
+
+        // 동기/비동기 성능 비교를 위해 의도적인 지연 발생시킴
+        try {
+            Thread.sleep(3000);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("Thread interrupted while simulating delay", e);
+        }
+
         log.info("파일 저장 요청: ID = {}", id);
 
         Path path = resolvePath(id);
@@ -108,24 +117,24 @@ public class LocalBinaryContentStorage implements BinaryContentStorage {
     @Override
     public ResponseEntity<Resource> download(BinaryContentDto metaData) {
         log.info("파일 다운로드 요청: ID = {}, 파일명 = {}, 형식 = {}", metaData.id(), metaData.fileName(),
-                metaData.contentType());
+            metaData.contentType());
 
         InputStream stream = get(metaData.id());
         Resource resource = new InputStreamResource(stream);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentDisposition(ContentDisposition
-                .builder("attachment")
-                .filename(metaData.fileName(), StandardCharsets.UTF_8)  // Spring 5+ 지원
-                .build()
+            .builder("attachment")
+            .filename(metaData.fileName(), StandardCharsets.UTF_8)  // Spring 5+ 지원
+            .build()
         );
         headers.setContentType(MediaType.parseMediaType(metaData.contentType()));
         headers.setContentLength(metaData.size());
 
         return ResponseEntity
-                .status(HttpStatus.OK)
-                .headers(headers)
-                .body(resource);
+            .status(HttpStatus.OK)
+            .headers(headers)
+            .body(resource);
     }
 
     /**

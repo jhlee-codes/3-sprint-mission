@@ -2,6 +2,7 @@ package com.sprint.mission.discodeit.service;
 
 import com.sprint.mission.discodeit.dto.BinaryContent.BinaryContentCreateRequest;
 import com.sprint.mission.discodeit.dto.BinaryContent.BinaryContentDto;
+import com.sprint.mission.discodeit.entity.BinaryContentStatus;
 import java.util.List;
 import java.util.UUID;
 
@@ -14,4 +15,6 @@ public interface BinaryContentService {
     BinaryContentDto find(UUID id);
 
     void delete(UUID id);
+
+    BinaryContentDto updateStatus(UUID binaryContentId, BinaryContentStatus status);
 }

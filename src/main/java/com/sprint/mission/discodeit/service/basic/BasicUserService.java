@@ -1,29 +1,26 @@
 package com.sprint.mission.discodeit.service.basic;
 
 import com.sprint.mission.discodeit.annotation.Logging;
-import com.sprint.mission.discodeit.auth.jwt.store.JwtRegistry;
 import com.sprint.mission.discodeit.dto.BinaryContent.BinaryContentCreateRequest;
 import com.sprint.mission.discodeit.dto.User.UserCreateRequest;
 import com.sprint.mission.discodeit.dto.User.UserDto;
 import com.sprint.mission.discodeit.dto.User.UserUpdateRequest;
 import com.sprint.mission.discodeit.entity.BinaryContent;
-import com.sprint.mission.discodeit.entity.Role;
 import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.event.BinaryContentCreatedEvent;
 import com.sprint.mission.discodeit.exception.User.UserAlreadyExistsException;
 import com.sprint.mission.discodeit.exception.User.UserNotFoundException;
 import com.sprint.mission.discodeit.mapper.UserMapper;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
-import com.sprint.mission.discodeit.service.AuthService;
 import com.sprint.mission.discodeit.service.UserService;
-import com.sprint.mission.discodeit.storage.BinaryContentStorage;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.session.SessionInformation;
-import org.springframework.security.core.session.SessionRegistry;
-import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,10 +34,9 @@ public class BasicUserService implements UserService {
 
     private final UserRepository userRepository;
     private final BinaryContentRepository binaryContentRepository;
-    private final BinaryContentStorage binaryContentStorage;
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
-    private final JwtRegistry jwtRegistry;
+    private final ApplicationEventPublisher eventPublisher;
 
     /**
      * 주어진 생성 요청 DTO(유저, 프로필사진)를 기반으로 유저 생성
@@ -51,6 +47,7 @@ public class BasicUserService implements UserService {
      * @throws UserAlreadyExistsException 유저명/이메일이 중복된 경우
      */
     @Override
+    @CacheEvict("users:list")
     @Transactional
     public UserDto create(UserCreateRequest userCreateRequest,
         BinaryContentCreateRequest profileCreateRequest) {
@@ -80,7 +77,9 @@ public class BasicUserService implements UserService {
                 .build();
 
             binaryContentRepository.save(binaryContent);
-            binaryContentStorage.put(binaryContent.getId(), profileCreateRequest.bytes());
+            BinaryContentCreatedEvent event = new BinaryContentCreatedEvent(binaryContent.getId(),
+                profileCreateRequest.bytes());
+            eventPublisher.publishEvent(event);
         }
 
         String encodedPassword = passwordEncoder.encode(userCreateRequest.password());
@@ -102,6 +101,7 @@ public class BasicUserService implements UserService {
      * @return 조회된 유저 데이터
      */
     @Override
+    @Cacheable("users:list")
     @Transactional(readOnly = true)
     public List<UserDto> findAll() {
 
@@ -172,7 +172,9 @@ public class BasicUserService implements UserService {
                 .build();
 
             binaryContentRepository.save(binaryContent);
-            binaryContentStorage.put(binaryContent.getId(), profileCreateRequest.bytes());
+            BinaryContentCreatedEvent event = new BinaryContentCreatedEvent(binaryContent.getId(),
+                profileCreateRequest.bytes());
+            eventPublisher.publishEvent(event);
         }
 
         String newPassword = updateRequest.newPassword();
@@ -208,25 +210,5 @@ public class BasicUserService implements UserService {
 
         userRepository.deleteById(userId);
         log.info("유저 삭제 완료: ID = {}", userId);
-    }
-
-    @Override
-    @Transactional
-    public UserDto updateUserRole(UUID userId, Role newRole) {
-
-        log.info("유저 권한 변경 요청: ID = {}, Role = {}", userId, newRole);
-
-        User user = userRepository.findById(userId)
-            .orElseThrow(() -> UserNotFoundException.byId(userId));
-
-        user.updateRole(newRole);
-        User updateUser = userRepository.save(user);
-
-        log.info("사용자의 JwtInformation 정보 무효화 시작");
-        jwtRegistry.invalidateJwtInformationByUserId(updateUser.getId());
-
-        log.info("유저 권한 변경 완료: ID = {}, Role = {}", userId, newRole);
-
-        return userMapper.toDto(updateUser);
     }
 }

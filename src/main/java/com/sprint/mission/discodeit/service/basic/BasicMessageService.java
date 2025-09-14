@@ -10,6 +10,8 @@ import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.event.BinaryContentCreatedEvent;
+import com.sprint.mission.discodeit.event.MessageCreatedEvent;
 import com.sprint.mission.discodeit.exception.Channel.ChannelNotFoundException;
 import com.sprint.mission.discodeit.exception.Message.MessageNotFoundException;
 import com.sprint.mission.discodeit.exception.User.UserNotFoundException;
@@ -20,7 +22,6 @@ import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.MessageRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.MessageService;
-import com.sprint.mission.discodeit.storage.BinaryContentStorage;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,6 +29,7 @@ import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
@@ -43,7 +45,7 @@ public class BasicMessageService implements MessageService {
     private final BinaryContentRepository binaryContentRepository;
     private final ChannelRepository channelRepository;
     private final UserRepository userRepository;
-    private final BinaryContentStorage binaryContentStorage;
+    private final ApplicationEventPublisher eventPublisher;
 
     private final MessageMapper messageMapper;
     private final PageResponseMapper pageResponseMapper;
@@ -94,7 +96,10 @@ public class BasicMessageService implements MessageService {
         for (int i = 0; i < binaryContents.size(); i++) {
             BinaryContent savedContent = binaryContents.get(i);
             byte[] fileBytes = binaryContentCreateRequests.get(i).bytes();
-            binaryContentStorage.put(savedContent.getId(), fileBytes);
+
+            BinaryContentCreatedEvent event = new BinaryContentCreatedEvent(savedContent.getId(),
+                fileBytes);
+            eventPublisher.publishEvent(event);
         }
 
         Message msg = Message.builder()
@@ -105,6 +110,9 @@ public class BasicMessageService implements MessageService {
             .build();
 
         messageRepository.save(msg);
+        MessageCreatedEvent event = new MessageCreatedEvent(channelId, msg.getId());
+        eventPublisher.publishEvent(event);
+
         return messageMapper.toDto(msg);
     }
 

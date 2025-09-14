@@ -5,8 +5,8 @@ import com.sprint.mission.discodeit.auth.DiscodeitUserDetails;
 import com.sprint.mission.discodeit.auth.jwt.JwtTokenProvider;
 import com.sprint.mission.discodeit.auth.jwt.store.JwtRegistry;
 import com.sprint.mission.discodeit.dto.Common.ApiErrorResponse;
-import com.sprint.mission.discodeit.dto.JwtDto;
-import com.sprint.mission.discodeit.dto.JwtInformation;
+import com.sprint.mission.discodeit.dto.Jwt.JwtDto;
+import com.sprint.mission.discodeit.dto.Jwt.JwtInformation;
 import com.sprint.mission.discodeit.dto.User.UserDto;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -14,6 +14,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
@@ -30,6 +31,7 @@ public class JwtLoginSuccessHandler implements AuthenticationSuccessHandler {
     private final JwtRegistry jwtRegistry;
 
     @Override
+    @CacheEvict(value = "users:list", allEntries = true)
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
         Authentication authentication) throws IOException, ServletException {
 
@@ -51,7 +53,7 @@ public class JwtLoginSuccessHandler implements AuthenticationSuccessHandler {
                 String accessToken = jwtTokenProvider.generateAccessToken(discodeitUserDetails);
                 String refreshToken = jwtTokenProvider.generateRefreshToken(discodeitUserDetails);
                 JwtDto jwtDto = new JwtDto(userDto, accessToken);
-                
+
                 log.debug("[JwtLoginSuccessHandler] jwtRegistry에 JwtInformation 등록 시작");
                 jwtRegistry.registerJwtInformation(
                     new JwtInformation(userDto, accessToken, refreshToken));

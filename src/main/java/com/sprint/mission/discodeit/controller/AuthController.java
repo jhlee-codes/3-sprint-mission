@@ -1,14 +1,11 @@
 package com.sprint.mission.discodeit.controller;
 
-import com.sprint.mission.discodeit.auth.DiscodeitUserDetailsService;
 import com.sprint.mission.discodeit.auth.jwt.JwtTokenProvider;
-import com.sprint.mission.discodeit.auth.jwt.store.JwtRegistry;
 import com.sprint.mission.discodeit.controller.api.AuthApi;
-import com.sprint.mission.discodeit.dto.JwtDto;
+import com.sprint.mission.discodeit.dto.Jwt.JwtDto;
 import com.sprint.mission.discodeit.dto.User.UserDto;
 import com.sprint.mission.discodeit.dto.User.UserRoleUpdateRequest;
 import com.sprint.mission.discodeit.service.AuthService;
-import com.sprint.mission.discodeit.service.UserService;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -31,7 +28,6 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController implements AuthApi {
 
     private final AuthService authService;
-    private final UserService userService;
 
     @GetMapping("/csrf-token")
     @Override
@@ -51,7 +47,7 @@ public class AuthController implements AuthApi {
     ) {
         log.debug("[AuthController] 사용자 권한 변경 요청");
 
-        UserDto userDto = userService.updateUserRole(
+        UserDto userDto = authService.updateUserRole(
             roleUpdateRequest.userId(),
             roleUpdateRequest.newRole()
         );
@@ -67,8 +63,7 @@ public class AuthController implements AuthApi {
     @Override
     public ResponseEntity<?> refreshAccessToken(
         @CookieValue(
-            name = JwtTokenProvider.REFRESH_TOKEN_COOKIE_NAME,
-            required = false
+            name = JwtTokenProvider.REFRESH_TOKEN_COOKIE_NAME
         ) String refreshToken,
         HttpServletResponse response
     ) {
