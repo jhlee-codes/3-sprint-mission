@@ -1,14 +1,11 @@
 package com.sprint.mission.discodeit.mapper;
 
-import com.sprint.mission.discodeit.auth.DiscodeitUserDetails;
+import com.sprint.mission.discodeit.auth.jwt.store.JwtRegistry;
 import com.sprint.mission.discodeit.dto.BinaryContent.BinaryContentDto;
 import com.sprint.mission.discodeit.dto.User.UserDto;
 import com.sprint.mission.discodeit.entity.User;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.stereotype.Component;
 
@@ -17,6 +14,7 @@ import org.springframework.stereotype.Component;
 public class UserMapper {
 
     private final SessionRegistry sessionRegistry;
+    private final JwtRegistry jwtRegistry;
     private final BinaryContentMapper binaryContentMapper;
 
     public UserDto toDto(User user) {
@@ -37,10 +35,6 @@ public class UserMapper {
     }
 
     public boolean isUserOnline(UUID userId) {
-        return sessionRegistry.getAllPrincipals().stream()
-            .filter(DiscodeitUserDetails.class::isInstance)
-            .map(DiscodeitUserDetails.class::cast)
-            .filter(user -> user.getId().equals(userId))
-            .anyMatch(user -> !sessionRegistry.getAllSessions(user, false).isEmpty());
+        return jwtRegistry.hasActiveJwtInformationByUserId(userId);
     }
 }

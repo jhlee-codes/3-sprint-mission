@@ -1,6 +1,7 @@
 package com.sprint.mission.discodeit.service.basic;
 
 import com.sprint.mission.discodeit.annotation.Logging;
+import com.sprint.mission.discodeit.auth.jwt.store.JwtRegistry;
 import com.sprint.mission.discodeit.dto.BinaryContent.BinaryContentCreateRequest;
 import com.sprint.mission.discodeit.dto.User.UserCreateRequest;
 import com.sprint.mission.discodeit.dto.User.UserDto;
@@ -34,13 +35,12 @@ import org.springframework.util.StringUtils;
 @RequiredArgsConstructor
 public class BasicUserService implements UserService {
 
-    private final AuthService authService;
     private final UserRepository userRepository;
     private final BinaryContentRepository binaryContentRepository;
     private final BinaryContentStorage binaryContentStorage;
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
-    private final SessionRegistry sessionRegistry;
+    private final JwtRegistry jwtRegistry;
 
     /**
      * 주어진 생성 요청 DTO(유저, 프로필사진)를 기반으로 유저 생성
@@ -220,47 +220,13 @@ public class BasicUserService implements UserService {
             .orElseThrow(() -> UserNotFoundException.byId(userId));
 
         user.updateRole(newRole);
-
         User updateUser = userRepository.save(user);
 
-        // 사용자의 모든 활성 세션 무효화
-        invalidateUserSession(updateUser.getUsername());
+        log.info("사용자의 JwtInformation 정보 무효화 시작");
+        jwtRegistry.invalidateJwtInformationByUserId(updateUser.getId());
 
         log.info("유저 권한 변경 완료: ID = {}, Role = {}", userId, newRole);
 
         return userMapper.toDto(updateUser);
-    }
-
-    private void invalidateUserSession(String username) {
-        try {
-            log.debug("세션 무효화 요청: {}", username);
-
-            List<Object> allPrincipals = sessionRegistry.getAllPrincipals();
-
-            for (Object principal : allPrincipals) {
-
-                UserDetails user = (UserDetails) principal;
-                String principalName = user.getUsername();
-
-                if (username.equals(principalName)) {
-
-                    List<SessionInformation> sessions = sessionRegistry.getAllSessions(principal,
-                        false);
-                    log.debug("대상 사용자의 활성 세션 수: {}", sessions.size());
-
-                    for (SessionInformation session : sessions) {
-                        log.debug("세션 무효화 시작 - 세션 ID: {}", session.getSessionId());
-                        session.expireNow();
-                        log.debug("세션 무효화 완료 - 만료됨: {}", session.isExpired());
-                    }
-
-                    log.debug("대상 사용자 '{}'의 모든 세션 무효화 완료", username);
-                    break;
-                }
-            }
-            log.debug("세션 무효화 완료");
-        } catch (Exception e) {
-            log.debug("세션 무효화 중 오류 발생: {}", e.getMessage());
-        }
     }
 }

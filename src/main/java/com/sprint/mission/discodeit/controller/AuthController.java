@@ -1,18 +1,24 @@
 package com.sprint.mission.discodeit.controller;
 
+import com.sprint.mission.discodeit.auth.DiscodeitUserDetailsService;
+import com.sprint.mission.discodeit.auth.jwt.JwtTokenProvider;
+import com.sprint.mission.discodeit.auth.jwt.store.JwtRegistry;
 import com.sprint.mission.discodeit.controller.api.AuthApi;
+import com.sprint.mission.discodeit.dto.JwtDto;
 import com.sprint.mission.discodeit.dto.User.UserDto;
 import com.sprint.mission.discodeit.dto.User.UserRoleUpdateRequest;
 import com.sprint.mission.discodeit.service.AuthService;
-import com.sprint.mission.discodeit.auth.DiscodeitUserDetails;
 import com.sprint.mission.discodeit.service.UserService;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.web.csrf.CsrfToken;
+import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -38,26 +44,10 @@ public class AuthController implements AuthApi {
             .build();
     }
 
-    @GetMapping("/me")
-    @Override
-    public ResponseEntity<UserDto> getCurrentUser(
-        @AuthenticationPrincipal DiscodeitUserDetails userDetails) {
-
-        log.debug("[AuthController] 세션 기반 사용자 정보 조회 요청(me)");
-
-        UserDto userDto = authService.getCurrentUserInfo(userDetails);
-
-        log.debug("[AuthController] 사용자 정보 조회 완료: " + userDto);
-
-        return ResponseEntity
-            .status(HttpStatus.OK)
-            .body(userDto);
-    }
-
     @PutMapping("/role")
     @Override
     public ResponseEntity<UserDto> updateUserRole(
-        @RequestBody UserRoleUpdateRequest roleUpdateRequest
+        @Valid @RequestBody UserRoleUpdateRequest roleUpdateRequest
     ) {
         log.debug("[AuthController] 사용자 권한 변경 요청");
 
@@ -71,5 +61,25 @@ public class AuthController implements AuthApi {
         return ResponseEntity
             .status(HttpStatus.OK)
             .body(userDto);
+    }
+
+    @PostMapping("/refresh")
+    @Override
+    public ResponseEntity<?> refreshAccessToken(
+        @CookieValue(
+            name = JwtTokenProvider.REFRESH_TOKEN_COOKIE_NAME,
+            required = false
+        ) String refreshToken,
+        HttpServletResponse response
+    ) {
+
+        log.debug("[AuthController] RefreshToken으로 AccessToken 재발급 요청");
+
+        JwtDto jwtDto = authService.refreshToken(refreshToken, response);
+
+        log.debug("[AuthController] Refresh 토큰으로 AccessToken 재발급 완료");
+        return ResponseEntity
+            .status(HttpStatus.OK)
+            .body(jwtDto);
     }
 }

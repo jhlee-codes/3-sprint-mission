@@ -2,8 +2,8 @@ package com.sprint.mission.discodeit.auth;
 
 import com.sprint.mission.discodeit.mapper.UserMapper;
 import com.sprint.mission.discodeit.repository.UserRepository;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
@@ -18,10 +18,18 @@ public class DiscodeitUserDetailsService implements UserDetailsService {
 
     @Override
     @Transactional(readOnly = true)
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+    public DiscodeitUserDetails loadUserByUsername(String username)
+        throws UsernameNotFoundException {
 
         return userRepository.findByUsername(username)
             .map(u -> new DiscodeitUserDetails(userMapper.toDto(u), u.getPassword()))
             .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + username));
+    }
+
+    @Transactional(readOnly = true)
+    public DiscodeitUserDetails loadUserByUserId(UUID userId) {
+        return userRepository.findById(userId)
+            .map(u -> new DiscodeitUserDetails(userMapper.toDto(u), u.getPassword()))
+            .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + userId));
     }
 }

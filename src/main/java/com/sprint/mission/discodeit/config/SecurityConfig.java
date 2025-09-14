@@ -1,14 +1,17 @@
 package com.sprint.mission.discodeit.config;
 
-import com.sprint.mission.discodeit.auth.DiscodeitUserDetailsService;
 import com.sprint.mission.discodeit.auth.handler.CustomAccessDeniedHandler;
+import com.sprint.mission.discodeit.auth.handler.JwtLoginSuccessHandler;
+import com.sprint.mission.discodeit.auth.handler.JwtLogoutHandler;
 import com.sprint.mission.discodeit.auth.handler.LoginFailureHandler;
-import com.sprint.mission.discodeit.auth.handler.LoginSuccessHandler;
+import com.sprint.mission.discodeit.auth.jwt.JwtAuthenticationFilter;
 import com.sprint.mission.discodeit.entity.Role;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.List;
+import java.util.function.Supplier;
 import java.util.stream.IntStream;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -21,26 +24,26 @@ import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.Http403ForbiddenEntryPoint;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.logout.HttpStatusReturningLogoutSuccessHandler;
-import org.springframework.security.web.authentication.rememberme.TokenBasedRememberMeServices;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 @Slf4j
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfig {
-
-    @Value("${remember-me.key}")
-    private String rememberMeKey;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -81,34 +84,13 @@ public class SecurityConfig {
     }
 
     @Bean
-    public TokenBasedRememberMeServices rememberMeServices(
-        DiscodeitUserDetailsService userDetailsService) {
-
-        TokenBasedRememberMeServices rememberMeServices =
-            new TokenBasedRememberMeServices(
-                rememberMeKey,
-                userDetailsService
-            );
-
-        // 유지 기간: 7일
-        rememberMeServices.setTokenValiditySeconds(7 * 24 * 60 * 60);
-        rememberMeServices.setCookieName("remember-me");
-        rememberMeServices.setParameter("remember-me");
-
-        log.debug("[SecurityConfig] Remember-Me 설정 완료");
-
-        return rememberMeServices;
-    }
-
-    @Bean
     public SecurityFilterChain filterChain(
         HttpSecurity http,
-        LoginSuccessHandler loginSuccessHandler,
         LoginFailureHandler loginFailureHandler,
         CustomAccessDeniedHandler accessDeniedHandler,
-        SessionRegistry sessionRegistry,
-        TokenBasedRememberMeServices rememberMeService
-    ) throws Exception {
+        JwtAuthenticationFilter jwtAuthenticationFilter,
+        JwtLoginSuccessHandler jwtLoginSuccessHandler,
+        JwtLogoutHandler jwtLogoutHandler) throws Exception {
 
         log.debug("[SecurityConfig] FilterChain 구성 시작");
 
@@ -116,21 +98,32 @@ public class SecurityConfig {
             // CSRF 설정
             .csrf(csrf -> csrf
                 .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler())
+                .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler() {
+                    // 토큰을 강제 로드해서 XSRF-TOKEN 쿠키의 발급/회전을 보강하는 handle 메서드 재정의
+                    @Override
+                    public void handle(HttpServletRequest request, HttpServletResponse response,
+                        Supplier<CsrfToken> csrfToken) {
+                        super.handle(request, response, csrfToken);
+                        csrfToken.get();
+                    }
+                })
             )
 
             // 요청 권한 설정
             .authorizeHttpRequests(auth -> auth
-
                 .requestMatchers(
                     "/", "/index.html", "/favicon.ico", "/assets/**",
-                    "/swagger-ui/**", "/v3/api-docs/**", "/actuator/**"
+                    "/swagger-ui/**", "/v3/api-docs/**", "/actuator/**",
+                    "/error", "/error/**"
                 ).permitAll()
 
-                .requestMatchers("/api/auth/csrf-token").permitAll()
-                .requestMatchers(HttpMethod.POST, "/api/users").permitAll()
-                .requestMatchers("/api/auth/login").permitAll()
-                .requestMatchers("/api/auth/logout").permitAll()
+                .requestMatchers(
+                    AntPathRequestMatcher.antMatcher(HttpMethod.GET, "/api/auth/csrf-token"),
+                    AntPathRequestMatcher.antMatcher(HttpMethod.POST, "/api/users"),
+                    AntPathRequestMatcher.antMatcher(HttpMethod.POST, "/api/auth/login"),
+                    AntPathRequestMatcher.antMatcher(HttpMethod.POST, "/api/auth/logout"),
+                    AntPathRequestMatcher.antMatcher(HttpMethod.POST, "/api/auth/refresh")
+                ).permitAll()
 
                 // 퍼블릭 채널 관리: CHANNEL_MANAGER
                 .requestMatchers(HttpMethod.POST, "/api/channels/public")
@@ -142,42 +135,37 @@ public class SecurityConfig {
 
                 // 사용자 권한 변경: ADMIN
                 .requestMatchers(HttpMethod.PUT, "/api/auth/role").hasRole(Role.ADMIN.name())
-
                 .anyRequest().authenticated()
             )
 
             // 세션 관리 설정
             .sessionManagement(management -> management
-                .sessionConcurrency(concurrency -> concurrency
-                    .maximumSessions(1)
-                    .sessionRegistry(sessionRegistry)
-                )
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
 
             // 폼 기반 로그인 설정
             .formLogin(login -> login
                 .loginProcessingUrl("/api/auth/login")
-                .successHandler(loginSuccessHandler)
+                .successHandler(jwtLoginSuccessHandler)
                 .failureHandler(loginFailureHandler)
             )
 
             // 로그아웃 설정
             .logout(logout -> logout
                 .logoutUrl("/api/auth/logout")
+                .addLogoutHandler(jwtLogoutHandler)
                 .logoutSuccessHandler(
                     new HttpStatusReturningLogoutSuccessHandler(HttpStatus.NO_CONTENT))
-            )
-
-            // Remember-Me 설정
-            .rememberMe(remember -> remember
-                .rememberMeServices(rememberMeService)
             )
 
             // 예외 처리 설정
             .exceptionHandling(ex -> ex
                 .authenticationEntryPoint(new Http403ForbiddenEntryPoint())
                 .accessDeniedHandler(accessDeniedHandler)
-            );
+            )
+
+            // JWT 인증 필터 UsernamePasswordAuthenticationFilter 이전에 배치
+            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         log.debug("[SecurityConfig] FilterChain 구성 완료");
         return http.build();
