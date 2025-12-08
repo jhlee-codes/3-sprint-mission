@@ -1,6 +1,5 @@
 package com.sprint.mission.discodeit.dto.ReadStatus;
 
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PastOrPresent;
 import java.time.Instant;
 
@@ -8,7 +7,7 @@ public record ReadStatusUpdateRequest(
 
     @PastOrPresent(message = "마지막으로 읽은 시간은 현재 시각 이전이어야 합니다.")
     Instant newLastReadAt,
-    boolean newNotificationEnabled
+    Boolean newNotificationEnabled
 ) {
 
 }

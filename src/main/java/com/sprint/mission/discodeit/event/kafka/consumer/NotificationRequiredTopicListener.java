@@ -1,4 +1,4 @@
-package com.sprint.mission.discodeit.event.listener;
+package com.sprint.mission.discodeit.event.kafka.consumer;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -32,7 +32,6 @@ public class NotificationRequiredTopicListener {
             UUID messageId = event.messageId();
 
             notificationService.createForNewMessage(channelId, messageId);
-
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
@@ -49,7 +48,6 @@ public class NotificationRequiredTopicListener {
             Role after = event.afterRole();
 
             notificationService.createForRoleUpdate(userId, before, after);
-
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
@@ -67,7 +65,6 @@ public class NotificationRequiredTopicListener {
             String errorMsg = event.errorMsg();
 
             notificationService.createForS3UploadFailed(binaryContentId, requestId, errorMsg);
-
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }

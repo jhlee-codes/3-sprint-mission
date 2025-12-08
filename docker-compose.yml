@@ -1,25 +1,60 @@
 services:
-  app:
+  nginx:
+    build:
+      context: .
+      dockerfile: ./nginx/Dockerfile
+    container_name: nginx-reverseproxy
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    networks:
+      - edge
+      - app-network
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost/nginx_status" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  backend:
     build:
       context: .
       dockerfile: Dockerfile
       args:
         PROJECT_NAME: ${PROJECT_NAME}
         PROJECT_VERSION: ${PROJECT_VERSION}
-    container_name: discodeit-app
-    ports:
-      - "${APP_PORT:-8081}:${SERVER_PORT:-80}"
+    #    container_name: discodeit-app
+    #    ports:
+    #      - "${APP_PORT:-8081}:${SERVER_PORT:-8080}"
     env_file:
       - .env
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/${POSTGRES_DB}
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
+      SPRING_DATASOURCE_USERNAME: discodeit_user
+      SPRING_DATASOURCE_PASSWORD: discodeit1234
+      # Redis
+      SPRING_REDIS_HOST: redis
+      SPRING_REDIS_PORT: "6379"
+      # Kafka
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: broker:29092
     volumes:
       - ./discodeit/storage:/app/.discodeit/storage
-    # PostgreSQL 서비스가 건강한 상태가 된 후 시작
     depends_on:
       postgres:
         condition: service_healthy
-
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+    networks:
+      - app-network
+    expose:
+      - "8080"
+    deploy:
+      replicas: 3
+  
   postgres:
     image: postgres:17
     container_name: discodeit-db
@@ -37,6 +72,64 @@ services:
       timeout: 5s
       retries: 5
       start_period: 30s
+    networks:
+      - app-network
+
+  redis:
+    image: redis:7.2-alpine
+    container_name: discodeit-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: [ "CMD", "redis-cli", "PING" ]   # OK면 PONG
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 5s
+    networks:
+      - app-network
+
+  kafka:
+    image: apache/kafka:latest
+    hostname: broker
+    container_name: discodeit-broker
+    ports:
+      - 9092:9092
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://broker:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_NODE_ID: 1
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@broker:29093
+      KAFKA_LISTENERS: PLAINTEXT://broker:29092,CONTROLLER://broker:29093,PLAINTEXT_HOST://0.0.0.0:9092
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LOG_DIRS: /tmp/kraft-combined-logs
+      CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
+    healthcheck:
+      test: [ "CMD-SHELL", "bash -c '</dev/tcp/127.0.0.1/9092'" ]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 20s
+    networks:
+      - app-network
 
 volumes:
   postgres-data:
+  redis-data:
+
+networks:
+  edge:
+    driver: bridge
+  app-network:
+    driver: bridge
+    internal: true

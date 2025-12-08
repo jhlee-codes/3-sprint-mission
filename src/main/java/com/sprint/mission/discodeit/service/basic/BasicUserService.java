@@ -8,6 +8,7 @@ import com.sprint.mission.discodeit.dto.User.UserUpdateRequest;
 import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.event.BinaryContentCreatedEvent;
+import com.sprint.mission.discodeit.event.SseNotificationEvent;
 import com.sprint.mission.discodeit.exception.User.UserAlreadyExistsException;
 import com.sprint.mission.discodeit.exception.User.UserNotFoundException;
 import com.sprint.mission.discodeit.mapper.UserMapper;
@@ -47,7 +48,7 @@ public class BasicUserService implements UserService {
      * @throws UserAlreadyExistsException 유저명/이메일이 중복된 경우
      */
     @Override
-    @CacheEvict("users:list")
+    @CacheEvict(value = "users:list", allEntries = true)
     @Transactional
     public UserDto create(UserCreateRequest userCreateRequest,
         BinaryContentCreateRequest profileCreateRequest) {
@@ -92,7 +93,12 @@ public class BasicUserService implements UserService {
             .build();
 
         userRepository.save(user);
-        return userMapper.toDto(user);
+        UserDto savedUserDto = userMapper.toDto(user);
+
+        eventPublisher.publishEvent(
+            new SseNotificationEvent<>("users.created", savedUserDto, null));
+
+        return savedUserDto;
     }
 
     /**
@@ -101,7 +107,7 @@ public class BasicUserService implements UserService {
      * @return 조회된 유저 데이터
      */
     @Override
-    @Cacheable("users:list")
+    @Cacheable(value = "users:list", unless = "#result.isEmpty()")
     @Transactional(readOnly = true)
     public List<UserDto> findAll() {
 
@@ -141,6 +147,7 @@ public class BasicUserService implements UserService {
      */
     @Override
     @Transactional
+    @CacheEvict(value = "users:list", allEntries = true)
     public UserDto update(UUID userId, UserUpdateRequest updateRequest,
         BinaryContentCreateRequest profileCreateRequest) {
         log.info("유저 수정 요청: 유저명 = {}, 이메일 = {}", updateRequest.newUsername(),
@@ -189,7 +196,11 @@ public class BasicUserService implements UserService {
             binaryContent
         );
 
-        return userMapper.toDto(user);
+        UserDto savedUserDto = userMapper.toDto(user);
+        eventPublisher.publishEvent(
+            new SseNotificationEvent<>("users.updated", savedUserDto, null));
+
+        return savedUserDto;
     }
 
     /**
@@ -200,15 +211,19 @@ public class BasicUserService implements UserService {
      */
     @Override
     @Transactional
+    @CacheEvict(value = "users:list", allEntries = true)
     public void delete(UUID userId) {
+
         log.info("유저 삭제 요청: ID = {}", userId);
 
-        if (!userRepository.existsById(userId)) {
-            log.warn("유저 삭제 실패: 존재하지 않는 유저: ID = {}", userId);
-            throw UserNotFoundException.byId(userId);
-        }
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> UserNotFoundException.byId(userId));
+        UserDto savedUserDto = userMapper.toDto(user);
 
         userRepository.deleteById(userId);
         log.info("유저 삭제 완료: ID = {}", userId);
+
+        eventPublisher.publishEvent(
+            new SseNotificationEvent<>("users.deleted", savedUserDto, null));
     }
 }

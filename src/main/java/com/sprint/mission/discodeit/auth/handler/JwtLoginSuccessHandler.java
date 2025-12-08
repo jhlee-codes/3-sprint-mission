@@ -8,13 +8,14 @@ import com.sprint.mission.discodeit.dto.Common.ApiErrorResponse;
 import com.sprint.mission.discodeit.dto.Jwt.JwtDto;
 import com.sprint.mission.discodeit.dto.Jwt.JwtInformation;
 import com.sprint.mission.discodeit.dto.User.UserDto;
+import com.sprint.mission.discodeit.event.UserLogInOutEvent;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
@@ -29,9 +30,9 @@ public class JwtLoginSuccessHandler implements AuthenticationSuccessHandler {
     private final ObjectMapper objectMapper;
     private final JwtTokenProvider jwtTokenProvider;
     private final JwtRegistry jwtRegistry;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
-    @CacheEvict(value = "users:list", allEntries = true)
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
         Authentication authentication) throws IOException, ServletException {
 
@@ -63,6 +64,10 @@ public class JwtLoginSuccessHandler implements AuthenticationSuccessHandler {
 
                 response.setStatus(HttpServletResponse.SC_OK);
                 response.getWriter().write(objectMapper.writeValueAsString(jwtDto));
+
+                log.debug("[JwtLoginSuccessHandler] 로그인/로그아웃 이벤트 발행");
+                eventPublisher.publishEvent(
+                    new UserLogInOutEvent(userDto.id(), true));
 
                 log.debug("[JwtLoginSuccessHandler] 로그인 성공 응답 완료: {}", userDto.username());
             } catch (Exception e) {

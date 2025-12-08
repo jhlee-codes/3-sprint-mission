@@ -1,5 +1,5 @@
 server:
-  port: 80
+  port: 8080
 
 # 기본 활성 프로파일
 spring:
@@ -34,10 +34,10 @@ spring:
       enable-statistics: true
   data:
     redis:
-      host: ${REDIS_HOST:localhost}
+      host: ${REDIS_HOST:redis}
       port: ${REDIS_PORT:6379}
   kafka: # Kafka 설정
-    bootstrap-servers: localhost:9092
+    bootstrap-servers: kafka:29092
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.apache.kafka.common.serialization.StringSerializer

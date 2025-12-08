@@ -25,7 +25,7 @@ public class NotificationRequiredEventListener {
     @Async("notificationTaskExecutor")
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void on(MessageCreatedEvent event) {
+    public void handleMessageCreated(MessageCreatedEvent event) {
 
         UUID channelId = event.channelId();
         UUID messageId = event.messageId();
@@ -36,7 +36,7 @@ public class NotificationRequiredEventListener {
     @Async("notificationTaskExecutor")
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void on(RoleUpdatedEvent event) {
+    public void handleRoleUpdated(RoleUpdatedEvent event) {
 
         UUID userId = event.userId();
         Role before = event.beforeRole();
@@ -48,7 +48,7 @@ public class NotificationRequiredEventListener {
     @Async("notificationTaskExecutor")
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT, fallbackExecution = true)
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void on(S3FileUploadFailedEvent event) {
+    public void handleS3FileUploadFailed(S3FileUploadFailedEvent event) {
 
         UUID binaryContentId = event.binaryContentId();
         String requestId = event.requestId();

@@ -22,7 +22,7 @@ public class BinaryContentEventListener {
 
     @Async("fileTaskExecutor")
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void onBinaryContentCreated(BinaryContentCreatedEvent event) {
+    public void handleBinaryContentCreated(BinaryContentCreatedEvent event) {
 
         UUID binaryContentId = event.binaryContentId();
         byte[] bytes = event.bytes();

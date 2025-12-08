@@ -4,30 +4,38 @@ import com.sprint.mission.discodeit.auth.handler.CustomAccessDeniedHandler;
 import com.sprint.mission.discodeit.auth.handler.JwtLoginSuccessHandler;
 import com.sprint.mission.discodeit.auth.handler.JwtLogoutHandler;
 import com.sprint.mission.discodeit.auth.handler.LoginFailureHandler;
+import com.sprint.mission.discodeit.auth.handler.SpaCsrfTokenRequestHandler;
 import com.sprint.mission.discodeit.auth.jwt.JwtAuthenticationFilter;
 import com.sprint.mission.discodeit.auth.jwt.JwtTokenProvider;
 import com.sprint.mission.discodeit.auth.jwt.store.InMemoryJwtRegistry;
 import com.sprint.mission.discodeit.auth.jwt.store.JwtRegistry;
+import com.sprint.mission.discodeit.auth.jwt.store.RedisJwtRegistry;
 import com.sprint.mission.discodeit.entity.Role;
+import com.sprint.mission.discodeit.redis.RedisLockProvider;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.util.Arrays;
 import java.util.List;
 import java.util.function.Supplier;
 import java.util.stream.IntStream;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler;
 import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
+import org.springframework.security.access.hierarchicalroles.RoleHierarchyAuthoritiesMapper;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.authority.mapping.GrantedAuthoritiesMapper;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -41,6 +49,9 @@ import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 @Slf4j
 @Configuration
@@ -78,12 +89,31 @@ public class SecurityConfig {
     }
 
     @Bean
+    public GrantedAuthoritiesMapper authoritiesMapper(RoleHierarchy roleHierarchy) {
+        return new RoleHierarchyAuthoritiesMapper(roleHierarchy);
+    }
+
+    @Bean
     static MethodSecurityExpressionHandler methodSecurityExpressionHandler(
         RoleHierarchy roleHierarchy) {
         DefaultMethodSecurityExpressionHandler handler = new DefaultMethodSecurityExpressionHandler();
         handler.setRoleHierarchy(roleHierarchy);
         log.debug("[SecurityConfig] MethodSecurityExpressionHandler 설정 완료");
         return handler;
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(
+            List.of("http://localhost:3000"));
+        configuration.setAllowedMethods(
+            List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
+        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setAllowCredentials(true);
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
     }
 
     @Bean
@@ -98,18 +128,12 @@ public class SecurityConfig {
         log.debug("[SecurityConfig] FilterChain 구성 시작");
 
         http
+            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             // CSRF 설정
             .csrf(csrf -> csrf
                 .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler() {
-                    // 토큰을 강제 로드해서 XSRF-TOKEN 쿠키의 발급/회전을 보강하는 handle 메서드 재정의
-                    @Override
-                    public void handle(HttpServletRequest request, HttpServletResponse response,
-                        Supplier<CsrfToken> csrfToken) {
-                        super.handle(request, response, csrfToken);
-                        csrfToken.get();
-                    }
-                })
+                .csrfTokenRequestHandler(new SpaCsrfTokenRequestHandler())
+                .ignoringRequestMatchers("/ws/**")
             )
 
             // 요청 권한 설정
@@ -117,7 +141,8 @@ public class SecurityConfig {
                 .requestMatchers(
                     "/", "/index.html", "/favicon.ico", "/assets/**",
                     "/swagger-ui/**", "/v3/api-docs/**", "/actuator/**",
-                    "/error", "/error/**"
+                    "/error", "/error/**",
+                    "/ws/**"
                 ).permitAll()
 
                 .requestMatchers(
@@ -203,7 +228,13 @@ public class SecurityConfig {
     }
 
     @Bean
-    public JwtRegistry jwtRegistry(JwtTokenProvider jwtTokenProvider) {
-        return new InMemoryJwtRegistry(1, jwtTokenProvider);
+    public JwtRegistry jwtRegistry(
+        JwtTokenProvider jwtTokenProvider,
+        ApplicationEventPublisher applicationEventPublisher,
+        RedisTemplate<String, Object> redisTemplate,
+        RedisLockProvider redisLockProvider
+    ) {
+        return new RedisJwtRegistry(1, jwtTokenProvider, applicationEventPublisher, redisTemplate,
+            redisLockProvider);
     }
 }

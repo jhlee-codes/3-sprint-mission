@@ -14,6 +14,7 @@ import java.time.Instant;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.validation.FieldError;
@@ -27,7 +28,9 @@ public class GlobalExceptionHandler {
 
     private ResponseEntity<ErrorResponse> toErrorResponse(HttpStatus httpStatus, Throwable error) {
         if (error instanceof DiscodeitException discodeitException) {
-            return ResponseEntity.status(httpStatus)
+            return ResponseEntity
+                .status(httpStatus)
+                .contentType(MediaType.APPLICATION_JSON)
                 .body(ErrorResponse.of(httpStatus, discodeitException));
         }
 
@@ -38,7 +41,9 @@ public class GlobalExceptionHandler {
             message = fieldError != null ? fieldError.getDefaultMessage() : "잘못된 요청입니다.";
         }
 
-        return ResponseEntity.status(httpStatus)
+        return ResponseEntity
+            .status(httpStatus)
+            .contentType(MediaType.APPLICATION_JSON)
             .body(new ErrorResponse(
                 Instant.now(),
                 httpStatus.getReasonPhrase(),
